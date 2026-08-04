@@ -1,0 +1,18 @@
+.legal {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.legal__back {
+  color: var(--color-primary);
+  align-self: flex-start;
+}
+
+h1 {
+  color: var(--color-primary);
+  font-size: 28px;
+}

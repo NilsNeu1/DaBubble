@@ -1,0 +1,63 @@
+.avatar-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-picker__preview {
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-input-bg);
+}
+
+.avatar-picker__name {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.avatar-picker__label {
+  align-self: flex-start;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.avatar-picker__list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.avatar-picker__option {
+  padding: 3px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: transparent;
+
+  &--selected {
+    border-color: var(--color-primary);
+  }
+
+  img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.avatar-picker__error {
+  color: var(--color-error);
+  font-size: 13px;
+}
+
+.avatar-picker__actions {
+  align-self: flex-end;
+  margin-top: 12px;
+}

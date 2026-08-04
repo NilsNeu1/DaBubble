@@ -1,0 +1,56 @@
+<app-auth-card>
+  <div top-right>
+    Neu bei DABubble?
+    <a routerLink="/register">Konto erstellen</a>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+    <h1 class="login-form__title">Anmeldung</h1>
+    <p class="login-form__hint">
+      Wir empfehlen dir, die E-Mail-Adresse zu nutzen, die du bei der Arbeit verwendest.
+    </p>
+
+    <app-text-field
+      icon="email"
+      type="email"
+      placeholder="beispielname@email.com"
+      formControlName="email"
+      [errorMessage]="fieldError(form.controls.email)"
+    />
+
+    <app-text-field
+      icon="password"
+      type="password"
+      placeholder="Passwort"
+      formControlName="password"
+      [errorMessage]="fieldError(form.controls.password)"
+    />
+
+    <a routerLink="/forgot-password" class="login-form__forgot">Passwort vergessen?</a>
+
+    @if (formError()) {
+      <p class="login-form__error">{{ formError() }}</p>
+    }
+
+    <div class="login-form__divider"><span>ODER</span></div>
+
+    <button
+      type="button"
+      class="login-form__google"
+      [disabled]="submitting()"
+      (click)="loginWithGoogle()"
+    >
+      <img src="assets/Google.png" alt="" />
+      Anmelden mit Google
+    </button>
+
+    <div class="login-form__actions">
+      <app-button variant="primary" type="submit" [disabled]="submitting()">
+        Anmelden
+      </app-button>
+      <app-button variant="outline" type="button" [disabled]="submitting()" (clicked)="loginAsGuest()">
+        Gäste-Login
+      </app-button>
+    </div>
+  </form>
+</app-auth-card>

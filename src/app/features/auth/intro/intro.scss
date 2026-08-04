@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.intro {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #797ef3 0%, #3138ee 100%);
+  animation: remove-splash 650ms ease-in-out 2.25s forwards;
+}
+
+.intro__brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(-94px, -50%);
+  animation: move-brand-to-header 650ms ease-in-out 2.25s forwards;
+
+  img {
+    position: relative;
+    z-index: 1;
+    width: 188px;
+    height: 184px;
+    flex: 0 0 auto;
+    animation: shift-mark-left 600ms ease-out 500ms both;
+  }
+
+  span {
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: reveal-brand-name 650ms ease-out 550ms forwards;
+  }
+}
+
+@keyframes shift-mark-left {
+  from {
+    transform: translateX(94px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes reveal-brand-name {
+  from {
+    width: 0;
+    margin-left: 0;
+  }
+  to {
+    width: 410px;
+    margin-left: 28px;
+  }
+}
+
+@keyframes move-brand-to-header {
+  to {
+    left: 75px;
+    top: 75px;
+    color: #000;
+    font-size: 32px;
+    transform: translate(0, 0) scale(0.37);
+    transform-origin: top left;
+    opacity: 0;
+  }
+}
+
+@keyframes remove-splash {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .intro__brand {
+    font-size: 42px;
+    transform: translate(-55px, -50%);
+
+    img {
+      width: 110px;
+      height: 108px;
+    }
+  }
+
+  @keyframes shift-mark-left {
+    from {
+      transform: translateX(55px);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes reveal-brand-name {
+    from {
+      width: 0;
+      margin-left: 0;
+    }
+    to {
+      width: 240px;
+      margin-left: 16px;
+    }
+  }
+
+  @keyframes move-brand-to-header {
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.55);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+    animation: none;
+  }
+}

@@ -1,0 +1,34 @@
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.register-form__hint {
+  text-align: center;
+  color: var(--color-text);
+}
+
+.register-form__terms {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+}
+
+.register-form__error {
+  color: var(--color-error);
+  font-size: 13px;
+}
+
+.register-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
