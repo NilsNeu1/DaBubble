@@ -7,5 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './workspace-menu.scss',
 })
 export class WorkspaceMenu {
-
+isChannelOpen: boolean = true;
+isDirectMessageOpen: boolean = true;
 }

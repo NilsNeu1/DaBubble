@@ -1,0 +1,133 @@
+.a {
+    background-color: #ECEEFE;
+    height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 40px;
+    color: black
+}
+
+.workspace-container {
+    background-color: white !important;
+    max-width: 366px;
+    min-width: fit-content;
+    height: 90vh;
+    border-radius: 20px;
+    box-sizing: border-box;
+    padding: 25px 20px;
+}
+
+.workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+
+    h1 {
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        img {
+            width: 60px;
+            height: 60px;
+        }
+    }
+}
+
+.channel-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.channel-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin-left: 60px;
+
+    .add-channel-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 20px;
+        padding: 5px 10px;
+
+        &:hover {
+            color: #535AF1;
+        }
+    }
+
+    .channel-list-element {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 15px;
+        cursor: pointer;
+        padding: 5px 10px;
+
+        &:hover {
+            background-color: #ECEEFE;
+            border-radius: 20px;
+            color: #535AF1;
+        }
+    }
+}
+
+.channel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    .channel-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        cursor: pointer;
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        &:hover {
+            color: #535AF1;
+        }
+    }
+}
+
+.direct-message-container {
+    display: flex;
+    flex-direction: column;
+    .direct-message-header {
+        margin-top: 30px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        width: 100%;
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        &:hover {
+            color: #535AF1;
+        }
+    }
+
+    .direct-message-list {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        margin-left: 60px;
+    }
+}
