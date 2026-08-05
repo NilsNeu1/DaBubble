@@ -17,6 +17,19 @@
     padding: 25px 20px;
 }
 
+.workspace-open {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.workspace-close {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
 .workspace-header {
     display: flex;
     align-items: center;
@@ -56,9 +69,19 @@
         gap: 10px;
         margin-top: 20px;
         padding: 5px 10px;
+        cursor: pointer;
+
+        .add-img-btn {
+            width: 17px !important;
+            height: 17px !important;
+        }
 
         &:hover {
             color: #535AF1;
+
+            .add-img-btn {
+                content: url('../../../../public/assets/add_circle_hover.png');
+            }
         }
     }
 
@@ -70,11 +93,30 @@
         cursor: pointer;
         padding: 5px 10px;
 
+        img {
+            width: 17px;
+            height: 17px;
+        }
+
         &:hover {
             background-color: #ECEEFE;
             border-radius: 20px;
             color: #535AF1;
+
+            img {
+                content: url('../../../../public/assets/tag.png');
+            }
         }
+    }
+}
+
+.channel-list-element.active {
+    background-color: #ECEEFE;
+    border-radius: 20px;
+    color: #535AF1;
+
+    img {
+        content: url('../../../../public/assets/tag.png');
     }
 }
 
@@ -98,6 +140,10 @@
 
         &:hover {
             color: #535AF1;
+
+            .channel-img {
+                content: url('../../../../public/assets/channels-blue.png');
+            }
         }
     }
 }
@@ -105,29 +151,128 @@
 .direct-message-container {
     display: flex;
     flex-direction: column;
+
     .direct-message-header {
         margin-top: 30px;
+        margin-bottom: 20px;
         display: flex;
         align-items: center;
         gap: 30px;
         width: 100%;
+        cursor: pointer;
+
+        .account-icon {
+            width: 20px;
+            height: 20px;
+        }
 
         h2 {
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 20px;
         }
+
         &:hover {
             color: #535AF1;
+
+            .account-icon {
+                content: url('../../../../public/assets/account_circle-hover.png');
+            }
         }
     }
 
     .direct-message-list {
-        margin-top: 20px;
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
-        margin-left: 60px;
+        align-items: center;
+        gap: 10px;
+        width: fit-content;
+        padding: 5px 15px;
+        margin-left: 35px;
+        margin-top: 10px;
+        cursor: pointer;
+
+        h3 {
+            font-size: 18px;
+            font-weight: 400;
+        }
+
+        &:hover {
+            border-radius: 40px;
+            background-color: #ECEEFE;
+            color: #535AF1;
+        }
     }
+}
+
+.direct-message-list.active {
+    background-color: #ECEEFE;
+    color: #535AF1;
+    border-radius: 40px;
+}
+
+
+.user-icon-container {
+    position: relative;
+
+    .user_icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .online-icon {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+    }
+}
+
+.workspace-toggle-btn {
+    position: absolute;
+    left: 0px;
+    top: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    background-color: white;
+    box-shadow: 4px 4px 4px rgba(56, 56, 56, 0.25);
+    border-radius: 0 20px 20px 0;
+    width: 56px;
+    height: 347px;
+    cursor: pointer;
+
+
+
+    h2 {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+        font-size: 20px;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    &:hover {
+        color: #535AF1;
+        transform: scaleX(1.1);
+
+        h2 {
+            font-size: 21px;
+        }
+    }
+}
+
+.dnone {
+    display: none !important;
+}
+
+.arrow-img-down {
+    width: 10px;
+    height: 6px;
+}
+
+.arrow-img-right {
+    width: 6px;
+    height: 10px;
 }
