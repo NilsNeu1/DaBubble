@@ -25,7 +25,9 @@
       </button>
     }
   </div>
-  @if (errorMessage()) {
-    <span class="field__error">{{ errorMessage() }}</span>
-  }
+  <span
+    class="field__error"
+    [class.field__error--visible]="errorMessage()"
+    aria-live="polite"
+  >{{ errorMessage() ?? '' }}</span>
 </div>

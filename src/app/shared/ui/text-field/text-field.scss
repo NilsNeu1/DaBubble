@@ -1,7 +1,7 @@
 .field {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   width: 100%;
 }
 
@@ -70,7 +70,60 @@ input {
 }
 
 .field__error {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 3px);
+  left: 0;
+  width: 100%;
+  overflow: hidden;
   color: var(--color-error);
   font-size: 13px;
-  padding-left: 24px;
+  line-height: 1.2;
+  text-align: left;
+  padding-left: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transform-origin: top;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 0ms linear 180ms;
+  pointer-events: none;
+}
+
+.field__error--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 0ms;
+}
+
+@media (max-width: 700px) {
+  .field__control {
+    height: clamp(3.125rem, 14vw, 3.75rem);
+    padding-inline: clamp(1rem, 6vw, 2rem);
+  }
+
+  .field__icon {
+    width: clamp(1.25rem, 6vw, 1.5rem);
+    height: auto;
+    margin-right: clamp(1rem, 6vw, 1.8rem);
+  }
+
+  input {
+    font-size: clamp(0.9rem, 4.2vw, 1.125rem);
+  }
+
+  .field__toggle img {
+    width: clamp(1.2rem, 5.5vw, 1.4rem);
+    height: auto;
+  }
+
+  .field__error {
+    font-size: clamp(0.7rem, 3vw, 0.8125rem);
+  }
 }

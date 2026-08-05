@@ -1,13 +1,37 @@
 .login-form {
   display: flex;
   flex-direction: column;
+  transition: gap 320ms ease;
+}
+
+.login-signup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  a {
+    padding: 5px 15px;
+    border: 1px solid transparent;
+    border-radius: 30px;
+    color: #797ef3;
+    font-weight: 400;
+    transition: none;
+
+    &:hover {
+      border-color: var(--color-border);
+      color: #444df2;
+      background: var(--color-bg);
+      text-shadow: 0.35px 0 currentColor, -0.35px 0 currentColor;
+    }
+  }
 }
 
 .login-form__title {
   font-size: 46px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-primary);
+  color: #444df2;
 }
 
 .login-form__hint {
@@ -26,6 +50,7 @@ app-text-field + app-text-field {
   padding: 5px 15px;
   border-radius: 30px;
   font-size: 18px;
+  color: #797ef3;
 
   &:hover {
     color: var(--color-primary);
@@ -65,14 +90,15 @@ app-text-field + app-text-field {
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: var(--color-input-bg);
-  color: var(--color-primary);
+  color: #444df2;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
   cursor: pointer;
   transition: border-color 0.12s ease;
 
   &:hover:enabled {
     border-color: var(--color-primary);
+    text-shadow: 0.35px 0 currentColor, -0.35px 0 currentColor;
   }
 
   img {
@@ -91,43 +117,55 @@ app-text-field + app-text-field {
 }
 
 @media (max-width: 700px) {
+  .login-signup {
+    gap: clamp(0.5rem, 2.5vw, 0.75rem);
+  }
+
   .login-form__title {
-    font-size: clamp(32px, 10vw, 40px);
+    font-size: clamp(2rem, 9vw, 2.5rem);
   }
 
   .login-form__hint {
-    margin: 22px 0 30px;
-    font-size: 17px;
+    margin: clamp(1rem, 5vw, 1.5rem) 0 clamp(1.5rem, 6vw, 2rem);
+    font-size: clamp(1rem, 4.5vw, 1.125rem);
     line-height: 1.35;
   }
 
   app-text-field + app-text-field {
-    margin-top: 22px;
+    margin-top: clamp(1.5rem, 6vw, 2rem);
   }
 
   .login-form__forgot {
-    margin: 24px 0 22px;
-    font-size: 16px;
+    margin: clamp(1.5rem, 6vw, 2rem) 0 clamp(1.25rem, 5vw, 1.75rem);
+    font-size: clamp(1rem, 4.5vw, 1.125rem);
   }
 
   .login-form__divider {
-    margin-bottom: 28px;
-    font-size: 16px;
+    gap: clamp(0.75rem, 4vw, 1rem);
+    margin-bottom: clamp(1.25rem, 5vw, 1.75rem);
+    font-size: clamp(1rem, 4.5vw, 1.125rem);
   }
 
   .login-form__google {
-    height: 56px;
-    font-size: 16px;
+    height: clamp(3.125rem, 14vw, 3.75rem);
+    font-size: clamp(1rem, 4.5vw, 1.125rem);
 
     img {
-      width: 32px;
-      height: 32px;
-      margin-right: 14px;
+      width: clamp(2rem, 9vw, 2.375rem);
+      height: auto;
+      margin-right: clamp(0.875rem, 4vw, 1.5rem);
     }
   }
 
   .login-form__actions {
-    gap: 12px;
-    margin-top: 28px;
+    flex-wrap: nowrap;
+    gap: clamp(0.75rem, 5vw, 1.25rem);
+    margin-top: clamp(1.25rem, 5vw, 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-form {
+    transition: none;
   }
 }

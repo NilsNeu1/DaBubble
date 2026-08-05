@@ -9,6 +9,7 @@ import { RouterLink } from '@angular/router';
 })
 export class AuthCard {
   readonly title = input('');
+  readonly titleLine2 = input('');
   readonly showBackButton = input(false);
   readonly back = output<void>();
 }

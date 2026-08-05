@@ -1,6 +1,6 @@
 <app-auth-card>
-  <div top-right>
-    Neu bei DABubble?
+  <div top-right class="login-signup">
+    <span>Neu bei DABubble?</span>
     <a routerLink="/register">Konto erstellen</a>
   </div>
 
@@ -15,7 +15,7 @@
       type="email"
       placeholder="beispielname@email.com"
       formControlName="email"
-      [errorMessage]="fieldError(form.controls.email)"
+      [errorMessage]="emailError()"
     />
 
     <app-text-field
@@ -23,14 +23,10 @@
       type="password"
       placeholder="Passwort"
       formControlName="password"
-      [errorMessage]="fieldError(form.controls.password)"
+      [errorMessage]="passwordError()"
     />
 
     <a routerLink="/forgot-password" class="login-form__forgot">Passwort vergessen?</a>
-
-    @if (formError()) {
-      <p class="login-form__error">{{ formError() }}</p>
-    }
 
     <div class="login-form__divider"><span>ODER</span></div>
 

@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
-import { fieldError } from '../../../shared/forms/field-error';
 import { AuthCard } from '../../../shared/ui/auth-card/auth-card';
 import { Button } from '../../../shared/ui/button/button';
 import { TextField } from '../../../shared/ui/text-field/text-field';
@@ -18,7 +17,6 @@ export class Register {
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
 
-  readonly fieldError = fieldError;
   readonly submitting = signal(false);
   readonly formError = signal<string | null>(null);
 
@@ -28,6 +26,23 @@ export class Register {
     password: ['', [Validators.required, Validators.minLength(6)]],
     acceptTerms: [false, [Validators.requiredTrue]],
   });
+
+  nameError(): string | null {
+    const control = this.form.controls.name;
+    return control.touched && control.invalid ? 'Bitte schreiben Sie einen Namen.' : null;
+  }
+
+  emailError(): string | null {
+    const control = this.form.controls.email;
+    return control.touched && control.invalid
+      ? '*Diese E-Mail-Adresse ist leider ungültig.'
+      : null;
+  }
+
+  passwordError(): string | null {
+    const control = this.form.controls.password;
+    return control.touched && control.invalid ? 'Bitte geben Sie ein Passwort ein.' : null;
+  }
 
   goBack(): void {
     this.router.navigateByUrl('/login');

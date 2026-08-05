@@ -1,4 +1,4 @@
-<app-auth-card title="Konto erstellen" [showBackButton]="true" (back)="goBack()">
+<app-auth-card class="register-page" title="Konto erstellen" [showBackButton]="true" (back)="goBack()">
   <form [formGroup]="form" (ngSubmit)="submit()" class="register-form">
     <p class="register-form__hint">
       Mit deinem Namen und deiner E-Mail-Adresse hast du dein neues DABubble-Konto.
@@ -8,7 +8,7 @@
       icon="person"
       placeholder="Name und Nachname"
       formControlName="name"
-      [errorMessage]="fieldError(form.controls.name)"
+      [errorMessage]="nameError()"
     />
 
     <app-text-field
@@ -16,7 +16,7 @@
       type="email"
       placeholder="beispielname@email.com"
       formControlName="email"
-      [errorMessage]="fieldError(form.controls.email)"
+      [errorMessage]="emailError()"
     />
 
     <app-text-field
@@ -24,23 +24,21 @@
       type="password"
       placeholder="Passwort"
       formControlName="password"
-      [errorMessage]="fieldError(form.controls.password)"
+      [errorMessage]="passwordError()"
     />
 
     <label class="register-form__terms">
       <input type="checkbox" formControlName="acceptTerms" />
-      Ich stimme der <a routerLink="/datenschutz">Datenschutzerklärung</a> zu.
+      <span>Ich stimme der <a routerLink="/datenschutz">Datenschutzerklärung</a> zu.</span>
     </label>
-    @if (fieldError(form.controls.acceptTerms); as error) {
-      <span class="register-form__error">{{ error }}</span>
-    }
-
     @if (formError()) {
       <p class="register-form__error">{{ formError() }}</p>
     }
 
     <div class="register-form__actions">
-      <app-button variant="primary" type="submit" [disabled]="submitting()">Weiter</app-button>
+      <app-button variant="primary" type="submit" [disabled]="form.invalid || submitting()">
+        Weiter
+      </app-button>
     </div>
   </form>
 </app-auth-card>
