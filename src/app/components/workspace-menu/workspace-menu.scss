@@ -80,7 +80,7 @@
             color: #535AF1;
 
             .add-img-btn {
-                content: url('../../../../public/assets/add_circle_hover.png');
+                content: url('../../../../public/assets/add_circle-hover.png');
             }
         }
     }
@@ -146,6 +146,41 @@
             }
         }
     }
+}
+
+.add-img {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  padding: 9px;
+  &:hover {
+    content: url('../../../../public/assets/add-hover.png');
+     background-color: #ECEEFE;
+     border-radius: 50%;
+  }
+}
+
+.edit-img-background {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #eceefe;
+
+        .edit-img {
+            content: url('../../../../public/assets/edit_square-hover.png');
+        }
+    }
+}
+
+.edit-img {
+    width: 20px;
+    height: 20px;
 }
 
 .direct-message-container {

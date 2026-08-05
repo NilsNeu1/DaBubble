@@ -13,6 +13,7 @@ export class WorkspaceMenu {
   isDirectMessageOpen: boolean = true;
   hoverDirectMessage: boolean = false;
   isWorkspaceMenuOpen: boolean = true;
+  hoverWorkspaceMenu: boolean = false;
   selectedChannel: string | null = null;
   selectedUser: string | null = null;
 
@@ -52,6 +53,20 @@ export class WorkspaceMenu {
     }
   }
 
+  getWorkspaceToggleIcon(){
+    if(this.hoverWorkspaceMenu && this.isWorkspaceMenuOpen){
+      return 'assets/Group 2-hover.png';
+    }else if(this.hoverWorkspaceMenu && !this.isWorkspaceMenuOpen){
+      return 'assets/Group 1-hover.png';
+    }
+
+    if(this.isWorkspaceMenuOpen){
+      return 'assets/Group 2.png';
+    } else {
+      return 'assets/Group 1.png';
+    }
+  }
+
   channelIconToggle(ref: 'isChannelOpen' | 'isDirectMessageOpen', refHover: 'hoverDirectMessage' | 'hoverChannel'): string {
     if (this[refHover] && this[ref]) {
       return 'assets/arrow_drop_down-hover.png';
@@ -66,6 +81,8 @@ export class WorkspaceMenu {
     }
   }
 
+
+
   openChannel(channelName: string) {
     this.selectedChannel = channelName;
     this.selectedUser = null;
@@ -74,5 +91,12 @@ export class WorkspaceMenu {
   openDirectMessage(userName: string) {
     this.selectedUser = userName;
      this.selectedChannel = null;
+  }
+
+  openNewDirectMessage(){
+
+  }
+
+  createChatGroup(){
   }
 }
