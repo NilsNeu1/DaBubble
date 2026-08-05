@@ -1,0 +1,49 @@
+.create-channel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    min-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+.overlay {
+    background-color: white;
+    border-radius: 20px;
+    box-sizing: border-box;
+    padding: 20px;
+
+    .overlay-span {
+        font-size: 18px;
+        font-weight: 400;
+        margin-bottom: 20px;
+    }
+
+    .overlay-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.overlay-body {
+    margin-top: 20px;
+    .overlay-input {
+        display: flex;
+        flex-direction: column;
+
+        input {
+            border: 1px solid #ADB0D9;
+            border-radius: 20px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    }
+}
