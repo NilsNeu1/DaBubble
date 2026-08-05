@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CreateChannel } from '../create-channel/create-channel';
 
 @Component({
   selector: 'app-workspace-menu',
-  imports: [CommonModule],
+  imports: [CommonModule, CreateChannel],
   templateUrl: './workspace-menu.html',
   styleUrl: './workspace-menu.scss',
 })
