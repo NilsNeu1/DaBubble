@@ -1,0 +1,111 @@
+.profile-dialog {
+    &__form {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        width: 100%;
+        min-height: 0;
+        margin-top: 20px;
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    &__label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 700;
+
+        img {
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+        }
+    }
+
+    &__input {
+        align-self: center;
+        width: 420px;
+        max-width: 100%;
+        height: 52px;
+        margin-top: 12px;
+        padding: 0 20px;
+        box-sizing: border-box;
+        border: 1px solid #adb0d9;
+        border-radius: 30px;
+        color: #000000;
+        background-color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+
+        &::placeholder {
+            color: #686868;
+            font-size: 18px;
+            font-weight: 500;
+            opacity: 1;
+        }
+
+        &:hover {
+            border-color: #797ef3;
+        }
+
+        &:focus {
+            border-color: #535af1;
+            outline: none;
+        }
+    }
+
+    &__error {
+        margin: 6px 20px 0;
+        color: #ed1e79;
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        margin-top: auto;
+        padding-top: 20px;
+    }
+
+    &__button {
+        width: 140px;
+        height: 50px;
+        box-sizing: border-box;
+        border-radius: 50px;
+        font-size: 18px;
+        font-weight: 700;
+
+        &--secondary {
+            border: 1px solid #797ef3;
+            color: #444df2;
+            background-color: #ffffff;
+
+            &:hover {
+                border-color: #444df2;
+                color: #ffffff;
+                background-color: #444df2;
+            }
+        }
+
+        &--primary {
+            border: 1px solid #444df2;
+            color: #ffffff;
+            background-color: #444df2;
+
+            &:not(:disabled):hover {
+                border-color: #797ef3;
+                background-color: #797ef3;
+            }
+        }
+    }
+}

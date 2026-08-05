@@ -1,0 +1,111 @@
+.profile-dialog {
+    &__profile-data {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    &__name-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        width: 100%;
+    }
+
+    &__name {
+        min-width: 0;
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    &__edit-button {
+        flex-shrink: 0;
+        border: none;
+        color: #535af1;
+        background-color: transparent;
+        font-size: 18px;
+        font-weight: 600;
+
+        &:hover {
+            color: #444df2;
+            font-weight: 700;
+        }
+    }
+
+    &__edit-text {
+        display: inline;
+    }
+
+    &__edit-icon {
+        display: none;
+        width: 18px;
+        height: 18px;
+        background-color: #000000;
+        -webkit-mask-image: url('/assets/edit.png');
+        mask-image: url('/assets/edit.png');
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    &__status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    &__status-icon {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    &__status-text {
+        color: #92c83e;
+        font-size: 20px;
+        font-weight: 400;
+    }
+
+    &__email {
+        display: flex;
+        flex-direction: column;
+        margin-top: 26px;
+    }
+
+    &__email-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        img {
+            width: 25px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+    }
+
+    &__email-address {
+        margin-top: 8px;
+        margin-left: 37px;
+        color: revert;
+        font-size: 18px;
+        font-weight: 500;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+    }
+}

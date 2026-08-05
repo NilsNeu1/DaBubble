@@ -1,0 +1,38 @@
+:host {
+    display: block;
+}
+
+.app-header {
+    width: 100%;
+    background-color: #eceefe;
+
+    img {
+        display: block;
+        max-width: 100%;
+    }
+
+    button,
+    input {
+        border: none;
+        font-family: inherit;
+    }
+
+    button {
+        background: transparent;
+        cursor: pointer;
+    }
+
+    &__desktop {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: 48px;
+        width: 100%;
+        padding: 18px 48px;
+        box-sizing: border-box;
+
+        .app-header__logo {
+            object-fit: contain;
+        }
+    }
+}

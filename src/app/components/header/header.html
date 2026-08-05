@@ -1,0 +1,289 @@
+<header class="app-header">
+    <div class="app-header__desktop">
+        <img class="app-header__logo" src="assets/logo-header.png" alt="DaBubble" />
+
+        <div class="app-header__search app-header__search--desktop" role="search">
+            <label class="visually-hidden" for="desktop-workspace-search">
+                Devspace durchsuchen
+            </label>
+
+            <input id="desktop-workspace-search" class="app-header__search-input" type="search"
+                name="desktopWorkspaceSearch" placeholder="Devspace durchsuchen" autocomplete="off" spellcheck="false"
+                role="combobox" aria-autocomplete="list" [attr.aria-expanded]="isSearchSuggestionListOpen()"
+                aria-controls="desktop-search-results" [value]="workspaceSearchTerm()"
+                (input)="updateWorkspaceSearch($event)" />
+
+            <button class="app-header__search-button" type="button" aria-label="Suche starten">
+                <img src="assets/search.png" alt="" />
+            </button>
+
+            @if (isSearchSuggestionListOpen()) {
+            <!-- TEMP-HEADER-PREVIEW: Displays temporary desktop search suggestions. -->
+            <div id="desktop-search-results" class="app-header__search-results app-header__search-results--desktop"
+                role="listbox" aria-label="Suchergebnisse">
+                @for (
+                suggestion of workspaceSearchSuggestions();
+                track suggestion.id
+                ) {
+                <button class="app-header__search-result" type="button" role="option" aria-selected="false">
+                    @if (suggestion.type === 'message') {
+                    @if (suggestion.avatarUrl) {
+                    <span class="app-header__search-result-avatar-wrapper">
+                        <img class="app-header__search-result-avatar" [src]="suggestion.avatarUrl" alt="" />
+                    </span>
+                    }
+
+                    <span class="app-header__message-result-content">
+                        @if (suggestion.contextLabel) {
+                        <span class="app-header__message-result-context">
+                            {{ suggestion.contextLabel }}
+                        </span>
+                        }
+
+                        <span class="app-header__message-result-meta">
+                            @if (suggestion.authorName) {
+                            <span class="app-header__message-result-author">
+                                {{ suggestion.authorName }}
+                            </span>
+                            }
+
+                            @if (suggestion.timestamp) {
+                            <span class="app-header__message-result-time">
+                                {{ suggestion.timestamp }}
+                            </span>
+                            }
+                        </span>
+
+                        <span class="app-header__message-result-text">
+                            {{ suggestion.label }}
+                        </span>
+                    </span>
+                    } @else {
+                    @if (suggestion.type === 'user' && suggestion.avatarUrl) {
+                    <span class="app-header__search-result-avatar-wrapper">
+                        <img class="app-header__search-result-avatar" [src]="suggestion.avatarUrl" alt="" />
+
+                        @if (suggestion.status) {
+                        <img class="app-header__search-result-status" [src]="suggestion.status === 'online'
+                            ? 'assets/Online.png'
+                            : 'assets/Offline.png'" alt="" />
+
+                        <span class="visually-hidden">
+                            {{ suggestion.status === 'online'
+                            ? 'Online'
+                            : 'Offline' }}
+                        </span>
+                        }
+                    </span>
+                    }
+
+                    @if (suggestion.type === 'channel') {
+                    <span class="app-header__search-result-channel-icon" aria-hidden="true">
+                        #
+                    </span>
+                    }
+
+                    <span class="app-header__search-result-label">
+                        {{ suggestion.label }}
+                    </span>
+                    }
+                </button>
+                }
+            </div>
+            }
+        </div>
+
+        <!-- TEMP-HEADER-PREVIEW: Replace static user data with Firebase bindings. -->
+        <button class="app-header__user-button" type="button" aria-label="Benutzermenü öffnen" aria-haspopup="dialog"
+            aria-controls="header-user-dialog" [attr.aria-expanded]="isUserMenuOpen()" (click)="toggleUserMenu()">
+            <span class="app-header__user-name">
+                Header Testuser
+            </span>
+
+            <span class="app-header__avatar-wrapper">
+                <img class="app-header__avatar" src="assets/default-user-avatar.png" alt="" />
+
+                <img class="app-header__status" src="assets/Online.png" alt="" />
+            </span>
+
+            <span class="visually-hidden">
+                Status: online
+            </span>
+
+            <img class="app-header__dropdown-icon" [class.app-header__dropdown-icon--open]="isUserMenuOpen()"
+                src="assets/arrow-header-drop-down.png" alt="" />
+        </button>
+    </div>
+
+    <div class="app-header__mobile">
+        <div class="app-header__mobile-topbar">
+            <div class="app-header__mobile-brand">
+                <img class="app-header__logo" src="assets/logo-header.png" alt="DaBubble" />
+            </div>
+
+            <div class="app-header__mobile-workspace" hidden>
+                <button class="app-header__back-button" type="button" aria-label="Zur Workspace-Übersicht zurück">
+                    <img class="app-header__back-icon" src="assets/back-arrow-mobile-black.png" alt="" />
+
+                    <img class="app-header__workspace-logo" src="assets/Workspace_logo.png" alt="" />
+
+                    <span class="app-header__workspace-name">
+                        Devspace
+                    </span>
+                </button>
+            </div>
+
+            <!-- TEMP-HEADER-PREVIEW: Replace the static avatar with Firebase user data. -->
+            <button class="app-header__mobile-user-button" type="button" aria-label="Benutzermenü öffnen"
+                aria-haspopup="dialog" aria-controls="header-user-dialog" [attr.aria-expanded]="isUserMenuOpen()"
+                (click)="toggleUserMenu()">
+                <span class="app-header__avatar-wrapper">
+                    <img class="app-header__avatar" src="assets/default-user-avatar.png" alt="" />
+
+                    <img class="app-header__status" src="assets/Online.png" alt="" />
+                </span>
+
+                <span class="visually-hidden">
+                    Status: online
+                </span>
+            </button>
+        </div>
+
+        @if (isMobileSearchActive()) {
+        <div class="app-header__mobile-search-header">
+            <h2 class="app-header__mobile-search-title">
+                Search
+            </h2>
+
+            <button class="app-header__mobile-search-close" type="button" aria-label="Suche leeren und schließen"
+                (click)="clearWorkspaceSearch()">
+                <img src="assets/close.svg" alt="" />
+            </button>
+        </div>
+        }
+
+        <div class="app-header__search app-header__search--mobile" role="search">
+            <label class="visually-hidden" for="mobile-workspace-search">
+                Devspace durchsuchen
+            </label>
+
+            <div class="app-header__mobile-search-field">
+                <input id="mobile-workspace-search" class="app-header__search-input" type="search"
+                    name="mobileWorkspaceSearch" placeholder="Gehe zu..." autocomplete="off" spellcheck="false"
+                    role="combobox" aria-autocomplete="list" [attr.aria-expanded]="isSearchSuggestionListOpen()"
+                    aria-controls="mobile-search-results" [value]="workspaceSearchTerm()"
+                    (input)="updateWorkspaceSearch($event)" />
+
+                <button class="app-header__search-button" type="button" aria-label="Suche öffnen">
+                    <img src="assets/search.png" alt="" />
+                </button>
+            </div>
+
+            @if (isSearchSuggestionListOpen()) {
+            <!-- TEMP-HEADER-PREVIEW: Displays mobile search results until the workspace handles them. -->
+            <div id="mobile-search-results" class="app-header__search-results app-header__search-results--mobile"
+                role="listbox" aria-label="Suchergebnisse">
+                @for (
+                suggestion of workspaceSearchSuggestions();
+                track suggestion.id
+                ) {
+                <button class="app-header__search-result app-header__search-result--mobile" type="button" role="option"
+                    aria-selected="false">
+                    @if (suggestion.type === 'message') {
+                    @if (suggestion.avatarUrl) {
+                    <span class="app-header__search-result-avatar-wrapper">
+                        <img class="app-header__search-result-avatar" [src]="suggestion.avatarUrl" alt="" />
+                    </span>
+                    }
+
+                    <span class="app-header__message-result-content">
+                        @if (suggestion.contextLabel) {
+                        <span class="app-header__message-result-context">
+                            {{ suggestion.contextLabel }}
+                        </span>
+                        }
+
+                        <span class="app-header__message-result-meta">
+                            @if (suggestion.authorName) {
+                            <span class="app-header__message-result-author">
+                                {{ suggestion.authorName }}
+                            </span>
+                            }
+
+                            @if (suggestion.timestamp) {
+                            <span class="app-header__message-result-time">
+                                {{ suggestion.timestamp }}
+                            </span>
+                            }
+                        </span>
+
+                        <span class="app-header__message-result-text">
+                            {{ suggestion.label }}
+                        </span>
+                    </span>
+                    } @else {
+                    @if (suggestion.type === 'user' && suggestion.avatarUrl) {
+                    <span class="app-header__search-result-avatar-wrapper">
+                        <img class="app-header__search-result-avatar" [src]="suggestion.avatarUrl" alt="" />
+
+                        @if (suggestion.status) {
+                        <img class="app-header__search-result-status" [src]="
+                            suggestion.status === 'online'
+                                ? 'assets/Online.png'
+                                : 'assets/Offline.png'
+                        " alt="" />
+
+                        <span class="visually-hidden">
+                            {{
+                            suggestion.status === 'online'
+                            ? 'Online'
+                            : 'Offline'
+                            }}
+                        </span>
+                        }
+                    </span>
+                    }
+
+                    @if (suggestion.type === 'channel') {
+                    <span class="app-header__search-result-channel-icon" aria-hidden="true">
+                        #
+                    </span>
+                    }
+
+                    <span class="app-header__search-result-label">
+                        {{ suggestion.label }}
+                    </span>
+                    }
+                </button>
+                }
+            </div>
+            }
+        </div>
+    </div>
+
+    <dialog #userDialog id="header-user-dialog" class="app-header__user-dialog"
+        aria-labelledby="header-user-dialog-title" [class.app-header__user-dialog--closing]="isUserMenuClosing()"
+        (close)="handleUserMenuClosed()" (cancel)="handleUserMenuCancel($event)"
+        (animationend)="handleUserMenuAnimationEnd($event)" (click)="closeUserMenuFromBackdrop($event)">
+        <div class="app-header__user-dialog-content">
+            <h2 id="header-user-dialog-title" class="visually-hidden">
+                Benutzermenü
+            </h2>
+
+            <span class="app-header__mobile-dialog-handle" aria-hidden="true"></span>
+
+            <button class="app-header__menu-button" type="button" (click)="openProfileFromUserMenu()">
+                <span class="app-header__menu-icon app-header__menu-icon--profile" aria-hidden="true"></span>
+
+                <span>Profil</span>
+            </button>
+
+            <button class="app-header__menu-button" type="button">
+                <span class="app-header__menu-icon app-header__menu-icon--logout" aria-hidden="true"></span>
+
+                <span>Log out</span>
+            </button>
+        </div>
+    </dialog>
+    <app-profile-dialog #profileDialogComponent />
+</header>
