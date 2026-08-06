@@ -1,5 +1,4 @@
-<div class="a">
-    <section class="workspace-container" [ngClass]="isWorkspaceMenuOpen ? 'workspace-open' : 'workspace-close'">
+<section class="workspace-container" [ngClass]="isWorkspaceMenuOpen ? 'workspace-open' : 'workspace-close'">
         <div class="workspace-header">
 
             <h1><img src="assets/Workspace_logo.png" alt="Workspace Logo" class="workspace-logo">Devspace</h1>
@@ -48,4 +47,3 @@
         <h2>Workspace-Menü schließen</h2>
     </div>
     <app-create-channel [isOverlayOpen]="isOpen" (close)="isOpen = false"></app-create-channel>
-</div>
