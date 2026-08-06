@@ -2,12 +2,16 @@ import {
   Component,
   computed,
   ElementRef,
+  input,
   signal,
   ViewChild,
 } from '@angular/core';
 import {
   ProfileDialog
 } from '../profile-dialog/profile-dialog';
+import {
+  RouterLink
+} from '@angular/router';
 
 type WorkspaceSearchResultType = 'user' | 'channel' | 'message';
 
@@ -24,7 +28,7 @@ interface WorkspaceSearchResult {
 
 @Component({
   selector: 'app-header',
-  imports: [ProfileDialog],
+  imports: [ProfileDialog, RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
@@ -36,6 +40,9 @@ export class Header {
   /** References the profile dialog component. */
   @ViewChild('profileDialogComponent')
   private profileDialogComponent!: ProfileDialog;
+
+  /** Defines where the header is displayed. */
+  public readonly mode = input<'workspace' | 'legal'>('workspace');
 
   /** Defines the breakpoint for the mobile user menu. */
   private readonly mobileBreakpoint = '(max-width: 1024px)';
