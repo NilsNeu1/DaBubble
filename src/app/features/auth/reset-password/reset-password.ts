@@ -8,18 +8,24 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Auth } from '../../../core/services/auth';
-import { fieldError } from '../../../shared/forms/field-error';
 import { AuthCard } from '../../../shared/ui/auth-card/auth-card';
 import { Button } from '../../../shared/ui/button/button';
 import { TextField } from '../../../shared/ui/text-field/text-field';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
+  const confirmControl = group.get('confirmPassword');
   const password = group.get('password')?.value;
-  const confirmPassword = group.get('confirmPassword')?.value;
+  const confirmPassword = confirmControl?.value;
+
+  const { passwordMismatch, ...otherErrors } = confirmControl?.errors ?? {};
+  const hasOtherErrors = Object.keys(otherErrors).length > 0;
+
   if (password && confirmPassword && password !== confirmPassword) {
-    group.get('confirmPassword')?.setErrors({ passwordMismatch: true });
+    confirmControl?.setErrors({ ...otherErrors, passwordMismatch: true });
     return { passwordMismatch: true };
   }
+
+  confirmControl?.setErrors(hasOtherErrors ? otherErrors : null);
   return null;
 }
 
@@ -35,7 +41,6 @@ export class ResetPassword {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  readonly fieldError = fieldError;
   readonly submitting = signal(false);
   readonly formError = signal<string | null>(null);
   readonly success = signal(false);
@@ -48,6 +53,29 @@ export class ResetPassword {
     },
     { validators: passwordsMatchValidator },
   );
+
+  passwordError(): string | null {
+    const control = this.form.controls.password;
+    if (!control.touched || control.valid) {
+      return null;
+    }
+    return control.hasError('required')
+      ? 'Bitte geben Sie ein Passwort ein.'
+      : 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+  }
+
+  confirmPasswordError(): string | null {
+    const control = this.form.controls.confirmPassword;
+    if (!control.touched) {
+      return null;
+    }
+    if (control.hasError('required')) {
+      return 'Bitte geben Sie ein Passwort ein.';
+    }
+    return control.hasError('passwordMismatch')
+      ? 'Ihre Kennwörter stimmen nicht überein'
+      : null;
+  }
 
   goBack(): void {
     this.router.navigateByUrl('/login');
@@ -71,11 +99,15 @@ export class ResetPassword {
     try {
       await this.authService.confirmPasswordReset(this.oobCode, password);
       this.success.set(true);
-      setTimeout(() => this.router.navigateByUrl('/login'), 2000);
+      this.redirectToLogin();
     } catch (error) {
       this.formError.set((error as Error).message);
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private redirectToLogin(): void {
+    setTimeout(() => this.router.navigateByUrl('/login'), 2000);
   }
 }

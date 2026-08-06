@@ -28,6 +28,7 @@ export class TextField implements ControlValueAccessor {
   readonly icon = input<TextFieldIcon>('none');
   readonly placeholder = input('');
   readonly type = input<'text' | 'email' | 'password'>('text');
+  readonly showPasswordToggle = input(true);
   readonly errorMessage = input<string | null>(null);
 
   readonly value = signal('');

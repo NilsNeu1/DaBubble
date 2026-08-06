@@ -32,3 +32,8 @@
     </div>
   </div>
 </app-auth-card>
+
+@if (success()) {
+  <div class="avatar-picker__backdrop" aria-hidden="true"></div>
+  <div class="avatar-picker__toast" role="status">Konto erfolgreich erstellt!</div>
+}

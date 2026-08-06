@@ -11,7 +11,7 @@
       (input)="onInput($event)"
       (blur)="handleBlur()"
     />
-    @if (type() === 'password') {
+    @if (type() === 'password' && showPasswordToggle()) {
       <button
         type="button"
         class="field__toggle"

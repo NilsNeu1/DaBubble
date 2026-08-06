@@ -20,6 +20,7 @@ export class ChooseAvatar {
   readonly selectedAvatar = signal(this.authService.currentUser()?.avatarUrl ?? DEFAULT_AVATAR);
   readonly submitting = signal(false);
   readonly formError = signal<string | null>(null);
+  readonly success = signal(false);
 
   selectAvatar(avatar: string): void {
     this.selectedAvatar.set(avatar);
@@ -34,7 +35,11 @@ export class ChooseAvatar {
     this.formError.set(null);
     try {
       await this.authService.updateAvatar(this.selectedAvatar());
-      await this.router.navigateByUrl('/home');
+      this.success.set(true);
+      setTimeout(async () => {
+        await this.authService.logout();
+        await this.router.navigateByUrl('/login');
+      }, 2000);
     } catch (error) {
       this.formError.set((error as Error).message);
     } finally {
