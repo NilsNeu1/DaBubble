@@ -1,5 +1,6 @@
 .create-channel {
-    position: absolute;
+    position: fixed;
+    inset: 0;
     top: 0;
     left: 0;
     width: 100%;
@@ -12,9 +13,29 @@
     background-color: rgba(0, 0, 0, 0.25);
     box-sizing: border-box;
     padding: 20px;
+
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.overlay-open {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.overlay-close {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .overlay {
+    width: 100%;
+    max-width: 800px;
+    min-width: 0;
+    margin: 0 auto;
     background-color: white;
     border-radius: 20px;
     box-sizing: border-box;
@@ -30,20 +51,89 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+    }
+
+    .close-img {
+        cursor: pointer;
+        padding: 5px;
+        width: 16px !important;
+        height: 16px !important;
+        object-fit: contain;
+        border-radius: 50%;
+
+        &:hover {
+            content: url('../../../../public/assets/close-hover.png');
+            background-color: #E5E5E5;
+        }
     }
 }
 
 .overlay-body {
     margin-top: 20px;
+
     .overlay-input {
         display: flex;
         flex-direction: column;
 
+        .label-style {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+
+            p {
+                margin-left: 5px;
+                font-size: 18px;
+                font-weight: 300;
+            }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
         input {
+
+            height: 20px;
             border: 1px solid #ADB0D9;
             border-radius: 20px;
             padding: 10px;
             margin-bottom: 20px;
         }
+    }
+}
+
+.btn-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+
+    button {
+        padding: 10px 20px;
+        border-radius: 20px;
+        background-color: #444DF2;
+        border: none;
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #797EF3;
+        }
+    }
+}
+
+.btn-container.disabled {
+    button {
+        background-color: #686868;
     }
 }

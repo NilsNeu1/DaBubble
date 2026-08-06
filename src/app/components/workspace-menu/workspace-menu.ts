@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CreateChannel } from '../create-channel/create-channel';
 
@@ -17,6 +17,11 @@ export class WorkspaceMenu {
   hoverWorkspaceMenu: boolean = false;
   selectedChannel: string | null = null;
   selectedUser: string | null = null;
+
+  @Input() isOpen = false;
+  @Output() newDirectMessage = new EventEmitter<boolean>();
+  @Output() outputSelectedChannel = new EventEmitter<string>();
+
 
   channels = [
     { channelName: 'Entwickler' },
@@ -54,14 +59,14 @@ export class WorkspaceMenu {
     }
   }
 
-  getWorkspaceToggleIcon(){
-    if(this.hoverWorkspaceMenu && this.isWorkspaceMenuOpen){
+  getWorkspaceToggleIcon() {
+    if (this.hoverWorkspaceMenu && this.isWorkspaceMenuOpen) {
       return 'assets/Group 2-hover.png';
-    }else if(this.hoverWorkspaceMenu && !this.isWorkspaceMenuOpen){
+    } else if (this.hoverWorkspaceMenu && !this.isWorkspaceMenuOpen) {
       return 'assets/Group 1-hover.png';
     }
 
-    if(this.isWorkspaceMenuOpen){
+    if (this.isWorkspaceMenuOpen) {
       return 'assets/Group 2.png';
     } else {
       return 'assets/Group 1.png';
@@ -82,8 +87,6 @@ export class WorkspaceMenu {
     }
   }
 
-
-
   openChannel(channelName: string) {
     this.selectedChannel = channelName;
     this.selectedUser = null;
@@ -91,13 +94,20 @@ export class WorkspaceMenu {
 
   openDirectMessage(userName: string) {
     this.selectedUser = userName;
-     this.selectedChannel = null;
+    this.selectedChannel = null;
   }
 
-  openNewDirectMessage(){
-
+  openNewDirectMessage() {
+    this.newDirectMessage.emit();
   }
 
-  createChatGroup(){
+  openOverlay() {
+    if (!this.isOpen) {
+      this.isOpen = true;
+    }
+  }
+
+  openChat(channelName: string) {
+    this.outputSelectedChannel.emit(channelName);
   }
 }

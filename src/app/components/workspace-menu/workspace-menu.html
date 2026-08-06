@@ -15,14 +15,14 @@
                     <img [class.arrow-img-down]="isChannelOpen" [class.arrow-img-right]="!isChannelOpen" class="arrow-img" [src]="channelIconToggle('isChannelOpen', 'hoverChannel')">
                     <h2><img class="channel-img" src="assets/channel-img.png">Channels</h2>
                 </div>
-                <img (click)="createChatGroup()" class="add-img" src="assets/add.png" alt="Add">
+                <img (click)="openOverlay()" class="add-img" src="assets/add.png" alt="Add">
             </div>
             <div class="channel-list" [ngClass]="{'dnone': !isChannelOpen}">
-                <p (click)="openChannel(channel.channelName)"
+                <p (click)="openChannel(channel.channelName); openChat(channel.channelName)"
                     [class.active]="selectedChannel === channel.channelName" class="channel-list-element"
                     *ngFor="let channel of channels"><img src="assets/tag_black.svg"
                         alt="Channel">{{channel.channelName}}</p>
-                <div (click)="createChatGroup()" class="add-channel-btn"><img class="add-img-btn" src="assets/add_circle.png" alt="Add">Channel hinzufügen</div>
+                <div (click)="openOverlay()" class="add-channel-btn"><img class="add-img-btn" src="assets/add_circle.png" alt="Add">Channel hinzufügen</div>
             </div>
         </article>
 
@@ -35,7 +35,7 @@
             </div>
             <div *ngFor="let user of directMessages" [class.active]="selectedUser === user.UserName" class="direct-message-list"
                 [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.UserName)">
-                <div class="user-icon-container"><img class="online-icon"
+                <div class="user-icon-container" (click)="openChat(user.UserName)"><img class="online-icon"
                         [src]="user.online ? 'assets/Online.png' : 'assets/Offline.png'" alt="Online Status"><img
                         class="user_icon" [src]="user.UserImage" alt="User Image"></div>
                 <h3>{{user.UserName}}</h3>
@@ -47,5 +47,5 @@
         <img [src]="getWorkspaceToggleIcon()" alt="Close">
         <h2>Workspace-Menü schließen</h2>
     </div>
-    <!-- <app-create-channel></app-create-channel> -->
+    <app-create-channel [isOverlayOpen]="isOpen" (close)="isOpen = false"></app-create-channel>
 </div>
