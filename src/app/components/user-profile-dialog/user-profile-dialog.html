@@ -1,0 +1,61 @@
+<dialog #userProfileDialog class="user-profile-dialog" aria-labelledby="user-profile-dialog-title"
+    (cancel)="handleUserProfileCancel($event)" (click)="closeUserProfileFromBackdrop($event)">
+    @if (selectedUser(); as user) {
+    <section class="user-profile-dialog__content">
+        <header class="user-profile-dialog__header">
+            <h2 id="user-profile-dialog-title" class="user-profile-dialog__title">
+                Profil
+            </h2>
+
+            <button class="user-profile-dialog__close-button" type="button" aria-label="Profil schließen"
+                (click)="closeUserProfileDialog()">
+                <img src="assets/close.png" alt="" />
+            </button>
+        </header>
+
+        <img class="user-profile-dialog__avatar" [src]="user.avatarUrl" [alt]="'Profilbild von ' + user.name" />
+
+        <div class="user-profile-dialog__profile-data">
+            <h3 class="user-profile-dialog__name">
+                {{ user.name }}
+            </h3>
+
+            <div class="user-profile-dialog__status-row">
+                <img class="user-profile-dialog__status-icon" [src]="
+                            user.status === 'online'
+                                ? 'assets/Online.png'
+                                : 'assets/Offline.png'
+                        " alt="" />
+
+                <span class="user-profile-dialog__status-text" [class.user-profile-dialog__status-text--offline]="
+                            user.status === 'offline'
+                        ">
+                    {{
+                    user.status === 'online'
+                    ? 'Aktiv'
+                    : 'Abwesend'
+                    }}
+                </span>
+            </div>
+
+            <div class="user-profile-dialog__email">
+                <div class="user-profile-dialog__email-heading">
+                    <img src="assets/mail-black.png" alt="" />
+
+                    <h3>E-Mail-Adresse</h3>
+                </div>
+
+                <a class="user-profile-dialog__email-address" [href]="'mailto:' + user.email">
+                    {{ user.email }}
+                </a>
+            </div>
+
+            <button class="user-profile-dialog__message-button" type="button" (click)="requestMessage()">
+                <img src="assets/message.png" alt="" />
+
+                <span>Nachricht</span>
+            </button>
+        </div>
+    </section>
+    }
+</dialog>

@@ -9,6 +9,11 @@
 
     &__user-button {
         white-space: nowrap;
+        color: #000000;
+
+        &:hover {
+            color: #797ef3;
+        }
     }
 
     &__user-name {
@@ -42,10 +47,19 @@
     }
 
     &__dropdown-icon {
+        flex-shrink: 0;
         width: 14px;
         height: 8px;
-        object-fit: contain;
+        background-color: currentColor;
         transform: rotate(180deg);
+        -webkit-mask-image: url('/assets/arrow-header-drop-down.png');
+        mask-image: url('/assets/arrow-header-drop-down.png');
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-size: contain;
+        mask-size: contain;
 
         &--open {
             transform: rotate(0deg);

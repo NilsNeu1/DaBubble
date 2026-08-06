@@ -1,0 +1,241 @@
+:host {
+    display: block;
+}
+
+.user-profile-dialog {
+    position: fixed;
+    inset: 50% auto auto 50%;
+    width: 500px;
+    max-width: calc(100vw - 32px);
+    height: 705px;
+    max-height: calc(100dvh - 32px);
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 30px;
+    color: #000000;
+    background-color: transparent;
+    transform: translate(-50%, -50%);
+    overflow: visible;
+
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    button {
+        padding: 0;
+        border: none;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    img {
+        display: block;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 30px;
+        box-sizing: border-box;
+        border-radius: 30px;
+        background-color: #ffffff;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        overflow-y: auto;
+    }
+
+    &__header {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 40px;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    &__close-button {
+        display: grid;
+        flex-shrink: 0;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        color: #000000;
+        background-color: transparent;
+
+        img {
+            display: none;
+        }
+
+        &::before {
+            width: 13px;
+            height: 13px;
+            background-color: currentColor;
+            content: '';
+            -webkit-mask-image: url('/assets/close.png');
+            mask-image: url('/assets/close.png');
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+
+        &:hover,
+        &:focus-visible {
+            color: #535af1;
+            background-color: #eceefe;
+            outline: none;
+        }
+    }
+
+    &__avatar {
+        flex-shrink: 0;
+        width: 200px;
+        height: 200px;
+        margin-top: 20px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    &__profile-data {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    &__name {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    &__status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    &__status-icon {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    &__status-text {
+        color: #92c83e;
+        font-size: 20px;
+        font-weight: 400;
+
+        &--offline {
+            color: #686868;
+        }
+    }
+
+    &__email {
+        display: flex;
+        flex-direction: column;
+        margin-top: 26px;
+    }
+
+    &__email-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        img {
+            width: 25px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+    }
+
+    &__email-address {
+        margin-top: 8px;
+        margin-left: 37px;
+        color: revert;
+        font-size: 18px;
+        font-weight: 500;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+    }
+
+    &__message-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        align-self: center;
+        width: 165px;
+        height: 50px;
+        margin-top: auto;
+        border-radius: 50px;
+        color: #ffffff;
+        background-color: #444df2;
+        font-size: 18px;
+        font-weight: 700;
+
+        img {
+            width: 20px;
+            height: 19px;
+            object-fit: contain;
+        }
+
+        &:active {
+            background-color: #444df2;
+        }
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .user-profile-dialog {
+        &__message-button:hover {
+            background-color: #797ef3;
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    .user-profile-dialog {
+        width: 400px;
+        max-width: calc(100vw - 16px);
+        max-height: calc(100dvh - 16px);
+    }
+}
+
+@media (max-width: 400px) {
+    .user-profile-dialog {
+        &__content {
+            padding: 30px 20px;
+        }
+
+        &__name {
+            font-size: 24px;
+        }
+
+        &__title {
+            font-size: 20px;
+        }
+    }
+}
