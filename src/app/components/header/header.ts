@@ -2,6 +2,7 @@ import {
   Component,
   computed,
   ElementRef,
+  inject,
   input,
   signal,
   ViewChild,
@@ -10,8 +11,10 @@ import {
   ProfileDialog
 } from '../profile-dialog/profile-dialog';
 import {
+  Router,
   RouterLink
 } from '@angular/router';
+import { Auth } from '../../core/services/auth';
 
 type WorkspaceSearchResultType = 'user' | 'channel' | 'message';
 
@@ -33,6 +36,9 @@ interface WorkspaceSearchResult {
   styleUrl: './header.scss',
 })
 export class Header {
+  private readonly authService = inject(Auth);
+  private readonly router = inject(Router);
+
   /** References the native user menu dialog. */
   @ViewChild('userDialog')
   private userDialog!: ElementRef<HTMLDialogElement>;
@@ -356,6 +362,13 @@ export class Header {
     ].join(' ').toLowerCase();
 
     return searchableText.includes(query);
+  }
+
+  /** Logs the current user out and redirects to the login page. */
+  protected async logout(): Promise<void> {
+    this.closeUserMenu();
+    await this.authService.logout();
+    await this.router.navigateByUrl('/login');
   }
 
   /** Opens the profile after the user menu has fully closed. */
