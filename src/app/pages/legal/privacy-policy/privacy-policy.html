@@ -1,89 +1,44 @@
-<app-header mode="legal" />
-
 <main class="privacy-page">
-    <article class="privacy-page__content" aria-labelledby="privacy-title">
-        <button class="privacy-page__back-button" type="button" aria-label="Zur vorherigen Seite zurückkehren"
-            (click)="goBack()">
-            <img src="assets/back-arrow.png" alt="" />
-        </button>
+  <nav class="privacy-page__nav" aria-label="Seitennavigation">
+    <a routerLink="/login" aria-label="Zurück zur Anmeldung">
+      <img src="assets/back-arrow.png" alt="" />
+    </a>
+    <a href="/" class="privacy-page__brand" aria-label="DABubble Startseite">
+      <img src="assets/Logo.png" alt="" />
+      <span>DABubble</span>
+    </a>
+  </nav>
 
-        <h1 id="privacy-title" class="privacy-page__title">
-            Datenschutz
-        </h1>
+  <article class="privacy-content">
+    <h1>Datenschutz</h1>
 
-        <section class="privacy-page__section">
-            <h2 class="privacy-page__section-title">
-                Subtitle
-            </h2>
+    <section>
+      <h2>Allgemeine Hinweise</h2>
+      <p>
+        Diese Datenschutzerklärung ist ein Platzhalter für das Schulprojekt DABubble. Sie muss
+        vor der Veröffentlichung durch die tatsächlichen Angaben der Projektverantwortlichen,
+        der eingesetzten Dienste und der Datenverarbeitung ersetzt werden.
+      </p>
+    </section>
 
-            <p class="privacy-page__text">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Pellentesque odio felis, iaculis ut massa eget, ornare
-                lacinia urna. In dignissim justo eu velit sagittis, in
-                scelerisque nulla convallis. Vestibulum eros lorem,
-                sollicitudin eget eros non, varius aliquam mauris. Sed
-                turpis ipsum, condimentum quis nulla at, lobortis
-                facilisis ipsum. Nunc erat justo, hendrerit vel enim
-                vitae, feugiat mattis dui. In auctor dignissim luctus.
-                Mauris ornare ipsum at ultrices eleifend. Praesent
-                tempus congue magna. Quisque libero erat, pharetra a
-                neque et, imperdiet semper justo.
-            </p>
-        </section>
+    <section>
+      <h2>Verantwortliche Stelle</h2>
+      <p>
+        [Namen der Studierenden]<br />
+        [Anschrift des DABubble-Betreibers]<br />
+        [E-Mail-Adresse]
+      </p>
+    </section>
 
-        <section class="privacy-page__section">
-            <h2 class="privacy-page__section-title">
-                Subtitle
-            </h2>
-
-            <p class="privacy-page__text">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Pellentesque odio felis, iaculis ut massa eget, ornare
-                lacinia urna. In dignissim justo eu velit sagittis, in
-                scelerisque nulla convallis. Vestibulum eros lorem,
-                sollicitudin eget eros non, varius aliquam mauris. Sed
-                turpis ipsum, condimentum quis nulla at, lobortis
-                facilisis ipsum. Nunc erat justo, hendrerit vel enim
-                vitae, feugiat mattis dui. In auctor dignissim luctus.
-                Mauris ornare ipsum at ultrices eleifend. Praesent
-                tempus congue magna. Quisque libero erat, pharetra a
-                neque et, imperdiet semper justo.
-            </p>
-        </section>
-
-        <section class="privacy-page__section">
-            <h2 class="privacy-page__section-title">
-                Subtitle
-            </h2>
-
-            <p class="privacy-page__text">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Pellentesque odio felis, iaculis ut massa eget, ornare
-                lacinia urna. In dignissim justo eu velit sagittis, in
-                scelerisque nulla convallis. Vestibulum eros lorem,
-                sollicitudin eget eros non, varius aliquam mauris. Sed
-                turpis ipsum, condimentum quis nulla at, lobortis
-                facilisis ipsum. Nunc erat justo, hendrerit vel enim
-                vitae, feugiat mattis dui. In auctor dignissim luctus.
-                Mauris ornare ipsum at ultrices eleifend. Praesent
-                tempus congue magna. Quisque libero erat, pharetra a
-                neque et, imperdiet semper justo. Lorem ipsum dolor sit
-                amet, consectetur adipiscing elit. Pellentesque odio
-                felis, iaculis ut massa eget, ornare lacinia urna. In
-                dignissim justo eu velit sagittis, in scelerisque nulla
-                convallis. Vestibulum eros lorem, sollicitudin eget eros
-                non, varius aliquam mauris.
-            </p>
-        </section>
-    </article>
-
-    <nav class="privacy-page__legal-links" aria-label="Rechtliche Informationen">
-        <a class="privacy-page__legal-link" routerLink="/imprint">
-            Impressum
-        </a>
-
-        <a class="privacy-page__legal-link" routerLink="/privacy-policy">
-            Datenschutz
-        </a>
-    </nav>
+    <section>
+      <h2>Verarbeitung personenbezogener Daten</h2>
+      <p>
+        DABubble verarbeitet die Daten, die zur Registrierung, Anmeldung und Nutzung der
+        Chat-Funktionen erforderlich sind. Dazu können Name, E-Mail-Adresse, Profilbild,
+        Nachrichten und technische Nutzungsdaten gehören. Die endgültigen Angaben zu Zweck,
+        Rechtsgrundlage, Speicherdauer und Empfängern müssen entsprechend der tatsächlichen
+        technischen Umsetzung ergänzt werden.
+      </p>
+    </section>
+  </article>
 </main>

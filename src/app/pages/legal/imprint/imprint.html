@@ -1,45 +1,25 @@
-<app-header mode="legal" />
-
 <main class="imprint-page">
-    <section class="imprint-page__card" aria-labelledby="imprint-title">
-        <button class="imprint-page__back-button" type="button" aria-label="Zur vorherigen Seite zurückkehren"
-            (click)="goBack()">
-            <img src="assets/back-arrow.png" alt="" />
-        </button>
+  <a class="imprint-page__brand" href="/" aria-label="DABubble Startseite">
+    <img src="assets/Logo.png" alt="" />
+    <span>DABubble</span>
+  </a>
 
-        <div class="imprint-page__content">
-            <h1 id="imprint-title" class="imprint-page__title">
-                Impressum
-            </h1>
+  <article class="imprint-card">
+    <a routerLink="/login" class="imprint-card__back" aria-label="Zurück zur Anmeldung">
+      <img src="assets/back-arrow.png" alt="" />
+    </a>
 
-            <address class="imprint-page__address">
-                <span>[Student Names List]</span>
-                <span>
-                    [Address of the DABubble operator – e.g. one of the
-                    students]
-                </span>
-                <span>[Postcode and city]</span>
-            </address>
+    <h1>Impressum</h1>
 
-            <section class="imprint-page__contact" aria-labelledby="imprint-contact-title">
-                <h2 id="imprint-contact-title" class="imprint-page__contact-title">
-                    Contact:
-                </h2>
+    <address>
+      <span>[Namen der Studierenden]</span>
+      <span>[Anschrift des DABubble-Betreibers]</span>
+      <span>[Postleitzahl und Ort]</span>
+    </address>
 
-                <p class="imprint-page__email">
-                    Email: [Deine E-Mail]
-                </p>
-            </section>
-        </div>
+    <section>
+      <h2>Kontakt:</h2>
+      <p>E-Mail: [Deine E-Mail-Adresse]</p>
     </section>
-
-    <nav class="imprint-page__legal-links" aria-label="Rechtliche Informationen">
-        <a class="imprint-page__legal-link" routerLink="/imprint">
-            Impressum
-        </a>
-
-        <a class="imprint-page__legal-link" routerLink="/privacy-policy">
-            Datenschutz
-        </a>
-    </nav>
+  </article>
 </main>
