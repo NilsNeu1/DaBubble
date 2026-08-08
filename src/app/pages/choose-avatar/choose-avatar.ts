@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
-import { AVAILABLE_AVATARS, DEFAULT_AVATAR } from '../../../core/models/user.model';
-import { AuthCard } from '../../../shared/ui/auth-card/auth-card';
-import { Button } from '../../../shared/ui/button/button';
+import { Auth } from '../../core/services/auth';
+import { AVAILABLE_AVATARS, DEFAULT_AVATAR } from '../../core/models/user.model';
+import { AuthCard } from '../../shared/ui/auth-card/auth-card';
+import { Button } from '../../shared/ui/button/button';
 
 @Component({
   selector: 'app-choose-avatar',

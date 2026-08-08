@@ -1,10 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
-import { AuthCard } from '../../../shared/ui/auth-card/auth-card';
-import { Button } from '../../../shared/ui/button/button';
-import { TextField } from '../../../shared/ui/text-field/text-field';
+import { Auth } from '../../core/services/auth';
+import { AuthCard } from '../../shared/ui/auth-card/auth-card';
+import { Button } from '../../shared/ui/button/button';
+import { TextField } from '../../shared/ui/text-field/text-field';
 
 @Component({
   selector: 'app-login',

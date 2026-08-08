@@ -7,10 +7,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Auth } from '../../../core/services/auth';
-import { AuthCard } from '../../../shared/ui/auth-card/auth-card';
-import { Button } from '../../../shared/ui/button/button';
-import { TextField } from '../../../shared/ui/text-field/text-field';
+import { Auth } from '../../core/services/auth';
+import { AuthCard } from '../../shared/ui/auth-card/auth-card';
+import { Button } from '../../shared/ui/button/button';
+import { TextField } from '../../shared/ui/text-field/text-field';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
   const confirmControl = group.get('confirmPassword');
