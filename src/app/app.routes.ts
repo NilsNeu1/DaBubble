@@ -10,4 +10,6 @@ export const routes: Routes = [
     { path: 'imprint', component: Imprint },
     { path: 'privacy-policy', component: PrivacyPolicy },
     { path: 'messenger', component: Messenger },
+    { path: 'chat-panel', component: ChatPanel },
+
 ];

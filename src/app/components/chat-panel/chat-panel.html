@@ -6,7 +6,7 @@
 
             <div class="channel-info">
                 <figure>
-                    <img class="channel-img" src="./../../../../public/assets/account_circle-hover.png">
+                    <img class="channel-img" src="/assets/account_circle-hover.png">
                     <span>Sofia Müller</span>
                 </figure>
             </div>
@@ -29,13 +29,68 @@
         </div>
 
         <div class="chat-input-container">
-            <textarea type="text" placeholder="Nachricht an #Entwicklerteam" rows="3"></textarea>
-            
-            <div class="chat-input-aktions"> >
-                <div class="input-features"></div>
-                <div class="send-btn"></div>
+    <article
+        #messageInput
+        class="message-editor"
+        contenteditable="true"
+        role="textbox"
+        aria-multiline="true"
+        data-placeholder="Nachricht an #Entwicklerteam"
+        [class.is-empty]="isEmpty()"
+        (input)="onInput()"
+        (click)="saveCursorPosition()"
+        (keyup)="saveCursorPosition()">
+    </article>
+
+    <div class="chat-input-actions">
+        <div class="input-features">
+            <div class="emote-btn-wrapper">
+                <div #emoteBtn class="emote-btn" role="img" tabindex="0" (click)="toggleEmotePicker()"></div>
+
+                @if (showEmotePicker()) {
+                    <div #emotePicker class="emote-picker">
+                        @for (emoji of emojis; track emoji) {
+                            <button class="emote-picker-item" (click)="insertEmote(emoji)">
+                                {{ emoji }}
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="mention-btn-wrapper">
+                <div #mentionBtn class="mention-btn" role="img" tabindex="0" (click)="toggleMentionPicker()"></div>
+
+                @if (showMentionPicker()) {
+                    <div #mentionPicker class="mention-picker">
+                        <div class="mention-picker-section">
+                            <span class="mention-picker-label">Channels</span>
+                            @for (channel of channels; track channel.name) {
+                                <button class="mention-picker-item" (click)="insertMention(channel)">
+                                    <img [src]="channel.imageUrl" [alt]="channel.name" class="mention-picker-avatar" />
+                                    <span>{{ channel.name }}</span>
+                                </button>
+                            }
+                        </div>
+
+                        <div class="mention-picker-section">
+                            <span class="mention-picker-label">Personen</span>
+                            @for (person of people; track person.name) {
+                                <button class="mention-picker-item" (click)="insertMention(person)">
+                                    <img [src]="person.imageUrl" [alt]="person.name" class="mention-picker-avatar" />
+                                    <span>{{ person.name }}</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
         </div>
+        <div class="send-btn">
+            <div class="send-btn" role="img" tabindex="0"></div>
+        </div>
+    </div>
+</div>
 
     </div>
 
