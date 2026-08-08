@@ -12,11 +12,6 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
-    path: 'home',
-    loadComponent: () => import('./pages/home/home').then((m) => m.Home),
-    canActivate: [authGuard],
-  },
-  {
     path: 'login',
     loadComponent: () => import('./pages/login/login').then((m) => m.Login),
     canActivate: [guestGuard],
@@ -53,7 +48,7 @@ export const routes: Routes = [
       import('./pages/legal/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicy),
   },
   { path: 'WorkspaceMenu', component: WorkspaceMenu },
-  { path: 'messenger', component: Messenger },
+  { path: 'messenger', component: Messenger, canActivate: [authGuard] },
   {
     path: '**',
     redirectTo: '',

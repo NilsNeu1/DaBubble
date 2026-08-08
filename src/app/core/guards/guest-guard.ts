@@ -8,5 +8,5 @@ export const guestGuard: CanActivateFn = async () => {
 
   await auth.ready;
 
-  return auth.currentUser() ? router.parseUrl('/home') : true;
+  return auth.currentUser() ? router.parseUrl('/messenger') : true;
 };

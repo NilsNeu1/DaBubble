@@ -54,7 +54,7 @@ export class Login {
 
     try {
       await this.authService.login(email, password);
-      await this.router.navigateByUrl('/home');
+      await this.router.navigateByUrl('/messenger');
     } catch (error) {
       this.formError.set((error as Error).message);
     } finally {
@@ -67,7 +67,7 @@ export class Login {
     this.formError.set(null);
     try {
       await this.authService.loginWithGoogle();
-      await this.router.navigateByUrl('/home');
+      await this.router.navigateByUrl('/messenger');
     } catch (error) {
       this.formError.set((error as Error).message);
     } finally {
@@ -80,7 +80,7 @@ export class Login {
     this.formError.set(null);
     try {
       await this.authService.loginAsGuest();
-      await this.router.navigateByUrl('/home');
+      await this.router.navigateByUrl('/messenger');
     } catch (error) {
       this.formError.set((error as Error).message);
     } finally {
