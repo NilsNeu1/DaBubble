@@ -1,0 +1,39 @@
+<app-auth-card class="avatar-page" title="Wähle deinen" titleLine2="Avatar" [showBackButton]="true" (back)="goBack()">
+  <div class="avatar-picker">
+    <img class="avatar-picker__preview" [src]="selectedAvatar()" alt="Ausgewählter Avatar" />
+
+    @if (userName) {
+      <p class="avatar-picker__name">{{ userName }}</p>
+    }
+
+    <p class="avatar-picker__label">Aus der Liste wählen</p>
+
+    <div class="avatar-picker__list">
+      @for (avatar of avatars; track avatar) {
+        <button
+          type="button"
+          class="avatar-picker__option"
+          [class.avatar-picker__option--selected]="avatar === selectedAvatar()"
+          (click)="selectAvatar(avatar)"
+        >
+          <img [src]="avatar" alt="Avatar auswählen" />
+        </button>
+      }
+    </div>
+
+    @if (formError()) {
+      <p class="avatar-picker__error">{{ formError() }}</p>
+    }
+
+    <div class="avatar-picker__actions">
+      <app-button variant="primary" type="button" [disabled]="submitting()" (clicked)="submit()">
+        Weiter
+      </app-button>
+    </div>
+  </div>
+</app-auth-card>
+
+@if (success()) {
+  <div class="avatar-picker__backdrop" aria-hidden="true"></div>
+  <div class="avatar-picker__toast" role="status">Konto erfolgreich erstellt!</div>
+}

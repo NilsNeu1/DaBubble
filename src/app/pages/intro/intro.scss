@@ -1,0 +1,146 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.intro {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(1.46deg, #313ae6 1.22%, #797ef3 98.76%);
+  animation: remove-splash 650ms ease-in-out 2.25s forwards;
+}
+
+.intro__brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(-94px, -50%);
+  animation: move-brand-to-header 650ms ease-in-out 2.25s forwards;
+
+  img {
+    position: relative;
+    z-index: 1;
+    width: 188px;
+    height: 184px;
+    flex: 0 0 auto;
+    animation: shift-mark-left 600ms ease-out 500ms both;
+  }
+
+  span {
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: reveal-brand-name 650ms ease-out 550ms forwards;
+  }
+}
+
+@keyframes shift-mark-left {
+  from {
+    transform: translateX(94px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes reveal-brand-name {
+  from {
+    width: 0;
+    margin-left: 0;
+  }
+  to {
+    width: 410px;
+    margin-left: 28px;
+  }
+}
+
+@keyframes move-brand-to-header {
+  to {
+    left: max(75px, calc(50% - 885px));
+    top: 75px;
+    color: #000;
+    font-size: 32px;
+    transform: translate(0, 0) scale(0.37);
+    transform-origin: top left;
+    opacity: 0;
+  }
+}
+
+@keyframes remove-splash {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .intro__brand {
+    left: 0;
+    right: 0;
+    width: 100%;
+    justify-content: center;
+    font-size: clamp(2rem, 8vw, 2.3rem);
+    transform: translate(clamp(4rem, 18vw, 6rem), -50%);
+    transform-origin: top center;
+
+    img {
+      width: clamp(4rem, 17vw, 5rem);
+      height: auto;
+      animation: none;
+    }
+  }
+
+  @keyframes reveal-brand-name {
+    from {
+      width: 0;
+      margin-left: 0;
+    }
+    to {
+      width: clamp(10rem, 46vw, 13rem);
+      margin-left: clamp(0.625rem, 3vw, 1rem);
+    }
+  }
+
+  @keyframes move-brand-to-header {
+    from {
+      left: 0;
+      right: 0;
+      top: 50%;
+      width: 100%;
+      transform: translate(clamp(4rem, 18vw, 6rem), -50%) scale(1);
+      transform-origin: top center;
+    }
+    to {
+      left: 0;
+      right: 0;
+      top: clamp(0.75rem, 4vh, 2.5rem);
+      width: 100%;
+      opacity: 0;
+      transform: translate(0, 0) scale(0.58);
+      transform-origin: top center;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+    animation: none;
+  }
+}

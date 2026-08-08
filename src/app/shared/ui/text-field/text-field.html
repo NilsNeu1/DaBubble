@@ -1,0 +1,33 @@
+<div class="field">
+  <div class="field__control" [class.field__control--error]="errorMessage()">
+    @if (iconSrc) {
+      <img class="field__icon" [src]="iconSrc" alt="" />
+    }
+    <input
+      [type]="resolvedType"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [disabled]="disabled()"
+      (input)="onInput($event)"
+      (blur)="handleBlur()"
+    />
+    @if (type() === 'password' && showPasswordToggle()) {
+      <button
+        type="button"
+        class="field__toggle"
+        (click)="togglePasswordVisibility()"
+        [attr.aria-label]="passwordVisible() ? 'Passwort verbergen' : 'Passwort anzeigen'"
+      >
+        <img
+          [src]="passwordVisible() ? 'assets/visibility.png' : 'assets/visibility_off.png'"
+          alt=""
+        />
+      </button>
+    }
+  </div>
+  <span
+    class="field__error"
+    [class.field__error--visible]="errorMessage()"
+    aria-live="polite"
+  >{{ errorMessage() ?? '' }}</span>
+</div>

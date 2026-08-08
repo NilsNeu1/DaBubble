@@ -1,0 +1,8 @@
+<div class="home">
+  @if (authService.currentUser(); as user) {
+    <img class="home__avatar" [src]="user.avatarUrl" alt="" />
+    <h1>Willkommen, {{ user.name }} 👋</h1>
+    <p>Der Auth-Flow ist eingerichtet — der Chat-Bereich folgt im nächsten Schritt.</p>
+    <button type="button" (click)="logout()">Abmelden</button>
+  }
+</div>

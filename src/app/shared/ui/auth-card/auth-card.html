@@ -1,0 +1,40 @@
+<div class="shell">
+  <header class="shell__header-bar">
+    <a class="shell__brand" href="/" aria-label="DABubble Intro erneut abspielen">
+      <img src="assets/Logo.png" alt="" />
+      <span>DABubble</span>
+    </a>
+
+    <div class="shell__top-right">
+      <ng-content select="[top-right]" />
+    </div>
+  </header>
+
+  <main class="shell__main">
+    <section class="shell__card">
+      @if (showBackButton() || title()) {
+        <div class="shell__title-row">
+          @if (showBackButton()) {
+            <button type="button" class="shell__back" (click)="back.emit()" aria-label="Zurück">
+              <img src="assets/back-arrow.png" alt="" />
+            </button>
+          }
+          @if (title()) {
+            <h1>
+              <span>{{ title() }}</span>
+              @if (titleLine2()) {
+                <span class="shell__title-line-2">{{ titleLine2() }}</span>
+              }
+            </h1>
+          }
+        </div>
+      }
+      <ng-content />
+    </section>
+  </main>
+
+  <footer class="shell__footer">
+    <a routerLink="/imprint">Impressum</a>
+    <a routerLink="/privacy-policy">Datenschutz</a>
+  </footer>
+</div>
