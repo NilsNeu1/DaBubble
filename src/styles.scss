@@ -1,7 +1,8 @@
 @font-face {
   font-family: 'Nunito';
   src: url('/assets/Nunito-VariableFont_wght.ttf') format('truetype');
-  font-weight: 200 1000;
+  font-style: normal;
+  font-weight: 100 900;
   font-display: swap;
 }
 
@@ -26,6 +27,8 @@
 }
 
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -33,7 +36,6 @@ html,
 body {
   min-width: 320px;
   min-height: 100%;
-  margin: 0;
 }
 
 body,
@@ -45,13 +47,6 @@ input {
 body {
   background: var(--color-bg);
   color: var(--color-text);
-}
-
-h1,
-h2,
-h3,
-p {
-  margin: 0;
 }
 
 a {

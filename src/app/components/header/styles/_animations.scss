@@ -1,0 +1,39 @@
+@keyframes mobile-user-menu-slide-in {
+    from {
+        transform: translateY(calc(100% + 20px));
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes mobile-user-menu-slide-out {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(calc(100% + 20px));
+    }
+}
+
+@keyframes mobile-user-backdrop-in {
+    from {
+        background-color: rgba(0, 0, 0, 0);
+    }
+
+    to {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+}
+
+@keyframes mobile-user-backdrop-out {
+    from {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    to {
+        background-color: rgba(0, 0, 0, 0);
+    }
+}

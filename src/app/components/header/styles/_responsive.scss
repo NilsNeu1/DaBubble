@@ -1,0 +1,250 @@
+@media (max-width: 1170px) and (min-width: 1025px) {
+    .app-header {
+        &__desktop {
+            column-gap: 28px;
+            padding: 14px 32px;
+
+            .app-header__logo {
+                width: 200px;
+                height: auto;
+            }
+
+            .app-header__avatar-wrapper {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        &__search--desktop {
+            height: 60px;
+        }
+
+        &__search-input {
+            padding: 0 58px 0 26px;
+            border-radius: 36px;
+            font-size: 20px;
+        }
+
+        &__search-button {
+            right: 20px;
+            width: 30px;
+            height: 30px;
+
+            img {
+                width: 22px;
+                height: 22px;
+            }
+        }
+
+        &__user-button {
+            gap: 10px;
+        }
+
+        &__user-name {
+            font-size: 26px;
+        }
+
+        &__status {
+            width: 14px;
+            height: 14px;
+        }
+
+        &__dropdown-icon {
+            width: 12px;
+            height: 7px;
+        }
+
+        &__status {
+            right: 0;
+            bottom: 0;
+        }
+
+        &__search-results--desktop {
+            left: 26px;
+            max-height: calc(100dvh - 116px);
+        }
+    }
+}
+
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+    .app-header {
+        &__user-dialog-content {
+            .app-header__menu-button:hover {
+                color: #535af1;
+                background-color: #eceefe;
+            }
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    .app-header {
+        &__desktop {
+            display: none;
+        }
+
+        &__mobile {
+            display: block;
+
+            .app-header__logo {
+                width: 160px;
+                height: 45px;
+                object-fit: contain;
+            }
+        }
+
+        &__mobile-user-button {
+            .app-header__avatar-wrapper {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        .app-header__status {
+            display: none;
+        }
+
+        &__user-dialog {
+            inset: auto 0 0 0;
+            width: 100%;
+            max-width: none;
+            height: auto;
+            box-sizing: border-box;
+            border-radius: 30px 30px 0 0;
+
+            &[open] {
+                animation: mobile-user-menu-slide-in 250ms ease-out both;
+                will-change: transform;
+
+                &::backdrop {
+                    animation: mobile-user-backdrop-in 250ms ease-out both;
+                }
+            }
+
+            &[open].app-header__user-dialog--closing {
+                animation: mobile-user-menu-slide-out 250ms ease-in both;
+
+                &::backdrop {
+                    animation: mobile-user-backdrop-out 250ms ease-in both;
+                }
+            }
+        }
+
+        &__user-dialog-content {
+            gap: 15px;
+            padding: 30px;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -6px 10px rgba(0, 0, 0, 0.2);
+
+            .app-header__menu-button:active {
+                color: #535af1;
+                background-color: #eceefe;
+            }
+        }
+
+        &__mobile-dialog-handle {
+            display: block;
+            flex-shrink: 0;
+            align-self: center;
+            width: 64px;
+            height: 6px;
+            border-radius: 23px;
+            background-color: #d9d9d9;
+        }
+
+        &__search-results--mobile {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: fit-content;
+            max-width: calc(100% - 16px);
+            margin: 16px auto 0;
+            background-color: #ffffff;
+
+            .app-header__search-result {
+                justify-content: flex-start;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                min-height: 58px;
+                padding: 4px 12px;
+                box-sizing: border-box;
+                border-radius: 35px;
+
+                &:active {
+                    color: #535af1;
+                    background-color: #eceefe;
+                }
+            }
+
+            .app-header__message-result-content {
+                min-width: 0;
+                max-width: 100%;
+            }
+
+            .app-header__message-result-context,
+            .app-header__message-result-author,
+            .app-header__message-result-text {
+                overflow-wrap: anywhere;
+            }
+
+            .app-header__message-result-time {
+                white-space: nowrap;
+            }
+        }
+
+        &__search--mobile {
+            display: block;
+        }
+
+        &__mobile-search-field {
+            position: relative;
+            width: 100%;
+            height: 56px;
+
+            .app-header__search-input {
+                height: 100%;
+            }
+
+            .app-header__search-button {
+                top: 50%;
+                right: 24px;
+                transform: translateY(-50%);
+            }
+        }
+
+        &__menu-button {
+            flex: 0 0 auto;
+            align-self: flex-start;
+            justify-content: flex-start;
+            width: fit-content;
+            margin-left: -20px;
+            padding: 10px 20px;
+            gap: 15px;
+            text-align: left;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-header__menu-icon {
+            display: block;
+            flex-shrink: 0;
+            width: 25px;
+            height: 25px;
+            background-color: currentColor;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+    }
+}
+
+@media (max-width: 769px) {
+    .app-header {
+        &__mobile-topbar {
+            padding: 16px 8px;
+        }
+    }
+}

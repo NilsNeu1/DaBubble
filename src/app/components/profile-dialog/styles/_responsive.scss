@@ -1,0 +1,73 @@
+@media (max-width: 1024px) {
+    .profile-dialog {
+        inset: 50% auto auto 50%;
+        width: 400px;
+        max-width: calc(100vw - 16px);
+        height: 600px;
+        max-height: calc(100dvh - 16px);
+        border-radius: 30px;
+        transform: translate(-50%, -50%);
+
+        &__content {
+            border-radius: 30px;
+        }
+
+        &__edit-button {
+            display: grid;
+            flex-shrink: 0;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            color: #000000;
+            background-color: #eceefe;
+            font-weight: 600;
+
+            &:hover,
+            &:focus-visible {
+                color: #000000;
+                background-color: #eceefe;
+                font-weight: 600;
+                outline: none;
+
+                .profile-dialog__edit-icon {
+                    background-color: #535af1;
+                }
+            }
+        }
+
+        &__edit-text {
+            display: none;
+        }
+
+        &__edit-icon {
+            display: block;
+        }
+    }
+}
+
+@media (max-width: 400px) {
+    .profile-dialog {
+        &__name {
+            font-size: 24px;
+        }
+
+        &__actions {
+            gap: 12px;
+        }
+
+        &__button {
+            width: 115px;
+            height: 46px;
+            font-size: 16px;
+        }
+
+        &__title {
+            font-size: 20px;
+        }
+
+        &__content {
+            padding: 30px 20px;
+        }
+    }
+}

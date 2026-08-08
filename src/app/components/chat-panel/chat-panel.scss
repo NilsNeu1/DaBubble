@@ -1,0 +1,90 @@
+:host {
+    display: block;
+    background-color: #424d61;
+    min-height: 100vh;
+    width: 100%;
+}
+
+section {
+    background-color: white;
+    width: stretch;
+    max-width: calc(100vw - 40px);
+    height: 90vh;
+    width: 90vw;
+    // padding: 10px 20px;
+    border-radius: 20px;
+}
+
+.chat-container {
+    box-sizing: border-box;
+}
+
+.channel-header {
+    height: 100px;
+    width: 100%;
+    box-shadow: 0 10px 6px -9px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-messages {}
+
+.chat-input-container {
+    border: 2px solid #ADB0D9;
+    border-radius: 20px;
+    height: 100px;
+    margin: 0 40px;
+
+    textarea {
+        border: none;
+        background: none;
+        color: black;
+        padding: 0;
+        outline: none;
+        resize: none;
+        overflow-y: auto;
+        min-height: 0;
+        margin: 14px;
+        width: stretch;
+        box-sizing: border-box;
+        scrollbar-width: none;
+        scrollbar-color: none;
+
+        // WebKit (Chrome, Edge, Safari)
+        &::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: none;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            display: none;
+        }
+
+        &::-webkit-scrollbar-button {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+
+
+
+    }
+
+    ::placeholder {
+        color: #686868;
+        transition: color 0.2s ease;
+    }
+
+    :focus::placeholder {
+        color: rgba(104, 104, 104, 0.6);
+
+    }
+
+}

@@ -1,0 +1,188 @@
+.app-header {
+    &__search {
+        display: flex;
+        align-items: center;
+        position: relative;
+        width: 100%;
+
+        &--desktop {
+            max-width: 990px;
+            height: 70px;
+            justify-self: center;
+        }
+    }
+
+    &__search-results {
+        &--desktop {
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 32px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 350px;
+            max-height: calc(100dvh - 130px);
+            padding: 12px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            overflow-y: auto;
+            border: 1px solid #adb0d9;
+            border-radius: 0 20px 20px 20px;
+            background-color: #ffffff;
+
+            .app-header__search-result {
+                &:hover {
+                    background-color: #eceefe;
+                }
+
+                &:active {
+                    color: #535af1;
+                    background-color: #eceefe;
+                }
+            }
+        }
+    }
+
+    &__search-result {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        width: 100%;
+        min-height: 58px;
+        padding: 4px 12px;
+        box-sizing: border-box;
+        border-radius: 35px;
+        color: #000000;
+        font-size: 18px;
+        font-weight: 400;
+        text-align: left;
+        background-color: transparent;
+
+        &:has(.app-header__search-result-channel-icon) {
+            gap: 6px;
+        }
+
+        &:has(.app-header__message-result-content) {
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 20px;
+
+            .app-header__search-result-avatar-wrapper {
+                margin-top: 2px;
+            }
+        }
+
+        &-avatar-wrapper {
+            position: relative;
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+        }
+
+        &-avatar {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        &-status {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+
+        &-channel-icon {
+            flex-shrink: 0;
+            width: auto;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        &-label {
+            font-size: 18px;
+            font-weight: 400;
+        }
+    }
+
+    &__message-result {
+        &-content {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            min-width: 0;
+            gap: 4px;
+        }
+
+        &-context {
+            color: #535af1;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        &-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            column-gap: 8px;
+        }
+
+        &-author {
+            color: #000000;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        &-time {
+            color: #686868;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        &-text {
+            color: #000000;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    &__search-input {
+        width: 100%;
+        height: 100%;
+        padding: 0 70px 0 32px;
+        box-sizing: border-box;
+        border-radius: 42px;
+        font-size: 24px;
+        font-weight: 700;
+
+        &::placeholder {
+            font-weight: 400;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &__search-button {
+        display: grid;
+        place-items: center;
+        position: absolute;
+        right: 24px;
+        width: 35px;
+        height: 35px;
+        padding: 0;
+
+        img {
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+        }
+    }
+}

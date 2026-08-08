@@ -1,0 +1,9 @@
+<app-header />
+
+<main class="messenger-page">
+    <!-- TEMP-CHAT-HEADER-PREVIEW: Replace with the active chat later. -->
+    <app-chat-header previewType="direct-message"
+        (userProfileRequested)="userProfileDialog.openUserProfileDialog($event)" />
+
+    <app-user-profile-dialog #userProfileDialog />
+</main>

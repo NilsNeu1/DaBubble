@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { WorkspaceMenu } from './components/workspace-menu/workspace-menu';
+import { Messenger } from './pages/messenger/messenger';
 import { authGuard } from './core/guards/auth-guard';
 import { guestGuard } from './core/guards/guest-guard';
 
@@ -50,6 +52,8 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/legal/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicy),
   },
+  { path: 'WorkspaceMenu', component: WorkspaceMenu },
+  { path: 'messenger', component: Messenger },
   {
     path: '**',
     redirectTo: '',

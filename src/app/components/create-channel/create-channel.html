@@ -1,0 +1,21 @@
+<section class="create-channel" [ngClass]="isOverlayOpen ? 'overlay-open' : 'overlay-close'">
+    <article class="overlay">
+        <div class="overlay-header">
+            <h1>Channel erstellen</h1><img class="close-img" src="assets/close.png" alt="Close" (click)="closeOverlay()">
+        </div>
+        <span class="overlay-span">Channels dienen deinem Team zur Kommunikation. Am besten sollten sie themenbezogen
+            sein #marketing zum Beispiel.</span>
+        <article class="overlay-body">
+            <div class="overlay-input">
+                <label class="label-style" for="channel-name">Channel-Name</label>
+                <input [(ngModel)]="channelName" type="text" id="channel-name" name="channel-name" placeholder="# z.B. Kooperationsprojekte">
+            </div>
+            <div class="overlay-input">
+                <label class="label-style" for="channel-description">Beschreibung <p>(optional)</p></label>
+                <input [(ngModel)]="channelDescription" type="text" id="channel-description" name="channel-description"
+                    placeholder="Dein Text hier">
+            </div>
+            <div class="btn-container" [class.disabled]="channelName === ''"><button [disabled]="channelName === ''" (click)="checkInput()">Erstellen</button></div>
+        </article>
+    </article>
+</section>

@@ -1,0 +1,58 @@
+@let chat = activeChat();
+
+<header class="chat-header" [class.chat-header--channel]="chat.type === 'channel'" [class.chat-header--direct-message]="
+        chat.type === 'direct-message'
+    ">
+    @if (chat.type === 'channel') {
+    <button class="chat-header__channel-button" type="button" aria-label="Channeldetails öffnen"
+        (click)="requestChannelDetails()">
+        <span class="chat-header__channel-name">
+            # {{ chat.name }}
+        </span>
+
+        <span class="chat-header__dropdown-icon" [class.chat-header__dropdown-icon--open]="isChannelDetailsOpen()"
+            aria-hidden="true"></span>
+    </button>
+
+    <div class="chat-header__channel-actions">
+        <button class="chat-header__members-button" type="button" aria-label="Channelmitglieder anzeigen"
+            (click)="requestMembers()">
+            <span class="chat-header__member-avatars" aria-hidden="true">
+                @for (
+                member of chat.members.slice(0, 3);
+                track member.id
+                ) {
+                <img class="chat-header__member-avatar" [src]="member.avatarUrl" [alt]="member.name" />
+                }
+            </span>
+
+            <span class="chat-header__member-count">
+                {{ chat.members.length }}
+            </span>
+        </button>
+
+        <button class="chat-header__add-member-button" type="button" aria-label="Mitglied hinzufügen"
+            (click)="requestAddMember()">
+            <span class="chat-header__add-member-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+    } @else {
+    <button class="chat-header__direct-message-button" type="button" aria-label="Profil von {{ chat.name }} öffnen"
+        (click)="requestUserProfile(chat.id)">
+        <span class="chat-header__direct-avatar-wrapper">
+            <img class="chat-header__direct-avatar" [src]="chat.avatarUrl" [alt]="'Profilbild von ' + chat.name" />
+
+            <img class="chat-header__direct-status"
+                [src]="chat.status === 'online'? 'assets/Online.png': 'assets/Offline.png'" alt="" />
+        </span>
+
+        <span class="chat-header__direct-name">
+            {{ chat.name }}
+
+            @if (chat.isCurrentUser) {
+            (Du)
+            }
+        </span>
+    </button>
+    }
+</header>

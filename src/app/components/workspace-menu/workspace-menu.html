@@ -1,0 +1,49 @@
+<section class="workspace-container" [ngClass]="isWorkspaceMenuOpen ? 'workspace-open' : 'workspace-close'">
+        <div class="workspace-header">
+
+            <h1><img src="assets/Workspace_logo.png" alt="Workspace Logo" class="workspace-logo">Devspace</h1>
+            <div class="edit-img-background" (click)="openNewDirectMessage()">
+            <img class="edit-img" src="assets/edit_square.png" alt="Edit">
+            </div>
+        </div>
+
+        <article class="channel-container">
+            <div class="channel-header">
+                <div (mouseenter)="hoverChannel = true" (mouseleave)="hoverChannel = false" (click)="toggleChannel()"
+                    class="channel-dropdown">
+                    <img [class.arrow-img-down]="isChannelOpen" [class.arrow-img-right]="!isChannelOpen" class="arrow-img" [src]="channelIconToggle('isChannelOpen', 'hoverChannel')">
+                    <h2><img class="channel-img" src="assets/channel-img.png">Channels</h2>
+                </div>
+                <img (click)="openOverlay()" class="add-img" src="assets/add.png" alt="Add">
+            </div>
+            <div class="channel-list" [ngClass]="{'dnone': !isChannelOpen}">
+                <p (click)="openChannel(channel.channelName); openChat(channel.channelName)"
+                    [class.active]="selectedChannel === channel.channelName" class="channel-list-element"
+                    *ngFor="let channel of channels"><img src="assets/tag_black.svg"
+                        alt="Channel">{{channel.channelName}}</p>
+                <div (click)="openOverlay()" class="add-channel-btn"><img class="add-img-btn" src="assets/add_circle.png" alt="Add">Channel hinzufügen</div>
+            </div>
+        </article>
+
+
+        <article class="direct-message-container">
+            <div (mouseenter)="hoverDirectMessage= true" (mouseleave)="hoverDirectMessage = false"
+                class="direct-message-header" (click)="toggleDirectMessage()">
+                <img [class.arrow-img-down]="isDirectMessageOpen" [class.arrow-img-right]="!isDirectMessageOpen" class="arrow-img" [src]="channelIconToggle('isDirectMessageOpen', 'hoverDirectMessage')">
+                <h2><img class="account-icon" src="assets/account_circle.png">Directnachrichten</h2>
+            </div>
+            <div *ngFor="let user of directMessages" [class.active]="selectedUser === user.UserName" class="direct-message-list"
+                [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.UserName)">
+                <div class="user-icon-container" (click)="openChat(user.UserName)"><img class="online-icon"
+                        [src]="user.online ? 'assets/Online.png' : 'assets/Offline.png'" alt="Online Status"><img
+                        class="user_icon" [src]="user.UserImage" alt="User Image"></div>
+                <h3>{{user.UserName}}</h3>
+            </div>
+        </article>
+    </section>
+
+    <div (mouseenter)="hoverWorkspaceMenu = true" (mouseleave)="hoverWorkspaceMenu = false"  class="workspace-toggle-btn" (click)="toggleWorkspaceMenu()">
+        <img [src]="getWorkspaceToggleIcon()" alt="Close">
+        <h2>Workspace-Menü schließen</h2>
+    </div>
+    <app-create-channel [isOverlayOpen]="isOpen" (close)="isOpen = false"></app-create-channel>
