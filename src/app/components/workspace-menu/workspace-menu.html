@@ -33,8 +33,8 @@
                 <h2><img class="account-icon" src="assets/account_circle.png">Directnachrichten</h2>
             </div>
             <div *ngFor="let user of directMessages" [class.active]="selectedUser === user.UserName" class="direct-message-list"
-                [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.UserName)">
-                <div class="user-icon-container" (click)="openChat(user.UserName , 'direct-message')"><img class="online-icon"
+                [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.UserName)" (click)="openChat(user.UserName , 'direct-message')">
+                <div class="user-icon-container"><img class="online-icon"
                         [src]="user.online ? 'assets/Online.png' : 'assets/Offline.png'" alt="Online Status"><img
                         class="user_icon" [src]="user.UserImage" alt="User Image"></div>
                 <h3>{{user.UserName}}</h3>
