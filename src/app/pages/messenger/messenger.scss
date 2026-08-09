@@ -6,25 +6,43 @@
 
 .messenger-page {
     box-sizing: border-box;
-    padding: 0 20px 20px 20px;
+    padding: 0 40px 20px 20px;
     display: flex;
 }
 
 .close-workspace-menu {
-    width: 400px;
-    overflow: hidden;
-    transition: width 300ms ease-in-out;
+    flex: 0 0 370px;
+  width: 370px;
+  overflow: hidden;
+  transition:
+    width 300ms ease-in-out,
+    flex-basis 300ms ease-in-out;
 }
 
 .close-workspace-menu.dnone {
-    width: 0px ;
+      flex-basis: 0;
+    width: 0px;
+}
+
+.chat-container {
+    flex: 1;
+    min-width: 0;
+     min-height: 0;
+     height: auto;
+    width: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 
 app-chat-header {
     width: 100%;
-    overflow: hidden;
+     overflow: visible;
     transition: width 300ms ease-in-out;
+}
+
+app-chat-panel {
+    width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -32,11 +50,11 @@ app-chat-header {
         background-color: #ffffff;
     }
 
-.close-workspace-menu {
-   width: 100%;
-}
+    .close-workspace-menu {
+        width: 100%;
+    }
 
-app-chat-header {
-    display: none;
-}
+    .chat-container {
+        display: none;
+    }
 }

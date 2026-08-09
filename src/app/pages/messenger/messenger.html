@@ -2,8 +2,13 @@
 
 <main class="messenger-page">
     <!-- TEMP-CHAT-HEADER-PREVIEW: Replace with the active chat later. -->
-    <app-workspace-menu class="close-workspace-menu" (workspaceMenuOpenChanged)="isWorkspaceMenuOpen = $event" (outputSelectedChannel)="onOutputSelectedChannel($event)" [ngClass]="{'dnone': !isWorkspaceMenuOpen}"></app-workspace-menu>
-    <app-chat-header [previewType]="chatType" (userProfileRequested)="userProfileDialog.openUserProfileDialog($event)"/>
+    <app-workspace-menu class="close-workspace-menu" (workspaceMenuOpenChanged)="isWorkspaceMenuOpen = $event"
+        (outputSelectedChannel)="onOutputSelectedChannel($event)"
+        [ngClass]="{'dnone': !isWorkspaceMenuOpen}"></app-workspace-menu>
+    <section class="chat-container">
+        <app-chat-header [previewType]="chatType"
+            (userProfileRequested)="userProfileDialog.openUserProfileDialog($event)"></app-chat-header>
+        <app-chat-panel />
+    </section>
     <app-user-profile-dialog #userProfileDialog />
-   
 </main>

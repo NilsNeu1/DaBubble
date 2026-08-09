@@ -3,7 +3,7 @@
     max-width: 366px;
     min-width: fit-content;
     height: 86vh;
-    border-radius: 20px;
+    border-radius: 30px;
     box-sizing: border-box;
     padding: 25px 20px;
 }
@@ -141,9 +141,12 @@
 
 .add-img {
     cursor: pointer;
-    width: 15px;
-    height: 15px;
-    padding: 9px;
+    flex-shrink: 0;
+    width: 17px !important;
+    height: 17px !important;
+    padding: 7px;
+     box-sizing: content-box;
+  object-fit: contain;
 
     &:hover {
         content: url('../../../../public/assets/add-hover.png');
@@ -258,6 +261,7 @@
     position: absolute;
     left: 0px;
     top: 480px;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
