@@ -1,7 +1,28 @@
 :host {
     display: block;
-    min-height: 100dvh;
+    min-height: 100vh;
     background-color: #eceefe;
+}
+
+.messenger-page {
+    box-sizing: border-box;
+    padding: 0 20px 20px 20px;
+    display: flex;
+}
+
+.close-workspace-menu {
+    width: 366px;
+    overflow: hidden;
+    transition: width 300ms ease-in-out;
+}
+
+.close-workspace-menu.dnone {
+    width: 0px ;
+}
+
+
+app-chat-header {
+    width: 100%;
 }
 
 @media (max-width: 1024px) {

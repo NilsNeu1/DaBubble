@@ -13,11 +13,12 @@ export class WorkspaceMenu {
   hoverChannel: boolean = false;
   isDirectMessageOpen: boolean = true;
   hoverDirectMessage: boolean = false;
-  isWorkspaceMenuOpen: boolean = true;
+  isWorkspaceMenuOpen: boolean  = true;
   hoverWorkspaceMenu: boolean = false;
   selectedChannel: string | null = null;
   selectedUser: string | null = null;
 
+  @Output() workspaceMenuOpenChanged = new EventEmitter<boolean>();
   @Input() isOpen = false;
   @Output() newDirectMessage = new EventEmitter<boolean>();
   @Output() outputSelectedChannel = new EventEmitter<string>();
@@ -57,6 +58,7 @@ export class WorkspaceMenu {
     } else {
       this.isWorkspaceMenuOpen = true;
     }
+    this.workspaceMenuOpenChanged.emit(this.isWorkspaceMenuOpen);
   }
 
   getWorkspaceToggleIcon() {
