@@ -21,7 +21,7 @@ export class WorkspaceMenu {
   @Output() workspaceMenuOpenChanged = new EventEmitter<boolean>();
   @Input() isOpen = false;
   @Output() newDirectMessage = new EventEmitter<boolean>();
-  @Output() outputSelectedChannel = new EventEmitter<string>();
+  @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string }>();
 
 
   channels = [
@@ -109,7 +109,7 @@ export class WorkspaceMenu {
     }
   }
 
-  openChat(channelName: string) {
-    this.outputSelectedChannel.emit(channelName);
+  openChat(channelName: string , conversationType: string) {
+    this.outputSelectedChannel.emit({ channelName, conversationType });
   }
 }

@@ -11,7 +11,7 @@
 }
 
 .close-workspace-menu {
-    width: 366px;
+    width: 400px;
     overflow: hidden;
     transition: width 300ms ease-in-out;
 }
@@ -23,10 +23,20 @@
 
 app-chat-header {
     width: 100%;
+    overflow: hidden;
+    transition: width 300ms ease-in-out;
 }
 
 @media (max-width: 1024px) {
     :host {
         background-color: #ffffff;
     }
+
+.close-workspace-menu {
+   width: 100%;
+}
+
+app-chat-header {
+    display: none;
+}
 }

@@ -63,8 +63,6 @@
     .close-img {
         cursor: pointer;
         padding: 5px;
-        width: 16px !important;
-        height: 16px !important;
         object-fit: contain;
         border-radius: 50%;
 
@@ -101,8 +99,6 @@
         }
 
         input {
-
-            height: 20px;
             border: 1px solid #ADB0D9;
             border-radius: 20px;
             padding: 10px;

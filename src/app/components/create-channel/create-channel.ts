@@ -19,6 +19,7 @@ export class CreateChannel {
       return;
     }
     this.createChannel()
+    this.closeOverlay()
   }
 
   createChannel() {

@@ -17,7 +17,7 @@
                 <img (click)="openOverlay()" class="add-img" src="assets/add.png" alt="Add">
             </div>
             <div class="channel-list" [ngClass]="{'dnone': !isChannelOpen}">
-                <p (click)="openChannel(channel.channelName); openChat(channel.channelName)"
+                <p (click)="openChannel(channel.channelName); openChat(channel.channelName , 'channel')"
                     [class.active]="selectedChannel === channel.channelName" class="channel-list-element"
                     *ngFor="let channel of channels"><img src="assets/tag_black.svg"
                         alt="Channel">{{channel.channelName}}</p>
@@ -34,7 +34,7 @@
             </div>
             <div *ngFor="let user of directMessages" [class.active]="selectedUser === user.UserName" class="direct-message-list"
                 [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.UserName)">
-                <div class="user-icon-container" (click)="openChat(user.UserName)"><img class="online-icon"
+                <div class="user-icon-container" (click)="openChat(user.UserName , 'direct-message')"><img class="online-icon"
                         [src]="user.online ? 'assets/Online.png' : 'assets/Offline.png'" alt="Online Status"><img
                         class="user_icon" [src]="user.UserImage" alt="User Image"></div>
                 <h3>{{user.UserName}}</h3>
