@@ -145,8 +145,8 @@
     width: 17px !important;
     height: 17px !important;
     padding: 7px;
-     box-sizing: content-box;
-  object-fit: contain;
+    box-sizing: content-box;
+    object-fit: contain;
 
     &:hover {
         content: url('../../../../public/assets/add-hover.png');
@@ -308,13 +308,47 @@
     height: 10px;
 }
 
+.new-message-mobile-btn {
+    display: none;
+}
+
 @media (max-width: 1024px) {
     .workspace-toggle-btn {
+        display: none;
+    }
+
+    .workspace-header {
         display: none;
     }
 
     .workspace-container {
         width: 100%;
         max-width: none;
+    }
+
+    .new-message-mobile-btn {
+        position: fixed;
+        right: 20px;
+        bottom: 30px;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        padding: 0;
+        border: none;
+        border-radius: 100px;
+        background-color: #444df2;
+        cursor: pointer;
+
+        img {
+            width: 20px;
+            height: 20px;
+        }
+
+        &:active {
+            background-color: #797ef3;
+        }
     }
 }

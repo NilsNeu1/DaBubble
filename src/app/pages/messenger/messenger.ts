@@ -23,9 +23,38 @@ import { CommonModule } from '@angular/common';
 })
 export class Messenger {
   isWorkspaceMenuOpen: boolean = true;
-  chatType: 'channel' | 'direct-message' = 'channel';
+  isMobileChatOpen: boolean = false;
+  isChannelDetailsOpen: boolean = false;
+  chatType: 'channel' | 'direct-message' | 'new-message' = 'channel';
 
+  /** Opens the selected conversation. */
   onOutputSelectedChannel($event: any) {
-   this.chatType = $event.conversationType;
+    this.chatType = $event.conversationType;
+    this.isMobileChatOpen = true;
+  }
+
+  /** Opens the new message view in the chat header. */
+  openNewMessage(): void {
+    this.chatType = 'new-message';
+    this.isMobileChatOpen = true;
+  }
+
+  /** Returns to the mobile workspace menu. */
+  showMobileWorkspaceMenu(): void {
+    this.isMobileChatOpen = false;
+  }
+
+  /** Opens the selected channel details. */
+  openChannelDetails(
+    channelId: string,
+    overlay: GroupDetailsOverlayComponent
+  ): void {
+    this.isChannelDetailsOpen = true;
+    overlay.open(channelId);
+  }
+
+  /** Resets the channel details state after closing. */
+  closeChannelDetails(): void {
+    this.isChannelDetailsOpen = false;
   }
 }

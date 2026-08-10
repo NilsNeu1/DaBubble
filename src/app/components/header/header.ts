@@ -4,6 +4,7 @@ import {
   ElementRef,
   inject,
   input,
+  output,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -50,6 +51,12 @@ export class Header {
   /** Defines where the header is displayed. */
   public readonly mode = input<'workspace' | 'legal'>('workspace');
 
+  /** Indicates whether a mobile chat view is active. */
+  public readonly isMobileChatView = input(false);
+
+  /** Emits when the mobile back button is selected. */
+  public readonly mobileBackRequested = output<void>();
+
   /** Defines the breakpoint for the mobile user menu. */
   private readonly mobileBreakpoint = '(max-width: 1024px)';
 
@@ -74,6 +81,11 @@ export class Header {
   protected openProfileFromUserMenu(): void {
     this.shouldOpenProfile.set(true);
     this.closeUserMenu();
+  }
+
+  /** Requests returning to the mobile workspace menu. */
+  protected requestMobileBack(): void {
+    this.mobileBackRequested.emit();
   }
 
   /** TEMP-HEADER-PREVIEW: Provides users for testing search suggestions. */

@@ -12,23 +12,23 @@
 
 .close-workspace-menu {
     flex: 0 0 370px;
-  width: 370px;
-  overflow: hidden;
-  transition:
-    width 300ms ease-in-out,
-    flex-basis 300ms ease-in-out;
+    width: 370px;
+    overflow: hidden;
+    transition:
+        width 300ms ease-in-out,
+        flex-basis 300ms ease-in-out;
 }
 
 .close-workspace-menu.dnone {
-      flex-basis: 0;
+    flex-basis: 0;
     width: 0px;
 }
 
 .chat-container {
     flex: 1;
     min-width: 0;
-     min-height: 0;
-     height: auto;
+    min-height: 0;
+    height: auto;
     width: auto;
     display: flex;
     flex-direction: column;
@@ -37,7 +37,7 @@
 
 app-chat-header {
     width: 100%;
-     overflow: visible;
+    overflow: visible;
     transition: width 300ms ease-in-out;
 }
 
@@ -54,7 +54,22 @@ app-chat-panel {
         width: 100%;
     }
 
+    .close-workspace-menu.dnone {
+        flex-basis: auto;
+        width: 100%;
+    }
+
     .chat-container {
         display: none;
+    }
+
+    .messenger-page--mobile-chat {
+        .close-workspace-menu {
+            display: none;
+        }
+
+        .chat-container {
+            display: flex;
+        }
     }
 }
