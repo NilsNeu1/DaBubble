@@ -4,6 +4,7 @@ import { ChatHeader } from '../../components/chat-header/chat-header';
 import { UserProfileDialog } from '../../components/user-profile-dialog/user-profile-dialog';
 import { WorkspaceMenu } from '../../components/workspace-menu/workspace-menu';
 import { ChatPanel } from '../../components/chat-panel/chat-panel';
+import { GroupDetailsOverlayComponent } from '../../components/group-details-overlay-component/group-details-overlay-component';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -14,7 +15,8 @@ import { CommonModule } from '@angular/common';
     UserProfileDialog,
     WorkspaceMenu,
     ChatPanel,
-    CommonModule
+    CommonModule,
+    GroupDetailsOverlayComponent
   ],
   templateUrl: './messenger.html',
   styleUrl: './messenger.scss',
