@@ -1,0 +1,22 @@
+<section [ngClass]="isOverlayOpen ? 'open' : 'close'">
+    <article class="group-details-overlay">
+        <div class="overlay-header">
+            <h1># EntwicklerTeam</h1>
+            <img (click)="isOverlayOpen = false" src="assets/close.png">
+        </div>
+        <div class="group-style group-details-overlay-content">
+            <div><h2>Channel name</h2><button class="edit-btn">Bearbeiten</button></div>
+            <h3 class="group-name"># EntwicklerTeam</h3>
+        </div>
+
+        <div class="group-style group-description">
+             <div class="description-header"><h2>Beschreibung</h2><button class="edit-btn">Bearbeiten</button></div>
+             <p>Dieser Channel ist für alles rund um #dfsdf vorgesehen. Hier kannst du zusammen mit deinem Team Meetings abhalten, Dokumente teilen und Entscheidungen treffen.</p>
+             <div class="border"></div>
+             <h2>Erstellt von</h2>
+             <h3 class="groupHost">Noah Braun</h3>
+        </div>
+
+        <div class="btn-container"><button (click)="leaveChat()">Channel verlassen</button></div>
+    </article>
+</section>

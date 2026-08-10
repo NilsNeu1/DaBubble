@@ -1,0 +1,143 @@
+section {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    right: 0;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+section.close{
+    display: none;
+}
+
+section.open{
+    display: flex;
+}
+
+.group-details-overlay {
+    max-width: 870px;
+    max-height: 616px;
+    background-color: #fff;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+    gap: 30px;
+    box-sizing: border-box;
+    padding: 30px;
+}
+
+.group-style {
+    border: 2px solid #ADB0D9;
+    border-radius: 30px;
+    padding: 10px 20px;
+}
+
+div {
+    width: 100%;
+}
+
+h2 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.edit-btn {
+    color: #444DF2;
+    font-size: 18px;
+    font-weight: 600;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        color: #7c80e1;
+        scale: 1.1;
+    }
+}
+
+.overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.group-details-overlay-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .group-name {
+        font-size: 18px;
+        font-weight: 400;
+    }
+}
+
+.group-description {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    p {
+        font-size: 18px;
+        font-weight: 400;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .description-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .groupHost{
+        font-size: 24px;
+        font-weight: 400;
+        color: #535AF1;
+        margin-bottom: 20px;
+    }
+}
+
+.border {
+    height: 1px !important;
+    margin-bottom: 20px;
+    background-color: #ADB0D9;
+}
+
+.btn-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    button {
+        background-color: #444DF2;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 18px;
+
+        &:hover {
+            background-color: #797EF3;
+        }
+    }
+}
