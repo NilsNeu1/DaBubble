@@ -2,7 +2,7 @@
 
     <div class="chat-container">
 
-       <!--  <div class="channel-header">
+        <!--  <div class="channel-header">
 
             <div class="channel-info">
                 <figure>
@@ -25,72 +25,118 @@
 
 
         <div class="chat-messages">
-            <p>messages</p>
+            <div class="msg-divider">
+                <p>yesterday</p>
+            </div>
+
+            <div class="msg-container">
+                <div class="autor-img"> <img src="/assets/01.Charaters.png" alt=""></div>
+                <div class="msg-content">
+
+                    <div class="msg-info">
+                        <div class="autor">
+                            <span class="autor-name">Erika Mustermann</span>
+                            <span class="msg-timestamp">2:00 PM</span>
+                        </div>
+                        <div class="msg-interaction-options">
+                            <div class="interaction-btn" type="button" title="Check">✅</div>
+                            <div class="interaction-btn" type="button" title="Like">👍</div>
+                            <div class="interaction-btn" type="button" title="Add Reaction">x</div>
+                            <div class="interaction-btn" type="button" title="Answer">x</div>
+                        </div>
+                    </div>
+                    <div class="msg-text">
+                        <p>styling test</p>
+                    </div>
+                    <div class="msg-interactions">
+                        <div class="msg-threads">
+                            <span class="msg-thread-count">Antworten</span>
+                            <span class="msg-last-reply">Letzte Antwort 14:55</span>
+                        </div>
+                        <div class="msg-reaction">
+
+                            <div class="msg-reaction-item">
+                                <span class="msg-reaction-icon">👍</span>
+                                <span class="msg-reaction-count">1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <div class="chat-input-container">
-    <article
-        #messageInput
-        class="message-editor"
-        contenteditable="true"
-        role="textbox"
-        aria-multiline="true"
-        data-placeholder="Nachricht an #Entwicklerteam"
-        [class.is-empty]="isEmpty()"
-        (input)="onInput()"
-        (click)="saveCursorPosition()"
-        (keyup)="saveCursorPosition()">
-    </article>
+            <article #messageInput class="message-editor" contenteditable="true" role="textbox" aria-multiline="true"
+                data-placeholder="Nachricht an #Entwicklerteam" [class.is-empty]="isEmpty()" (input)="onInput()"
+                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()">
+            </article>
 
-    <div class="chat-input-actions">
-        <div class="input-features">
-            <div class="emote-btn-wrapper">
-                <div #emoteBtn class="emote-btn" role="img" tabindex="0" (click)="toggleEmotePicker()"></div>
+            <div class="chat-input-actions">
+                <div class="input-features">
+                    <div class="emote-btn-wrapper">
+                        <div #emoteBtn class="emote-btn" role="img" tabindex="0" (click)="toggleEmotePicker()"></div>
 
-                @if (showEmotePicker()) {
-                    <div #emotePicker class="emote-picker">
-                        @for (emoji of emojis; track emoji) {
+                        @if (showEmotePicker()) {
+                        <div #emotePicker class="emote-picker">
+                            @for (emoji of emojis; track emoji) {
                             <button class="emote-picker-item" (click)="insertEmote(emoji)">
                                 {{ emoji }}
                             </button>
+                            }
+                        </div>
                         }
                     </div>
-                }
-            </div>
 
-            <div class="mention-btn-wrapper">
-                <div #mentionBtn class="mention-btn" role="img" tabindex="0" (click)="toggleMentionPicker()"></div>
+                    <div class="mention-btn-wrapper">
+                        <div #mentionBtn class="mention-btn" role="img" tabindex="0" (click)="toggleMentionPicker()">
+                        </div>
 
-                @if (showMentionPicker()) {
-                    <div #mentionPicker class="mention-picker">
-                        <div class="mention-picker-section">
-                            <span class="mention-picker-label">Channels</span>
-                            @for (channel of channels; track channel.name) {
+                        @if (showMentionPicker()) {
+                        <div #mentionPicker class="mention-picker">
+                            <div class="mention-picker-section">
+                                <span class="mention-picker-label">Channels</span>
+                                @for (channel of channels; track channel.name) {
                                 <button class="mention-picker-item" (click)="insertMention(channel)">
                                     <img [src]="channel.imageUrl" [alt]="channel.name" class="mention-picker-avatar" />
                                     <span>{{ channel.name }}</span>
                                 </button>
-                            }
-                        </div>
+                                }
+                            </div>
 
-                        <div class="mention-picker-section">
-                            <span class="mention-picker-label">Personen</span>
-                            @for (person of people; track person.name) {
+                            <div class="mention-picker-section">
+                                <span class="mention-picker-label">Personen</span>
+                                @for (person of people; track person.name) {
                                 <button class="mention-picker-item" (click)="insertMention(person)">
                                     <img [src]="person.imageUrl" [alt]="person.name" class="mention-picker-avatar" />
                                     <span>{{ person.name }}</span>
                                 </button>
-                            }
+                                }
+                            </div>
                         </div>
+                        }
                     </div>
-                }
+                </div>
+                <div class="send-btn">
+                    <div class="send-btn" role="img" tabindex="0"></div>
+                </div>
             </div>
         </div>
-        <div class="send-btn">
-            <div class="send-btn" role="img" tabindex="0"></div>
-        </div>
-    </div>
-</div>
 
     </div>
 
