@@ -4,6 +4,7 @@ section {
     top: 0;
     left: 0;
     right: 0;
+    display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -13,14 +14,24 @@ section {
     box-sizing: border-box;
     opacity: 0;
     transform: scale(0.95);
+
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-section.close{
-    display: none;
+section.close {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
 }
 
-section.open{
-    display: flex;
+section.open {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
 }
 
 .group-details-overlay {
@@ -108,7 +119,7 @@ h2 {
         justify-content: space-between;
     }
 
-    .groupHost{
+    .groupHost {
         font-size: 24px;
         font-weight: 400;
         color: #535AF1;
@@ -139,5 +150,16 @@ h2 {
         &:hover {
             background-color: #797EF3;
         }
+    }
+}
+
+.x-img {
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 20px;
+
+    &:hover {
+        background-color: #E5E5E5;
+        content: url('../../../../public/assets/close-hover.png')
     }
 }
