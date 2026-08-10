@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  HostListener,
   input,
   output,
   signal,
@@ -221,6 +222,9 @@ export class ChatHeader {
   /** Receives whether the channel details are open. */
   public readonly channelDetailsOpen = input(false);
 
+  /** Stores the responsive placeholder for the new message search. */
+  protected newMessagePlaceholder = this.getNewMessagePlaceholder();
+
   /** TEMP-CHAT-HEADER-PREVIEW: Provides fallback preview data. */
   protected readonly activeChat = computed<ChatHeaderData>(() => {
     if (this.chat()) return this.chat()!;
@@ -260,6 +264,19 @@ export class ChatHeader {
   /** Requests the selected user's profile. */
   protected requestUserProfile(userId: string): void {
     this.userProfileRequested.emit(userId);
+  }
+
+  /** Updates the new message placeholder on viewport changes. */
+  @HostListener('window:resize')
+  protected updateNewMessagePlaceholder(): void {
+    this.newMessagePlaceholder = this.getNewMessagePlaceholder();
+  }
+
+  /** Returns the responsive new message placeholder. */
+  private getNewMessagePlaceholder(): string {
+    return window.innerWidth <= 1024
+      ? 'An: #channel, oder @jemand'
+      : 'An: #channel, oder @jemand oder E-Mail Adresse';
   }
 
   /** Updates the new message search value. */

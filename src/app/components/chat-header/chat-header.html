@@ -11,10 +11,10 @@
         </h2>
 
         <input class="chat-header__new-message-input" type="search" name="newMessageSearch"
-            placeholder="An: #channel, oder @jemand oder E-Mail Adresse" aria-label="Empfänger für neue Nachricht"
-            autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list"
-            aria-controls="new-message-search-results" [attr.aria-expanded]="isNewMessageSuggestionListOpen()"
-            [value]="newMessageSearchTerm()" (input)="updateNewMessageSearch($event)" />
+            [placeholder]="newMessagePlaceholder" aria-label="Empfänger für neue Nachricht" autocomplete="off"
+            spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="new-message-search-results"
+            [attr.aria-expanded]="isNewMessageSuggestionListOpen()" [value]="newMessageSearchTerm()"
+            (input)="updateNewMessageSearch($event)" />
         @if (isNewMessageSuggestionListOpen()) {
 
         <!-- TEMP-CHAT-HEADER-PREVIEW: Displays temporary new message suggestions. -->
