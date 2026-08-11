@@ -24,7 +24,7 @@ export class WorkspaceMenu {
   @Output() workspaceMenuOpenChanged = new EventEmitter<boolean>();
   @Input() isOpen = false;
   @Output() newDirectMessage = new EventEmitter<boolean>();
-  @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string }>();
+  @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string; channelId?: string }>();
   currentUser = inject(Auth).currentUser;
   allUsers = inject(Auth).allUsers;
   
@@ -107,7 +107,9 @@ export class WorkspaceMenu {
     }
   }
 
-  openChat(channelName: string, conversationType: string) {
-    this.outputSelectedChannel.emit({ channelName, conversationType });
+  openChat(channelName: string, conversationType: string, channelId?: string) {
+    this.outputSelectedChannel.emit({ channelName, conversationType, channelId});
+    console.log('currentUser:', this.currentUser());
+    console.log('allUsers:', this.allUsers());
   }
 }

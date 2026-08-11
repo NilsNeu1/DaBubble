@@ -18,7 +18,7 @@
             <img (click)="openOverlay()" class="add-img" src="assets/add.png" alt="Add">
         </div>
         <div class="channel-list" [ngClass]="{'dnone': !isChannelOpen}">
-            <p (click)="openChannel(channel.channelName); openChat(channel.channelName , 'channel')"
+            <p (click)="openChannel(channel.channelName); openChat(channel.channelName , 'channel', channel.channelId)"
                 [class.active]="selectedChannel === channel.channelName" class="channel-list-element"
                 *ngFor="let channel of channels()"><img src="assets/tag_black.svg" alt="Channel">{{channel.channelName}}
             </p>
