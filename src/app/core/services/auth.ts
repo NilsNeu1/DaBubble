@@ -16,8 +16,9 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
+  onSnapshot,
   setDoc,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { firebaseAuth, firestore } from '../firebase.config';
 import { AppUser, DEFAULT_AVATAR } from '../models/user.model';
@@ -32,6 +33,9 @@ export class Auth {
   readonly authReady = signal(false);
   readonly ready: Promise<void>;
 
+  private unsubscribeCurrentUser?: Unsubscribe;
+  private unsubscribeAllUsers?: Unsubscribe;
+
   constructor() {
     let resolveReady!: () => void;
     this.ready = new Promise((resolve) => (resolveReady = resolve));
@@ -39,13 +43,15 @@ export class Auth {
     onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       if (!firebaseUser) {
         this.currentUser.set(null);
+        this.allUsers.set([]);
         this.authReady.set(true);
         resolveReady();
         return;
       }
       const profile = await this.loadOrCreateProfile(firebaseUser);
       this.currentUser.set(profile);
-      await this.loadAllUsers();
+      this.listenToCurrentUser(firebaseUser.uid);
+      this.listenToAllUsers();
       this.authReady.set(true);
       resolveReady();
     });
@@ -178,14 +184,39 @@ export class Auth {
     this.currentUser.set(user);
   }
 
-  async loadAllUsers(): Promise<void> {
-    const snapshot = await getDocs(collection(firestore, 'users'));
+  listenToAllUsers(): void {
+    this.unsubscribeAllUsers?.();
 
-    const users = snapshot.docs.map((userDoc) => ({
-      ...(userDoc.data() as AppUser),
-      uid: userDoc.id,
-    }));
+    this.unsubscribeAllUsers = onSnapshot(
+      collection(firestore, 'users'),
+      (snapshot) => {
+        const users: AppUser[] = snapshot.docs.map((userDoc) => ({
+          ...(userDoc.data() as AppUser),
+          uid: userDoc.id,
+        }));
 
-    this.allUsers.set(users);
+        this.allUsers.set(users);
+      },);
+  }
+
+  private listenToCurrentUser(userId: string): void {
+    this.unsubscribeCurrentUser?.();
+
+    this.unsubscribeCurrentUser = onSnapshot(
+      doc(firestore, 'users', userId),
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          this.currentUser.set(null);
+          return;
+        }
+
+        const user: AppUser = {
+          ...(snapshot.data() as AppUser),
+          uid: snapshot.id,
+        };
+
+        this.currentUser.set(user);
+      },
+    );
   }
 }

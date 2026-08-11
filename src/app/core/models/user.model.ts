@@ -8,7 +8,13 @@ export interface AppUser {
   status: OnlineStatus;
   isGuest: boolean;
   createdAt: number;
-  channelMemberships?: {};
+ channelMemberships?: Record<string, ChannelMembership>;
+}
+
+export interface ChannelMembership {
+  channelName: string;
+  channelId?: string;
+  role?: string;
 }
 
 export const AVAILABLE_AVATARS: readonly string[] = [

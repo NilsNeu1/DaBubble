@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CreateChannel } from '../create-channel/create-channel';
 import { Auth } from '../../core/services/auth';
+import { ChannelMembership } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-workspace-menu',
@@ -9,7 +10,8 @@ import { Auth } from '../../core/services/auth';
   templateUrl: './workspace-menu.html',
   styleUrl: './workspace-menu.scss',
 })
-export class WorkspaceMenu implements OnInit {
+
+export class WorkspaceMenu {
   isChannelOpen: boolean = true;
   hoverChannel: boolean = false;
   isDirectMessageOpen: boolean = true;
@@ -24,19 +26,13 @@ export class WorkspaceMenu implements OnInit {
   @Output() newDirectMessage = new EventEmitter<boolean>();
   @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string }>();
   currentUser = inject(Auth).currentUser;
-
-  channels = [];
-
-  directMessages = [
-    { UserName: 'Max Mustermann', UserImage: 'assets/01.Charaters.png', online: true },
-    { UserName: 'Erika Mustermann', UserImage: 'assets/02.Charaters.png', online: false },
-    { UserName: 'John Doe', UserImage: 'assets/03.Charaters.png', online: false }
-  ];
-
-  async ngOnInit() {
-    console.log('Current User:', this.currentUser());
-    this.channels = Object.values(this.currentUser()?.channelMemberships || {});
-  }
+  allUsers = inject(Auth).allUsers;
+  
+  readonly channels = computed(() =>
+    Object.values(
+      this.currentUser()?.channelMemberships ?? {}
+    )
+  );
 
   toggleChannel() {
     if (this.isChannelOpen) {
