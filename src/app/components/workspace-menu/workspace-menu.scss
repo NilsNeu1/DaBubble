@@ -326,6 +326,17 @@
     .workspace-container {
         width: 100%;
         max-width: none;
+        height: 100vh;
+        min-width: 100vh;
+        padding-left: 10px;
+    }
+
+    .direct-message-list{
+        margin-left: 0px !important; 
+    }
+
+    .channel-list{
+        margin-left: 0px !important; 
     }
 
     .new-message-mobile-btn {
