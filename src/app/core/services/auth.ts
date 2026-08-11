@@ -12,7 +12,13 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+} from 'firebase/firestore';
 import { firebaseAuth, firestore } from '../firebase.config';
 import { AppUser, DEFAULT_AVATAR } from '../models/user.model';
 import { mapAuthError } from './auth-error';
@@ -22,6 +28,7 @@ import { mapAuthError } from './auth-error';
 })
 export class Auth {
   readonly currentUser = signal<AppUser | null>(null);
+  readonly allUsers = signal<AppUser[]>([]);
   readonly authReady = signal(false);
   readonly ready: Promise<void>;
 
@@ -38,6 +45,7 @@ export class Auth {
       }
       const profile = await this.loadOrCreateProfile(firebaseUser);
       this.currentUser.set(profile);
+      await this.loadAllUsers();
       this.authReady.set(true);
       resolveReady();
     });
@@ -168,5 +176,16 @@ export class Auth {
   private async saveProfile(user: AppUser): Promise<void> {
     await setDoc(doc(firestore, 'users', user.uid), user);
     this.currentUser.set(user);
+  }
+
+  async loadAllUsers(): Promise<void> {
+    const snapshot = await getDocs(collection(firestore, 'users'));
+
+    const users = snapshot.docs.map((userDoc) => ({
+      ...(userDoc.data() as AppUser),
+      uid: userDoc.id,
+    }));
+
+    this.allUsers.set(users);
   }
 }
