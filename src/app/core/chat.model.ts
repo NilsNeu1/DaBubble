@@ -1,13 +1,14 @@
 import { Injectable, signal } from '@angular/core';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { firestore } from '../../app/core/firebase.config';
 
 export interface chatModel {
-  channelId: string;
   createdBy: string;
   description: string;
-  name: string;
+  channelName: string;
 
+  members: unknown[];
+  messages: unknown[];
 }
 
 @Injectable({
@@ -17,11 +18,14 @@ export interface chatModel {
 export class ChatModel {
 
   readonly activeChat = signal<chatModel | null>(null);
+  private unsubscribeChat?: Unsubscribe;
 
   async loadChat(channelId: string): Promise<void> {
+    this.unsubscribeChat?.();
+
     const chatRef = doc(firestore, 'chats', channelId);
 
-    onSnapshot(chatRef, (snapshot) => {
+    this.unsubscribeChat = onSnapshot(chatRef, (snapshot) => {
       if (!snapshot.exists()) {
         this.activeChat.set(null);
         return;
