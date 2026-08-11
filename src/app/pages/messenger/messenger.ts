@@ -44,6 +44,20 @@ export class Messenger {
     this.isMobileChatOpen = false;
   }
 
+  /** Opens the matching profile dialog for the selected user. */
+  openUserProfile(
+    userId: string,
+    header: Header,
+    userProfileDialog: UserProfileDialog
+  ): void {
+    if (userId === 'temp-user-current') {
+      header.openProfileDialog();
+      return;
+    }
+
+    userProfileDialog.openUserProfileDialog(userId);
+  }
+
   /** Opens the selected channel details. */
   openChannelDetails(
     channelId: string,

@@ -91,6 +91,18 @@
             </span>
         </button>
     </div>
+
+    @if (isMembersDropdownOpen()) {
+    <app-channel-members-dropdown [members]="chat.members" (closeRequested)="closeMembersDropdown()"
+        (addMemberRequested)="requestAddMemberFromDropdown()" (userProfileRequested)="openMemberProfile($event)">
+    </app-channel-members-dropdown>
+    }
+
+    @if (isAddMembersDropdownOpen()) {
+    <app-channel-add-members-dropdown [channelName]="chat.name" (closeRequested)="closeAddMembersDropdown()">
+    </app-channel-add-members-dropdown>
+    }
+
     } @else {
     <button class="chat-header__direct-message-button" type="button" aria-label="Profil von {{ chat.name }} öffnen"
         (click)="requestUserProfile(chat.id)">

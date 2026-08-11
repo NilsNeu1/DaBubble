@@ -18,6 +18,13 @@ interface UserProfileDialogData {
 
 const TEMP_USER_PROFILES: UserProfileDialogData[] = [
   {
+    id: 'temp-user-current',
+    name: 'Header Testuser',
+    email: 'testuser@dabubble.test',
+    avatarUrl: 'assets/default-user-avatar.png',
+    status: 'online',
+  },
+  {
     id: 'temp-user-frederik',
     name: 'Frederik Beck',
     email: 'frederik.beck@dabubble.test',

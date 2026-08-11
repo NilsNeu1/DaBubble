@@ -1,4 +1,4 @@
-<app-header [isMobileChatView]="isMobileChatOpen" (mobileBackRequested)="showMobileWorkspaceMenu()" />
+<app-header #headerComponent [isMobileChatView]="isMobileChatOpen" (mobileBackRequested)="showMobileWorkspaceMenu()" />
 <app-group-details-overlay-component #groupDetailsOverlayComponent (close)="closeChannelDetails()" />
 <main class="messenger-page" [class.messenger-page--mobile-chat]="isMobileChatOpen">
     <!-- TEMP-CHAT-HEADER-PREVIEW: Replace with the active chat later. -->
@@ -10,7 +10,7 @@
 
         <app-chat-header [previewType]="chatType" [channelDetailsOpen]="isChannelDetailsOpen"
             (channelDetailsRequested)="openChannelDetails($event, groupDetailsOverlayComponent)"
-            (userProfileRequested)="userProfileDialog.openUserProfileDialog($event)">
+            (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)">
         </app-chat-header>
 
         <app-chat-panel />

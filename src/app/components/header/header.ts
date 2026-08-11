@@ -383,6 +383,11 @@ export class Header {
     await this.router.navigateByUrl('/login');
   }
 
+  /** Opens the current user's profile dialog. */
+  public openProfileDialog(): void {
+    this.profileDialogComponent.openProfileDialog();
+  }
+
   /** Opens the profile after the user menu has fully closed. */
   private openPendingProfile(): void {
     if (!this.shouldOpenProfile()) return;

@@ -7,6 +7,13 @@ import {
   signal,
 } from '@angular/core';
 
+import {
+  ChannelMembersDropdown,
+} from '../channel-members-dropdown/channel-members-dropdown';
+import {
+  ChannelAddMembersDropdown
+} from '../channel-add-members-dropdown/channel-add-members-dropdown';
+
 type ChatHeaderStatus = 'online' | 'offline';
 type ChatHeaderPreviewType = 'channel' | 'direct-message' | 'new-message';
 
@@ -14,6 +21,7 @@ interface ChatHeaderMember {
   id: string;
   name: string;
   avatarUrl: string;
+  status: ChatHeaderStatus;
 }
 
 interface NewMessageSearchSuggestion {
@@ -45,6 +53,7 @@ type ChatHeaderData =
   | ChannelHeaderData
   | DirectMessageHeaderData;
 
+/** TEMP-CHAT-HEADER-PREVIEW: Provides fallback channel data. */
 const TEMP_CHANNEL: ChannelHeaderData = {
   type: 'channel',
   id: 'temp-developer-team',
@@ -54,36 +63,31 @@ const TEMP_CHANNEL: ChannelHeaderData = {
       id: 'temp-user-current',
       name: 'Header Testuser (Du)',
       avatarUrl: 'assets/default-user-avatar.png',
+      status: 'online',
     },
     {
       id: 'temp-user-frederik',
       name: 'Frederik Beck',
       avatarUrl: 'assets/00.Charaters.png',
+      status: 'online',
     },
     {
       id: 'temp-user-sofia',
       name: 'Sofia Müller',
       avatarUrl: 'assets/01.Charaters.png',
+      status: 'online',
     },
     {
       id: 'temp-user-noah',
       name: 'Noah Braun',
       avatarUrl: 'assets/02.Charaters.png',
-    },
-    {
-      id: 'temp-user-elise',
-      name: 'Elise Roth',
-      avatarUrl: 'assets/03.Charaters.png',
-    },
-    {
-      id: 'temp-user-elias',
-      name: 'Elias Neumann',
-      avatarUrl: 'assets/04.Charaters.png',
+      status: 'offline',
     },
     {
       id: 'temp-user-steffen',
       name: 'Steffen Hoffmann',
       avatarUrl: 'assets/05.Charaters.png',
+      status: 'online',
     },
   ],
 };
@@ -178,7 +182,10 @@ const TEMP_NEW_MESSAGE_CHANNELS: NewMessageSearchSuggestion[] = [
 
 @Component({
   selector: 'app-chat-header',
-  imports: [],
+  imports: [
+    ChannelMembersDropdown,
+    ChannelAddMembersDropdown,
+  ],
   templateUrl: './chat-header.html',
   styleUrl: './chat-header.scss',
 })
@@ -196,14 +203,17 @@ export class ChatHeader {
   /** Emits when the member overview should open. */
   public readonly membersRequested = output<string>();
 
-  /** Emits when the add-member dialog should open. */
-  public readonly addMemberRequested = output<string>();
-
   /** Emits when a user profile should open. */
   public readonly userProfileRequested = output<string>();
 
   /** Stores the current new message search value. */
   protected readonly newMessageSearchTerm = signal('');
+
+  /** Stores whether the channel member dropdown is open. */
+  protected readonly isMembersDropdownOpen = signal(false);
+
+  /** Stores whether the add-member dropdown is open. */
+  protected readonly isAddMembersDropdownOpen = signal(false);
 
   /** Returns matching temporary new message suggestions. */
   protected readonly newMessageSearchSuggestions = computed(() => {
@@ -243,22 +253,51 @@ export class ChatHeader {
     this.channelDetailsRequested.emit(chat.id);
   }
 
-  /** Requests the member overview of the active channel. */
+  /** Opens the member overview of the active channel. */
   protected requestMembers(): void {
     const chat = this.activeChat();
 
-    if (chat.type === 'channel') {
-      this.membersRequested.emit(chat.id);
-    }
+    if (chat.type !== 'channel') return;
+
+    this.isAddMembersDropdownOpen.set(false);
+    this.isMembersDropdownOpen.set(true);
   }
 
-  /** Requests adding members to the active channel. */
+  /** Opens the responsive add-member view. */
   protected requestAddMember(): void {
     const chat = this.activeChat();
 
-    if (chat.type === 'channel') {
-      this.addMemberRequested.emit(chat.id);
-    }
+    if (chat.type !== 'channel') return;
+    if (window.innerWidth <= 1024) return this.requestMembers();
+
+    this.openAddMembersDropdown();
+  }
+
+  /** Closes the channel member dropdown. */
+  protected closeMembersDropdown(): void {
+    this.isMembersDropdownOpen.set(false);
+  }
+
+  /** Opens the selected member profile. */
+  protected openMemberProfile(userId: string): void {
+    this.closeMembersDropdown();
+    this.requestUserProfile(userId);
+  }
+
+  /** Opens the add-member dropdown from the member overview. */
+  protected requestAddMemberFromDropdown(): void {
+    this.openAddMembersDropdown();
+  }
+
+  /** Closes the add-member dropdown. */
+  protected closeAddMembersDropdown(): void {
+    this.isAddMembersDropdownOpen.set(false);
+  }
+
+  /** Opens only the add-member dropdown. */
+  private openAddMembersDropdown(): void {
+    this.isMembersDropdownOpen.set(false);
+    this.isAddMembersDropdownOpen.set(true);
   }
 
   /** Requests the selected user's profile. */
