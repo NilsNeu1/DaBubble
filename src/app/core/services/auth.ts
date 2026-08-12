@@ -4,6 +4,7 @@ import {
   GoogleAuthProvider,
   confirmPasswordReset as fbConfirmPasswordReset,
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInAnonymously,
@@ -12,7 +13,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { firebaseAuth, firestore } from '../firebase.config';
 import { AppUser, DEFAULT_AVATAR } from '../models/user.model';
 import { mapAuthError } from './auth-error';
@@ -143,6 +144,12 @@ export class Auth {
   }
 
   async logout(): Promise<void> {
+    const user = firebaseAuth.currentUser;
+    if (user?.isAnonymous) {
+      await deleteDoc(doc(firestore, 'users', user.uid));
+      await deleteUser(user);
+      return;
+    }
     await signOut(firebaseAuth);
   }
 
