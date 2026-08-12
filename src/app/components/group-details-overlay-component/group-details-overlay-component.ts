@@ -12,12 +12,20 @@ export class GroupDetailsOverlayComponent {
   isOverlayOpen = false;
   channelId = '';
 
+  /** Opens the selected channel details. */
   open(channelId: string): void {
     this.channelId = channelId;
     this.isOverlayOpen = true;
   }
-  
-  leaveChat() {
+
+  /** Closes the channel details overlay. */
+  closeOverlay(): void {
     this.isOverlayOpen = false;
+    this.close.emit();
+  }
+
+  /** Closes the overlay after leaving the channel. */
+  leaveChat(): void {
+    this.closeOverlay();
   }
 }

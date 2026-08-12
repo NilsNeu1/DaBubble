@@ -135,3 +135,19 @@
         background-color: #686868;
     }
 }
+
+@media(max-width: 1024px) {
+
+    .create-channel {
+        top: 90px;
+        align-items: flex-start;
+        background-color: white;
+        padding: 0px;
+    }
+    
+    .overlay {
+    width: 100%;
+    padding: 20px;
+    border-radius: 0px;
+}
+}

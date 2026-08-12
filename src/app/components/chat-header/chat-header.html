@@ -1,22 +1,75 @@
 @let chat = activeChat();
 
-<header class="chat-header" [class.chat-header--channel]="chat.type === 'channel'" [class.chat-header--direct-message]="
-        chat.type === 'direct-message'
-    ">
-    @if (chat.type === 'channel') {
+<header class="chat-header" [class.chat-header--channel]="previewType() !== 'new-message' && chat.type === 'channel'"
+    [class.chat-header--direct-message]="previewType() !== 'new-message' && chat.type === 'direct-message'"
+    [class.chat-header--new-message]="previewType() === 'new-message'">
+
+    @if (previewType() === 'new-message') {
+    <div class="chat-header__new-message">
+        <h2 class="chat-header__new-message-title">
+            Neue Nachricht
+        </h2>
+
+        <input class="chat-header__new-message-input" type="search" name="newMessageSearch"
+            [placeholder]="newMessagePlaceholder" aria-label="Empfänger für neue Nachricht" autocomplete="off"
+            spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="new-message-search-results"
+            [attr.aria-expanded]="isNewMessageSuggestionListOpen()" [value]="newMessageSearchTerm()"
+            (input)="updateNewMessageSearch($event)" />
+        @if (isNewMessageSuggestionListOpen()) {
+
+        <!-- TEMP-CHAT-HEADER-PREVIEW: Displays temporary new message suggestions. -->
+        <div id="new-message-search-results" class="chat-header__new-message-results" role="listbox"
+            aria-label="Empfängervorschläge">
+
+            @for (
+            suggestion of newMessageSearchSuggestions();
+            track suggestion.id
+            ) {
+            <button class="chat-header__new-message-result" type="button" role="option" aria-selected="false">
+
+                @if (suggestion.type === 'user' && suggestion.avatarUrl) {
+                <span class="chat-header__new-message-avatar-wrapper">
+                    <img class="chat-header__new-message-avatar" [src]="suggestion.avatarUrl" alt="" />
+
+                    @if (suggestion.status) {
+                    <img class="chat-header__new-message-status" [src]="suggestion.status === 'online'
+                    ? 'assets/Online.png'
+                    : 'assets/Offline.png'" alt="" />
+                    }
+                </span>
+                }
+
+                @if (suggestion.type === 'channel') {
+                <span class="chat-header__new-message-channel-icon" aria-hidden="true">
+                    #
+                </span>
+                }
+
+                <span class="chat-header__new-message-result-label">
+                    {{ suggestion.label }}
+                </span>
+            </button>
+            }
+        </div>
+        }
+    </div>
+    } @else if (chat.type === 'channel') {
     <button class="chat-header__channel-button" type="button" aria-label="Channeldetails öffnen"
         (click)="requestChannelDetails()">
+
         <span class="chat-header__channel-name">
             # {{ chat.name }}
         </span>
 
-        <span class="chat-header__dropdown-icon" [class.chat-header__dropdown-icon--open]="isChannelDetailsOpen()"
-            aria-hidden="true"></span>
+        <span class="chat-header__dropdown-icon" [class.chat-header__dropdown-icon--open]="channelDetailsOpen()"
+            aria-hidden="true">
+        </span>
     </button>
 
     <div class="chat-header__channel-actions">
         <button class="chat-header__members-button" type="button" aria-label="Channelmitglieder anzeigen"
             (click)="requestMembers()">
+
             <span class="chat-header__member-avatars" aria-hidden="true">
                 @for (
                 member of chat.members.slice(0, 3);
@@ -33,17 +86,33 @@
 
         <button class="chat-header__add-member-button" type="button" aria-label="Mitglied hinzufügen"
             (click)="requestAddMember()">
-            <span class="chat-header__add-member-icon" aria-hidden="true"></span>
+
+            <span class="chat-header__add-member-icon" aria-hidden="true">
+            </span>
         </button>
     </div>
+
+    @if (isMembersDropdownOpen()) {
+    <app-channel-members-dropdown [members]="chat.members" (closeRequested)="closeMembersDropdown()"
+        (addMemberRequested)="requestAddMemberFromDropdown()" (userProfileRequested)="openMemberProfile($event)">
+    </app-channel-members-dropdown>
+    }
+
+    @if (isAddMembersDropdownOpen()) {
+    <app-channel-add-members-dropdown [channelName]="chat.name" (closeRequested)="closeAddMembersDropdown()">
+    </app-channel-add-members-dropdown>
+    }
+
     } @else {
     <button class="chat-header__direct-message-button" type="button" aria-label="Profil von {{ chat.name }} öffnen"
         (click)="requestUserProfile(chat.id)">
+
         <span class="chat-header__direct-avatar-wrapper">
             <img class="chat-header__direct-avatar" [src]="chat.avatarUrl" [alt]="'Profilbild von ' + chat.name" />
 
-            <img class="chat-header__direct-status"
-                [src]="chat.status === 'online'? 'assets/Online.png': 'assets/Offline.png'" alt="" />
+            <img class="chat-header__direct-status" [src]="chat.status === 'online'
+                    ? 'assets/Online.png'
+                    : 'assets/Offline.png'" alt="" />
         </span>
 
         <span class="chat-header__direct-name">

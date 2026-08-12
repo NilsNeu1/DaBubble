@@ -1,16 +1,16 @@
-<app-header />
-<app-group-details-overlay-component #groupDetailsOverlayComponent (close)="groupDetailsOverlayComponent.isOverlayOpen = false"/>
-<main class="messenger-page">
+<app-header #headerComponent [isMobileChatView]="isMobileChatOpen" (mobileBackRequested)="showMobileWorkspaceMenu()" />
+<app-group-details-overlay-component #groupDetailsOverlayComponent (close)="closeChannelDetails()" />
+<main class="messenger-page" [class.messenger-page--mobile-chat]="isMobileChatOpen">
     <!-- TEMP-CHAT-HEADER-PREVIEW: Replace with the active chat later. -->
     <app-workspace-menu class="close-workspace-menu" (workspaceMenuOpenChanged)="isWorkspaceMenuOpen = $event"
-        (outputSelectedChannel)="onOutputSelectedChannel($event)"
-        [ngClass]="{'dnone': !isWorkspaceMenuOpen}"></app-workspace-menu>
+        (outputSelectedChannel)="onOutputSelectedChannel($event)" (newDirectMessage)="openNewMessage()"
+        [ngClass]="{'dnone': !isWorkspaceMenuOpen}">
+    </app-workspace-menu>
     <section class="chat-container">
 
-        <app-chat-header 
-        [previewType]="chatType"
-        (channelDetailsRequested)="groupDetailsOverlayComponent.open($event)"
-        (userProfileRequested)="userProfileDialog.openUserProfileDialog($event)">
+        <app-chat-header [previewType]="chatType" [channelDetailsOpen]="isChannelDetailsOpen"
+            (channelDetailsRequested)="openChannelDetails($event, groupDetailsOverlayComponent)"
+            (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)">
         </app-chat-header>
 
         <app-chat-panel />

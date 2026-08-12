@@ -1,6 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CreateChannel } from '../create-channel/create-channel';
+import { Auth } from '../../core/services/auth';
+import { ChannelMembership } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-workspace-menu',
@@ -8,12 +10,13 @@ import { CreateChannel } from '../create-channel/create-channel';
   templateUrl: './workspace-menu.html',
   styleUrl: './workspace-menu.scss',
 })
+
 export class WorkspaceMenu {
   isChannelOpen: boolean = true;
   hoverChannel: boolean = false;
   isDirectMessageOpen: boolean = true;
   hoverDirectMessage: boolean = false;
-  isWorkspaceMenuOpen: boolean  = true;
+  isWorkspaceMenuOpen: boolean = true;
   hoverWorkspaceMenu: boolean = false;
   selectedChannel: string | null = null;
   selectedUser: string | null = null;
@@ -21,20 +24,15 @@ export class WorkspaceMenu {
   @Output() workspaceMenuOpenChanged = new EventEmitter<boolean>();
   @Input() isOpen = false;
   @Output() newDirectMessage = new EventEmitter<boolean>();
-  @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string }>();
-
-
-  channels = [
-    { channelName: 'Entwickler' },
-    { channelName: 'Design' }
-  ];
-
-  directMessages = [
-    { UserName: 'Max Mustermann', UserImage: 'assets/01.Charaters.png', online: true },
-    { UserName: 'Erika Mustermann', UserImage: 'assets/02.Charaters.png', online: false },
-    { UserName: 'John Doe', UserImage: 'assets/03.Charaters.png', online: false }
-  ];
-
+  @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string; channelId?: string }>();
+  currentUser = inject(Auth).currentUser;
+  allUsers = inject(Auth).allUsers;
+  
+  readonly channels = computed(() =>
+    Object.values(
+      this.currentUser()?.channelMemberships ?? {}
+    )
+  );
 
   toggleChannel() {
     if (this.isChannelOpen) {
@@ -109,7 +107,9 @@ export class WorkspaceMenu {
     }
   }
 
-  openChat(channelName: string , conversationType: string) {
-    this.outputSelectedChannel.emit({ channelName, conversationType });
+  openChat(channelName: string, conversationType: string, channelId?: string) {
+    this.outputSelectedChannel.emit({ channelName, conversationType, channelId});
+    console.log('currentUser:', this.currentUser());
+    console.log('allUsers:', this.allUsers());
   }
 }

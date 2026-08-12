@@ -1,0 +1,189 @@
+:host {
+    position: absolute;
+    top: calc(100% + 2px);
+    right: 28px;
+    z-index: 20;
+    display: block;
+}
+
+.channel-members-dropdown {
+    display: flex;
+    flex-direction: column;
+    width: 415px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 160px);
+    padding: 24px 28px;
+    box-sizing: border-box;
+    border-radius: 30px 0 30px 30px;
+    background-color: #ffffff;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+
+    button {
+        border: none;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    &__header {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    &__close-button {
+        display: grid;
+        flex-shrink: 0;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 20px;
+        color: #000000;
+        background-color: transparent;
+
+        img {
+            display: none;
+        }
+
+        &::before {
+            width: 13px;
+            height: 13px;
+            background-color: currentColor;
+            content: '';
+            -webkit-mask-image: url('/assets/close.png');
+            mask-image: url('/assets/close.png');
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+
+        &:hover,
+        &:focus-visible {
+            color: #535af1;
+            background-color: #eceefe;
+            outline: none;
+        }
+    }
+
+    &__member-list {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        max-height: 300px;
+        margin-top: 14px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    &__member {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 60px;
+        padding: 4px 12px;
+        border-radius: 35px;
+        color: #000000;
+        background-color: transparent;
+        text-align: left;
+
+        &:hover {
+            color: #535af1;
+            background-color: #eceefe;
+        }
+    }
+
+    &__avatar-wrapper {
+        position: relative;
+        flex-shrink: 0;
+        width: 50px;
+        height: 50px;
+    }
+
+    &__avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    &__status {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 14px;
+        height: 14px;
+    }
+
+    &__member-name {
+        font-size: 18px;
+        font-weight: 400;
+    }
+
+    &__add-member {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        align-self: flex-start;
+        gap: 10px;
+        min-height: 40px;
+        margin-top: 10px;
+        padding: 4px 12px;
+        border-radius: 100px;
+        color: #000000;
+        background-color: transparent;
+        font-size: 18px;
+        font-weight: 400;
+
+        &:hover {
+            color: #535af1;
+            background-color: #eceefe;
+        }
+    }
+
+    &__add-member-icon {
+        display: grid;
+        flex-shrink: 0;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 20px;
+        background-color: #eceefe;
+
+        &::before {
+            width: 22px;
+            height: 16px;
+            background-color: currentColor;
+            content: '';
+            -webkit-mask-image: url('/assets/person_add.png');
+            mask-image: url('/assets/person_add.png');
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    :host {
+        right: 8px;
+    }
+
+    .channel-members-dropdown {
+        width: min(415px, calc(100vw - 16px));
+    }
+}

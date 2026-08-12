@@ -1,0 +1,43 @@
+<section class="channel-members-dropdown">
+    <header class="channel-members-dropdown__header">
+        <h2 class="channel-members-dropdown__title">
+            Mitglieder
+        </h2>
+
+        <button class="channel-members-dropdown__close-button" type="button" aria-label="Mitglieder schließen"
+            (click)="requestClose()">
+            <img src="assets/close.png" alt="" />
+        </button>
+    </header>
+
+    <div class="channel-members-dropdown__member-list">
+        @for (member of members(); track member.id) {
+        <button class="channel-members-dropdown__member" type="button"
+            [attr.aria-label]="'Profil von ' + member.name + ' öffnen'" (click)="requestUserProfile(member.id)">
+
+            <span class="channel-members-dropdown__avatar-wrapper">
+                <img class="channel-members-dropdown__avatar" [src]="member.avatarUrl"
+                    [alt]="'Profilbild von ' + member.name" />
+
+                <img class="channel-members-dropdown__status" [src]="member.status === 'online'
+                        ? 'assets/Online.png'
+                        : 'assets/Offline.png'" alt="" />
+            </span>
+
+            <span class="channel-members-dropdown__member-name">
+                {{ member.name }}
+            </span>
+        </button>
+        }
+    </div>
+
+    <button class="channel-members-dropdown__add-member" type="button" (click)="requestAddMember()">
+
+        <span class="channel-members-dropdown__add-member-icon" aria-hidden="true">
+        </span>
+
+        <span>
+            Mitglieder hinzufügen
+        </span>
+    </button>
+</section>

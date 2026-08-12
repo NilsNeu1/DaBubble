@@ -119,12 +119,11 @@
 
     <div class="app-header__mobile">
         <div class="app-header__mobile-topbar">
-            <div class="app-header__mobile-brand">
-                <img class="app-header__logo" src="assets/logo-header.png" alt="DaBubble" />
-            </div>
+            @if (isMobileChatView()) {
+            <div class="app-header__mobile-workspace">
+                <button class="app-header__back-button" type="button" aria-label="Zur Workspace-Übersicht zurück"
+                    (click)="requestMobileBack()">
 
-            <div class="app-header__mobile-workspace" hidden>
-                <button class="app-header__back-button" type="button" aria-label="Zur Workspace-Übersicht zurück">
                     <img class="app-header__back-icon" src="assets/back-arrow-mobile-black.png" alt="" />
 
                     <img class="app-header__workspace-logo" src="assets/Workspace_logo.png" alt="" />
@@ -134,6 +133,11 @@
                     </span>
                 </button>
             </div>
+            } @else {
+            <div class="app-header__mobile-brand">
+                <img class="app-header__logo" src="assets/logo-header.png" alt="DaBubble" />
+            </div>
+            }
 
             <!-- TEMP-HEADER-PREVIEW: Replace the static avatar with Firebase user data. -->
             <button class="app-header__mobile-user-button" type="button" aria-label="Benutzermenü öffnen"
@@ -151,7 +155,7 @@
             </button>
         </div>
 
-        @if (mode() === 'workspace') {
+        @if (mode() === 'workspace' && !isMobileChatView()) {
         @if (isMobileSearchActive()) {
         <div class="app-header__mobile-search-header">
             <h2 class="app-header__mobile-search-title">
@@ -160,7 +164,7 @@
 
             <button class="app-header__mobile-search-close" type="button" aria-label="Suche leeren und schließen"
                 (click)="clearWorkspaceSearch()">
-                <img src="assets/close.svg" alt="" />
+                <img src="assets/close.png" alt="" />
             </button>
         </div>
         }

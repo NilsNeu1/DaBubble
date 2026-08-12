@@ -165,6 +165,10 @@
             font-weight: 400;
         }
 
+        &::-webkit-search-cancel-button {
+            cursor: pointer;
+        }
+
         &:focus {
             outline: none;
         }

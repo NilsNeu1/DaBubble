@@ -6,6 +6,8 @@
     border-radius: 30px;
     box-sizing: border-box;
     padding: 25px 20px;
+    padding-left: 40px;
+
 }
 
 .workspace-open {
@@ -145,8 +147,8 @@
     width: 17px !important;
     height: 17px !important;
     padding: 7px;
-     box-sizing: content-box;
-  object-fit: contain;
+    box-sizing: content-box;
+    object-fit: contain;
 
     &:hover {
         content: url('../../../../public/assets/add-hover.png');
@@ -260,7 +262,7 @@
 .workspace-toggle-btn {
     position: absolute;
     left: 0px;
-    top: 480px;
+    top: 380px;
     z-index: 10;
     display: flex;
     align-items: center;
@@ -270,7 +272,7 @@
     background-color: white;
     box-shadow: 4px 4px 4px rgba(56, 56, 56, 0.25);
     border-radius: 0 20px 20px 0;
-    width: 56px;
+    width: 50px;
     height: 347px;
     cursor: pointer;
 
@@ -308,13 +310,58 @@
     height: 10px;
 }
 
+.new-message-mobile-btn {
+    display: none;
+}
+
 @media (max-width: 1024px) {
     .workspace-toggle-btn {
+        display: none;
+    }
+
+    .workspace-header {
         display: none;
     }
 
     .workspace-container {
         width: 100%;
         max-width: none;
+        height: 100vh;
+        min-width: 100vh;
+        padding-left: 10px;
+    }
+
+    .direct-message-list{
+        margin-left: 0px !important; 
+    }
+
+    .channel-list{
+        margin-left: 0px !important; 
+    }
+
+    .new-message-mobile-btn {
+        position: fixed;
+        right: 20px;
+        bottom: 30px;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        padding: 0;
+        border: none;
+        border-radius: 100px;
+        background-color: #444df2;
+        cursor: pointer;
+
+        img {
+            width: 20px;
+            height: 20px;
+        }
+
+        &:active {
+            background-color: #797ef3;
+        }
     }
 }

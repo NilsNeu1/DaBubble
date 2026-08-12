@@ -1,0 +1,76 @@
+<section class="channel-add-members-dropdown">
+    <header class="channel-add-members-dropdown__header">
+        <h2 class="channel-add-members-dropdown__title">
+            Leute hinzufügen
+        </h2>
+
+        <button class="channel-add-members-dropdown__close-button" type="button" aria-label="Leute hinzufügen schließen"
+            (click)="requestClose()">
+            <img src="assets/close.png" alt="" />
+        </button>
+    </header>
+
+    <div class="channel-add-members-dropdown__channel">
+        <span aria-hidden="true">#</span>
+
+        <span>
+            {{ channelName() }}
+        </span>
+    </div>
+
+    <div class="channel-add-members-dropdown__search">
+        <div class="channel-add-members-dropdown__search-field">
+            <div class="channel-add-members-dropdown__search-content">
+                @for (member of selectedMembers(); track member.id) {
+                <span class="channel-add-members-dropdown__selected-member">
+                    <img class="channel-add-members-dropdown__selected-avatar" [src]="member.avatarUrl" alt="" />
+
+                    <span class="channel-add-members-dropdown__selected-name">
+                        {{ member.name }}
+                    </span>
+
+                    <button class="channel-add-members-dropdown__remove-member" type="button"
+                        [attr.aria-label]="member.name + ' entfernen'" (click)="removeSelectedMember(member.id)">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </span>
+                }
+
+                <input class="channel-add-members-dropdown__search-input" type="search" name="addMemberSearch"
+                    placeholder="Name eingeben" aria-label="Mitglied suchen" autocomplete="off" spellcheck="false"
+                    role="combobox" aria-autocomplete="list" aria-controls="add-member-search-results"
+                    [attr.aria-expanded]="isSuggestionListOpen()" [value]="searchTerm()"
+                    (input)="updateSearchTerm($event)" (keydown)="handleSearchKeydown($event)" />
+            </div>
+        </div>
+
+        @if (isSuggestionListOpen()) {
+        <!-- TEMP: Displays users that can be added to the active channel. -->
+        <div id="add-member-search-results" class="channel-add-members-dropdown__search-results" role="listbox"
+            aria-label="Mitgliedervorschläge">
+
+            @for (suggestion of filteredSuggestions(); track suggestion.id) {
+            <button class="channel-add-members-dropdown__search-result" type="button" role="option"
+                aria-selected="false" (click)="selectMember(suggestion)">
+
+                <span class="channel-add-members-dropdown__avatar-wrapper">
+                    <img class="channel-add-members-dropdown__avatar" [src]="suggestion.avatarUrl" alt="" />
+
+                    <img class="channel-add-members-dropdown__status" [src]="suggestion.status === 'online'
+                            ? 'assets/Online.png'
+                            : 'assets/Offline.png'" alt="" />
+                </span>
+
+                <span class="channel-add-members-dropdown__result-name">
+                    {{ suggestion.name }}
+                </span>
+            </button>
+            }
+        </div>
+        }
+    </div>
+
+    <button class="channel-add-members-dropdown__submit-button" type="button" [disabled]="!hasSelectedMembers()">
+        Hinzufügen
+    </button>
+</section>
