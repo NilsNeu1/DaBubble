@@ -13,6 +13,23 @@ interface MentionChannel {
   imageUrl: string;
 }
 
+interface Reaction {
+  icon: string;
+  count: number;
+}
+
+interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderImageUrl: string;
+  timestamp: string;
+  text: string;
+  hasThread: boolean;
+  lastReply?: string;
+  reactions: Reaction[];
+}
+
 type MentionItem = MentionPerson | MentionChannel;
 
 @Component({
@@ -52,6 +69,37 @@ export class ChatPanel {
     { type: 'person', name: 'Fernando CR', imageUrl: '/assets/02.Charaters.png' },
     { type: 'person', name: 'Riccardo S', imageUrl: '/assets/02.Charaters.png' },
     { type: 'person', name: 'Nils N', imageUrl: '/assets/02.Charaters.png' }
+  ];
+
+
+
+  currentUserId: string = 'u1';
+
+  messages: Message[] = [
+    {
+      id: 'm1',
+      senderId: 'u2',
+      senderName: 'Erika Mustermann',
+      senderImageUrl: '/assets/01.Charaters.png',
+      timestamp: '2:00 PM',
+      text: 'styling test',
+      hasThread: true,
+      lastReply: 'Letzte Antwort 14:55',
+      reactions: [{ icon: '👍', count: 1 }]
+    },
+    {
+      id: 'm2',
+      senderId: 'u1',
+      senderName: 'Frederik Beck',
+      senderImageUrl: '/assets/02.Charaters.png',
+      timestamp: '3:06 PM',
+      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+      hasThread: false,
+      reactions: [
+        { icon: '👍', count: 1 },
+        { icon: '✅', count: 1 }
+      ]
+    }
   ];
 
   toggleEmotePicker(): void {
@@ -196,5 +244,15 @@ export class ChatPanel {
         this.showMentionPicker.set(false);
       }
     }
+
+    
   }
+
+  isOwnMessage(senderId: string): boolean {
+    return senderId === this.currentUserId;
+}
+
+trackByMessageId(index: number, message: Message): string {
+  return message.id;
+}
 }
