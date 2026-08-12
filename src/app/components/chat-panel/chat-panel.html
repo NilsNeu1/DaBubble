@@ -29,14 +29,17 @@
                 <p>yesterday</p>
             </div>
 
-            <div class="msg-container">
-                <div class="autor-img"> <img src="/assets/01.Charaters.png" alt=""></div>
+            <div class="msg-container" *ngFor="let message of messages; trackBy: trackByMessageId"
+                [class.own-message]="isOwnMessage(message.senderId)">
+                <div class="autor-img">
+                    <img [src]="message.senderImageUrl" alt="">
+                </div>
                 <div class="msg-content">
 
                     <div class="msg-info">
                         <div class="autor">
-                            <span class="autor-name">Erika Mustermann</span>
-                            <span class="msg-timestamp">2:00 PM</span>
+                            <span class="autor-name">{{ message.senderName }}</span>
+                            <span class="msg-timestamp">{{ message.timestamp }}</span>
                         </div>
                         <div class="msg-interaction-options">
                             <div class="interaction-btn" type="button" title="Check">✅</div>
@@ -45,26 +48,26 @@
                             <div class="interaction-btn" type="button" title="Answer">x</div>
                         </div>
                     </div>
+
                     <div class="msg-text">
-                        <p>styling test</p>
+                        <p>{{ message.text }}</p>
                     </div>
+
                     <div class="msg-interactions">
-                        <div class="msg-threads">
+                        <div class="msg-threads" *ngIf="message.hasThread">
                             <span class="msg-thread-count">Antworten</span>
-                            <span class="msg-last-reply">Letzte Antwort 14:55</span>
+                            <span class="msg-last-reply">{{ message.lastReply }}</span>
                         </div>
                         <div class="msg-reaction">
-
-                            <div class="msg-reaction-item">
-                                <span class="msg-reaction-icon">👍</span>
-                                <span class="msg-reaction-count">1</span>
+                            <div class="msg-reaction-item" *ngFor="let reaction of message.reactions">
+                                <span class="msg-reaction-icon">{{ reaction.icon }}</span>
+                                <span class="msg-reaction-count">{{ reaction.count }}</span>
                             </div>
                         </div>
                     </div>
 
                 </div>
             </div>
-
         </div>
 
 

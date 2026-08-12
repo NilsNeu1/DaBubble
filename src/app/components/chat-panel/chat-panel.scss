@@ -565,3 +565,43 @@ section {
   font-weight: 600;
 
 }
+
+
+
+.msg-container.own-message {
+  flex-direction: row-reverse;
+
+  .autor-img {
+    margin-right: 0;
+    margin-left: 12px;
+  }
+
+  .msg-content {
+    align-items: flex-end;
+  }
+
+  .msg-info {
+    flex-direction: row-reverse;
+  }
+
+  .msg-text {
+    align-self: flex-end;
+    background: var(--color-primary, #535AF1);
+    color: #fff;
+    border-radius: 24px 0 24px 24px;
+  }
+
+  .msg-interaction-options {
+    right: auto;
+    left: 16px;
+  }
+
+  .msg-interactions {
+    justify-content: flex-end;
+  }
+
+  .msg-threads,
+  .msg-reaction {
+    flex-direction: row-reverse;
+  }
+}
