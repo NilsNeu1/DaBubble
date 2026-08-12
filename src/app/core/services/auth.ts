@@ -94,7 +94,7 @@ export class Auth {
           uid: credential.user.uid,
           name: credential.user.displayName ?? 'Unbenannt',
           email: credential.user.email ?? '',
-          avatarUrl: credential.user.photoURL ?? DEFAULT_AVATAR,
+          avatarUrl: DEFAULT_AVATAR,
           status: 'online',
           isGuest: false,
           createdAt: Date.now(),
@@ -107,16 +107,7 @@ export class Auth {
 
   async loginAsGuest(): Promise<void> {
     try {
-      const credential = await signInAnonymously(firebaseAuth);
-      await this.saveProfile({
-        uid: credential.user.uid,
-        name: 'Gast',
-        email: '',
-        avatarUrl: DEFAULT_AVATAR,
-        status: 'online',
-        isGuest: true,
-        createdAt: Date.now(),
-      });
+      await signInAnonymously(firebaseAuth);
     } catch (error) {
       throw new Error(mapAuthError(error));
     }
@@ -176,9 +167,9 @@ export class Auth {
     }
     const fallback: AppUser = {
       uid: firebaseUser.uid,
-      name: firebaseUser.displayName ?? 'Unbenannt',
+      name: firebaseUser.isAnonymous ? 'Gast' : firebaseUser.displayName ?? 'Unbenannt',
       email: firebaseUser.email ?? '',
-      avatarUrl: firebaseUser.photoURL ?? DEFAULT_AVATAR,
+      avatarUrl: firebaseUser.isAnonymous ? DEFAULT_AVATAR : firebaseUser.photoURL ?? DEFAULT_AVATAR,
       status: 'online',
       isGuest: firebaseUser.isAnonymous,
       createdAt: Date.now(),
