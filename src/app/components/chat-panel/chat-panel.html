@@ -59,6 +59,16 @@
                             <span class="msg-last-reply">{{ message.lastReply }}</span>
                         </div>
                         <div class="msg-reaction">
+
+                            <div class="instant-reaction-btn" (click)="toggleReactionPicker(message.id)"
+                                title="Reagieren">
+                                <img src="/assets/add_reaction.png" alt="">
+
+                                <app-emoji-picker *ngIf="isReactionPickerOpen(message.id)" [emojis]="quickReactions"
+                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'"
+                                    (emojiSelected)="addReaction(message, $event)"></app-emoji-picker>
+                            </div>
+
                             <div class="msg-reaction-item" *ngFor="let reaction of message.reactions">
                                 <span class="msg-reaction-icon">{{ reaction.icon }}</span>
                                 <span class="msg-reaction-count">{{ reaction.count }}</span>
