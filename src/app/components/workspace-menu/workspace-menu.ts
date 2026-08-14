@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, inject, computed } from '@angul
 import { CommonModule } from '@angular/common';
 import { CreateChannel } from '../create-channel/create-channel';
 import { Auth } from '../../core/services/auth';
-import { ChannelMembership } from '../../core/models/user.model';
+import { ChatModel } from '../../core/chat.model';
 
 @Component({
   selector: 'app-workspace-menu',
@@ -27,7 +27,8 @@ export class WorkspaceMenu {
   @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string; channelId?: string }>();
   currentUser = inject(Auth).currentUser;
   allUsers = inject(Auth).allUsers;
-  
+  private readonly chatModel = inject(ChatModel);
+
   readonly channels = computed(() =>
     Object.values(
       this.currentUser()?.channelMemberships ?? {}
@@ -107,8 +108,12 @@ export class WorkspaceMenu {
     }
   }
 
-  openChat(channelName: string, conversationType: string, channelId?: string) {
-    this.outputSelectedChannel.emit({ channelName, conversationType, channelId});
+  async openChat(channelName: string, conversationType: string, channelId?: string) {
+    console.log(channelId);
+    if (channelId) {
+      this.chatModel.loadChat(channelId);
+    }
+    this.outputSelectedChannel.emit({ channelName, conversationType, channelId });
     console.log('currentUser:', this.currentUser());
     console.log('allUsers:', this.allUsers());
   }

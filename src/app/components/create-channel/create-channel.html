@@ -1,21 +1,47 @@
 <section class="create-channel" [ngClass]="isOverlayOpen ? 'overlay-open' : 'overlay-close'">
-    <article class="overlay">
+    <article class="overlay" [ngClass]="!isAddMembersOpen ? 'overlay-open' : 'overlay-close'">
         <div class="overlay-header">
-            <h1>Channel erstellen</h1><img class="close-img" src="assets/close.png" alt="Close" (click)="closeOverlay()">
+            <h1>Channel erstellen</h1><img class="close-img" src="assets/close.png" alt="Close"
+                (click)="closeOverlay()">
         </div>
         <span class="overlay-span">Channels dienen deinem Team zur Kommunikation. Am besten sollten sie themenbezogen
             sein #marketing zum Beispiel.</span>
         <article class="overlay-body">
             <div class="overlay-input">
                 <label class="label-style" for="channel-name">Channel-Name</label>
-                <input [(ngModel)]="channelName" type="text" id="channel-name" name="channel-name" placeholder="# z.B. Kooperationsprojekte">
+                <input [(ngModel)]="channelName" type="text" id="channel-name" name="channel-name"
+                    placeholder="# z.B. Kooperationsprojekte">
             </div>
             <div class="overlay-input">
                 <label class="label-style" for="channel-description">Beschreibung <p>(optional)</p></label>
                 <input [(ngModel)]="channelDescription" type="text" id="channel-description" name="channel-description"
                     placeholder="Dein Text hier">
             </div>
-            <div class="btn-container" [class.disabled]="channelName === ''"><button [disabled]="channelName === ''" (click)="checkInput()">Erstellen</button></div>
+            <div class="btn-container" [class.disabled]="channelName === ''"><button [disabled]="channelName === ''"
+                    (click)="toAddMembers()">Erstellen</button></div>
         </article>
+    </article>
+    <article class="overlay-add-members" [ngClass]="isAddMembersOpen ? 'overlay-open' : 'overlay-close'">
+        <div class="members-header">
+            <h1>Leute hinzufügen</h1><img class="close-img" src="assets/close.png" alt="Close" (click)="closeOverlay()">
+        </div>
+        <div class="flex-start margin-bottom input-container" (click)="selectMemberSource('existing')"><input
+                type="radio" [checked]="isChecked === 'existing'">
+            <h2 class="flex-start">Alle Mitglieder von <p>entwicklerteam</p> hinzufügen</h2>
+        </div>
+        <div class="flex-start input-container" (click)="selectMemberSource('custom')"><input type="radio"
+                [checked]="isChecked === 'custom'">
+            <h2>Bestimmte Leute hinzufügen</h2>
+        </div>
+        <div class="add-user-dropdown">
+            <div class="drop-down-dropdown">
+                <input type="text" placeholder="Name eingeben">
+                <div *ngFor="let user of dropDownUSers">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-container" [class.disabled]="channelName === ''"><button [disabled]="channelName === ''"
+                (click)="checkInput()">Erstellen</button></div>
     </article>
 </section>

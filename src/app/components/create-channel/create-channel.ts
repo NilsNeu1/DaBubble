@@ -5,19 +5,24 @@ import { CommonModule } from '@angular/common';
 import { doc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
 
+
 @Component({
   selector: 'app-create-channel',
   imports: [FormsModule, CommonModule],
   templateUrl: './create-channel.html',
-  styleUrl: './create-channel.scss',
+  styleUrls: ['./create-channel.scss', './add-user-dropdown.scss'],
 })
 export class CreateChannel {
   channelName: string = '';
   channelDescription: string = '';
   @Input() isOverlayOpen: boolean = false;
   @Output() close = new EventEmitter<void>();
+  isAddMembersOpen: boolean = false;
+  isChecked: string = 'existing';
   currentUser = inject(Auth).currentUser;
   allUsers = inject(Auth).allUsers;
+  members: { userId: string; role: string; name: string }[] = [];
+  dropDownUSers:[] = [];
 
   checkInput() {
     if (this.channelName === '') {
@@ -28,15 +33,21 @@ export class CreateChannel {
   }
 
   async createChannel() {
-    await this.addChannelToUser();
-    await this.addChannelToFirestore();
+    const channelId = await this.addChannelToFirestore();
+    await this.addChannelToUser(channelId);
   }
 
   closeOverlay() {
     this.close.emit();
+    this.channelName = '';
+    this.channelDescription = '';
+    this.isChecked = 'existing';
+    setTimeout(() => {
+      this.isAddMembersOpen = false;
+    }, 300);
   }
 
-  async addChannelToUser(): Promise<void> {
+  async addChannelToUser(channelId: string): Promise<void> {
     const userId = this.currentUser()?.uid;
     if (!userId) {
       return;
@@ -45,41 +56,61 @@ export class CreateChannel {
 
     await updateDoc(userRef, {
       [`channelMemberships.${this.channelName}`]: {
-        channelId: this.channelName,
+        channelId: channelId,
         channelName: this.channelName,
         role: 'admin',
       },
     });
   }
 
-  async addChannelToFirestore(): Promise<void> {
-
-    const groupData = {
-      channelId: this.channelName, // später ändeern
-      createdBy: this.currentUser()?.uid,
-      channelName: this.channelName,
-      description: this.channelDescription,
-      members: [{
-        userId: this.currentUser()?.uid,
-        role: 'admin',
-        name: this.currentUser()?.name,
-      }],
-      messages: [{//kann mann später in die chat component packen
-        createdAt: new Date(),
-        reactions: [],
-        replyToMessageId: null,
-        senderId: '',
-        text: 'hat geklapt',
-      }]
-    };
-
+  async addChannelToFirestore(): Promise<string> {
     const documentReference = await addDoc(
       collection(firestore, 'chats'),
-      groupData
+      {
+        channelName: this.channelName,
+        createdBy: this.currentUser()?.uid,
+        description: this.channelDescription,
+        members: this.getSelectedMembers(),
+        messages: [],
+      }
     );
 
-    console.log('Gruppen-ID:', documentReference.id);
+    return documentReference.id;
   }
 
+  toAddMembers() {
+    this.isAddMembersOpen = true;
+  }
 
+  selectMemberSource(source: 'existing' | 'custom') {
+    if (source === 'existing') {
+      this.isChecked = 'existing';
+    } else if (source === 'custom') {
+      this.isChecked = 'custom';
+    }
+  }
+
+  getSelectedMembers() {
+    if (this.isChecked === 'existing') {
+      return [
+        {
+          userId: this.currentUser()?.uid,
+          role: 'admin',
+          name: this.currentUser()?.name,
+        }
+      ];
+
+    } if (this.isChecked === 'custom') {
+      return this.members;
+    }
+    else {
+      return [
+        {
+          userId: this.currentUser()?.uid,
+          role: 'admin',
+          name: this.currentUser()?.name,
+        }
+      ];
+    }
+  }
 }

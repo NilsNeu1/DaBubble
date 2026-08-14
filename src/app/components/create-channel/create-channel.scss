@@ -32,8 +32,10 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.overlay {
-    width: 100%;
+.overlay,
+.overlay-add-members {
+    position: absolute;
+    width: calc(100% - 40px);
     max-width: 800px;
     min-width: 0;
     margin: 0 auto;
@@ -101,7 +103,7 @@
 
         input {
             border: 1px solid #ADB0D9;
-            border-radius: 20px;
+            border-radius: 30px;
             padding: 10px;
             margin-bottom: 20px;
             height: 50px;
@@ -136,6 +138,55 @@
     }
 }
 
+.overlay-add-members {
+    .members-header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    h1 {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    h2 {
+        font-size: 18px;
+        font-weight: 400;
+
+        p {
+            font-size: 18px;
+            font-weight: 400;
+            color: #535AF1;
+        }
+    }
+}
+
+.flex-start {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.margin-bottom {
+    margin-bottom: 20px;
+}
+
+.done {
+    display: none;
+}
+
+.input-container{
+    cursor: pointer;
+    input{
+      cursor: pointer;  
+    }
+}
+
+
 @media(max-width: 1024px) {
 
     .create-channel {
@@ -144,10 +195,10 @@
         background-color: white;
         padding: 0px;
     }
-    
+
     .overlay {
-    width: 100%;
-    padding: 20px;
-    border-radius: 0px;
-}
+        width: 100%;
+        padding: 20px;
+        border-radius: 0px;
+    }
 }

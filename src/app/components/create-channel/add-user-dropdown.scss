@@ -1,0 +1,16 @@
+.add-user-dropdown {
+    width: 100%;
+    margin: 20px 0px;
+
+    .drop-down-dropdown{
+        position: relative;
+    }
+
+    input {
+        padding: 10px;
+        width: 100%;
+        border: 1px solid #ADB0D9;
+        height: 50px;
+        border-radius: 30px;
+    }
+}
