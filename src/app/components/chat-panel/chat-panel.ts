@@ -1,5 +1,6 @@
 import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { EmojiPicker } from '../emoji-picker/emoji-picker'; // Pfad ggf. anpassen
 
 interface MentionPerson {
   type: 'person';
@@ -12,6 +13,8 @@ interface MentionChannel {
   name: string;
   imageUrl: string;
 }
+
+type MentionItem = MentionPerson | MentionChannel;
 
 interface Reaction {
   icon: string;
@@ -30,12 +33,10 @@ interface Message {
   reactions: Reaction[];
 }
 
-type MentionItem = MentionPerson | MentionChannel;
-
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmojiPicker],
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.scss',
 })
@@ -71,8 +72,7 @@ export class ChatPanel {
     { type: 'person', name: 'Nils N', imageUrl: '/assets/02.Charaters.png' }
   ];
 
-
-
+  // ---------------- Chat-Dummy -----------------
   currentUserId: string = 'u1';
 
   messages: Message[] = [
@@ -96,11 +96,43 @@ export class ChatPanel {
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
       hasThread: false,
       reactions: [
-        { icon: '👍', count: 1 },
+        { icon: '🚀', count: 1 },
         { icon: '✅', count: 1 }
       ]
     }
   ];
+
+  readonly quickReactions: string[] = ['👍', '❤️', '😂', '🎉', '👀', '✅'];
+
+  activeReactionPickerId = signal<string | null>(null);
+
+  trackByMessageId(index: number, message: Message): string {
+    return message.id;
+  }
+
+  isOwnMessage(senderId: string): boolean {
+    return senderId === this.currentUserId;
+  }
+
+  toggleReactionPicker(messageId: string): void {
+    this.activeReactionPickerId.update(current => current === messageId ? null : messageId);
+  }
+
+  isReactionPickerOpen(messageId: string): boolean {
+    return this.activeReactionPickerId() === messageId;
+  }
+
+  addReaction(message: Message, icon: string): void {
+    const existing = message.reactions.find(r => r.icon === icon);
+    if (existing) {
+      existing.count++;
+    } else {
+      message.reactions.push({ icon, count: 1 });
+    }
+    this.activeReactionPickerId.set(null);
+  }
+
+  // ------------------ Emote-/Mention-Picker --------------
 
   toggleEmotePicker(): void {
     this.saveCursorPosition();
@@ -213,7 +245,7 @@ export class ChatPanel {
     );
   }
 
-  // prep for backend submission
+  // --------------- prep for backend submission ---------------
   getPlainTextValue(): string {
     const editor = this.messageInput.nativeElement;
     let result = '';
@@ -245,14 +277,12 @@ export class ChatPanel {
       }
     }
 
-    
+    if (this.activeReactionPickerId()) {
+      const clickedElement = event.target as Element;
+      const clickedInsideReactionPicker = clickedElement.closest('.instant-reaction-btn');
+      if (!clickedInsideReactionPicker) {
+        this.activeReactionPickerId.set(null);
+      }
+    }
   }
-
-  isOwnMessage(senderId: string): boolean {
-    return senderId === this.currentUserId;
-}
-
-trackByMessageId(index: number, message: Message): string {
-  return message.id;
-}
 }

@@ -1,0 +1,5 @@
+<span
+    class="reaction-picker-emoji"
+    *ngFor="let emoji of emojis()"
+    (click)="onEmojiClick($event, emoji)"
+>{{ emoji }}</span>
