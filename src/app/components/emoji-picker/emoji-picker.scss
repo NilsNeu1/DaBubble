@@ -1,6 +1,8 @@
 :host {
   position: absolute;
-  bottom: calc(100% + 8px);
+  // bottom: calc(100% + 8px);
+  bottom: auto;
+  top: calc(100% + 8px);
   left: 0;
   display: flex;
   gap: 4px;

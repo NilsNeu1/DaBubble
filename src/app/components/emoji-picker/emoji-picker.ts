@@ -11,11 +11,17 @@ import { CommonModule } from '@angular/common';
 export class EmojiPicker {
   emojis = input.required<string[]>();
   align = input<'left' | 'right'>('left');
+  direction = input<'up' | 'down'>('up');
   emojiSelected = output<string>();
 
   @HostBinding('class.align-right')
   get isAlignedRight(): boolean {
     return this.align() === 'right';
+  }
+
+    @HostBinding('class.direction-down')
+  get isDirectionDown(): boolean {
+    return this.direction() === 'down';
   }
 
   onEmojiClick(event: MouseEvent, emoji: string): void {

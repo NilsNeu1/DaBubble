@@ -114,12 +114,12 @@ export class ChatPanel {
     return senderId === this.currentUserId;
   }
 
-  toggleReactionPicker(messageId: string): void {
-    this.activeReactionPickerId.update(current => current === messageId ? null : messageId);
+  toggleReactionPicker(pickerId: string): void {
+    this.activeReactionPickerId.update(current => current === pickerId ? null : pickerId);
   }
 
-  isReactionPickerOpen(messageId: string): boolean {
-    return this.activeReactionPickerId() === messageId;
+  isReactionPickerOpen(pickerId: string): boolean {
+    return this.activeReactionPickerId() === pickerId;
   }
 
   addReaction(message: Message, icon: string): void {
@@ -279,10 +279,11 @@ export class ChatPanel {
 
     if (this.activeReactionPickerId()) {
       const clickedElement = event.target as Element;
-      const clickedInsideReactionPicker = clickedElement.closest('.instant-reaction-btn');
+      const clickedInsideReactionPicker = clickedElement.closest('.instant-reaction-btn , .interaction-btn');
       if (!clickedInsideReactionPicker) {
         this.activeReactionPickerId.set(null);
       }
     }
+
   }
 }
