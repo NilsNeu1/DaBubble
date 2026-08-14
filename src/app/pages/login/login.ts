@@ -66,8 +66,8 @@ export class Login {
     this.submitting.set(true);
     this.formError.set(null);
     try {
-      await this.authService.loginWithGoogle();
-      await this.router.navigateByUrl('/messenger');
+      const needsAvatarSelection = await this.authService.loginWithGoogle();
+      await this.router.navigateByUrl(needsAvatarSelection ? '/choose-avatar' : '/messenger');
     } catch (error) {
       this.formError.set((error as Error).message);
     } finally {

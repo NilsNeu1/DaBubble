@@ -5,6 +5,7 @@ import {
   confirmPasswordReset as fbConfirmPasswordReset,
   createUserWithEmailAndPassword,
   deleteUser,
+  getAdditionalUserInfo,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInAnonymously,
@@ -23,7 +24,7 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { firebaseAuth, firestore } from '../firebase.config';
-import { AppUser, DEFAULT_AVATAR } from '../models/user.model';
+import { AppUser, AVAILABLE_AVATARS, DEFAULT_AVATAR } from '../models/user.model';
 import { mapAuthError } from './auth-error';
 
 @Injectable({
@@ -85,11 +86,13 @@ export class Auth {
     }
   }
 
-  async loginWithGoogle(): Promise<void> {
+  async loginWithGoogle(): Promise<boolean> {
     try {
       const credential = await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
       const existing = await getDoc(doc(firestore, 'users', credential.user.uid));
-      if (!existing.exists()) {
+      const isNewUser = getAdditionalUserInfo(credential)?.isNewUser ?? !existing.exists();
+
+      if (isNewUser || !existing.exists()) {
         await this.saveProfile({
           uid: credential.user.uid,
           name: credential.user.displayName ?? 'Unbenannt',
@@ -99,7 +102,12 @@ export class Auth {
           isGuest: false,
           createdAt: Date.now(),
         });
+
+        return true;
       }
+
+      const profile = existing.data() as AppUser;
+      return !AVAILABLE_AVATARS.includes(profile.avatarUrl);
     } catch (error) {
       throw new Error(mapAuthError(error));
     }

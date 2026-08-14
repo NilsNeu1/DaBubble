@@ -17,10 +17,17 @@ export class ChooseAvatar {
 
   readonly avatars = AVAILABLE_AVATARS;
   readonly userName = this.authService.currentUser()?.name ?? '';
-  readonly selectedAvatar = signal(this.authService.currentUser()?.avatarUrl ?? DEFAULT_AVATAR);
+  readonly selectedAvatar = signal(this.initialAvatar());
   readonly submitting = signal(false);
   readonly formError = signal<string | null>(null);
   readonly success = signal(false);
+
+  private initialAvatar(): string {
+    const currentAvatar = this.authService.currentUser()?.avatarUrl;
+    return currentAvatar && AVAILABLE_AVATARS.includes(currentAvatar)
+      ? currentAvatar
+      : DEFAULT_AVATAR;
+  }
 
   selectAvatar(avatar: string): void {
     this.selectedAvatar.set(avatar);
