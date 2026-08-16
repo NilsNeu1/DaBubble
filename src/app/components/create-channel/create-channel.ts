@@ -15,14 +15,19 @@ import { firestore } from '../../core/firebase.config';
 export class CreateChannel {
   channelName: string = '';
   channelDescription: string = '';
+
   @Input() isOverlayOpen: boolean = false;
   @Output() close = new EventEmitter<void>();
+
   isAddMembersOpen: boolean = false;
   isChecked: string = 'existing';
+
   currentUser = inject(Auth).currentUser;
   allUsers = inject(Auth).allUsers;
-  members: { userId: string; role: string; name: string }[] = [];
-  dropDownUSers:[] = [];
+
+  selectedUser: string = '';
+  members: { uid: string; role: string; name: string; avatarUrl: string }[] = [];
+  dropDownUsers: { name: string ; avatarUrl:string; uid: string }[] = [];
 
   checkInput() {
     if (this.channelName === '') {
@@ -112,5 +117,23 @@ export class CreateChannel {
         }
       ];
     }
+  }
+
+  filterUsers() {
+    console.log('Filtering users with selectedUser:', this.allUsers());
+    console.log('Filtering users with selectedUser:', this.selectedUser);
+    this.dropDownUsers = this.allUsers().filter(user =>
+      user.name.toLowerCase().includes(this.selectedUser.toLowerCase())
+    );
+  }
+
+  selectUser(user: { name: string; avatarUrl: string; uid: string }) {
+    this.selectedUser = '';
+    this.members.push({
+      uid: user.uid,
+      role: 'member',
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+    });
   }
 }

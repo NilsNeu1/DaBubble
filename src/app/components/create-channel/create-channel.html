@@ -9,7 +9,7 @@
         <article class="overlay-body">
             <div class="overlay-input">
                 <label class="label-style" for="channel-name">Channel-Name</label>
-                <input [(ngModel)]="channelName" type="text" id="channel-name" name="channel-name"
+                <input [(ngModel)]="channelName" type="text" id="channel-name" name="channel-name" autocomplete="off"
                     placeholder="# z.B. Kooperationsprojekte">
             </div>
             <div class="overlay-input">
@@ -34,9 +34,15 @@
             <h2>Bestimmte Leute hinzufügen</h2>
         </div>
         <div class="add-user-dropdown">
-            <div class="drop-down-dropdown">
-                <input type="text" placeholder="Name eingeben">
-                <div *ngFor="let user of dropDownUSers">
+            <div class="drop-down-dropdown" [class.dnone]="isChecked !== 'custom'">
+                <div class="input-container-dropdown">
+                <div *ngFor="let member of members" class="selectUser"><img class="user-icon" [src]="member.avatarUrl" alt="User"><span>{{ member.name }}</span><img class="close-icon" src="assets/close.png" alt="Remove"></div>
+                <input id="SelctUser" type="text" placeholder="Name eingeben" autocomplete="off" [(ngModel)]="selectedUser"
+                    (keyup)="filterUsers()">
+                </div>
+                <div *ngFor="let user of dropDownUsers" class="drop-down-container" [class.dnone]="selectedUser === ''">
+                    <div (click)="selectUser(user)" class="drop-down-item"><img [src]="user.avatarUrl"
+                            alt="User"><span>{{ user.name }}</span></div>
                 </div>
             </div>
         </div>
