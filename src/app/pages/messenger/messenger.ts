@@ -7,6 +7,7 @@ import { ChatPanel } from '../../components/chat-panel/chat-panel';
 import { GroupDetailsOverlayComponent } from '../../components/group-details-overlay-component/group-details-overlay-component';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../core/services/auth';
+import { ChatModel } from '../../core/chat.model';
 
 @Component({
   selector: 'app-messenger',
@@ -30,17 +31,19 @@ export class Messenger {
   allUsers = inject(Auth).allUsers;
   currentUser = inject(Auth).currentUser;
   selectedChat: any = null;
+  activeChat = inject(ChatModel).activeChat;
+  private readonly chatModel = inject(ChatModel);
 
   /** Opens the selected conversation. */
-  onOutputSelectedChannel(event: {
+  async onOutputSelectedChannel(event: {
     channelName: string;
-    channelId?: string;
     conversationType: 'channel' | 'direct-message';
-  }): void {
+    channelId?: string;
+  }): Promise<void> {
     this.chatType = event.conversationType;
 
     if (event.conversationType === 'channel') {
-      this.selectChannel(event);
+      await this.selectChannel(event);
     } else {
       this.selectDirectMessage(event.channelId);
     }
@@ -48,15 +51,18 @@ export class Messenger {
     this.isMobileChatOpen = true;
   }
 
-  selectChannel(event: {
-    channelName: string;
-    channelId?: string;
-  }): void {
+  async selectChannel(event: { channelName: string; channelId?: string; }): Promise<void> {
+    if (!event.channelId) return;
+    const channel = await this.chatModel.getChat(event.channelId);
+    if (!channel) return;
+
     this.selectedChat = {
       type: 'channel',
       id: event.channelId ?? '',
       name: event.channelName,
-      members: []
+      members: channel.members ?? [],
+      description: channel.description ?? '',
+      createdBy: channel.createdBy ?? ''
     };
   }
 

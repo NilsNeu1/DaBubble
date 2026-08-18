@@ -24,7 +24,11 @@ export class WorkspaceMenu {
   @Output() workspaceMenuOpenChanged = new EventEmitter<boolean>();
   @Input() isOpen = false;
   @Output() newDirectMessage = new EventEmitter<boolean>();
-  @Output() outputSelectedChannel = new EventEmitter<{ channelName: string; conversationType: string; channelId?: string }>();
+  @Output() outputSelectedChannel = new EventEmitter<{
+    channelName: string;
+    conversationType: 'channel' | 'direct-message';
+    channelId?: string;
+  }>();
   currentUser = inject(Auth).currentUser;
   allUsers = inject(Auth).allUsers;
   private readonly chatModel = inject(ChatModel);
@@ -108,7 +112,7 @@ export class WorkspaceMenu {
     }
   }
 
-  async openChat(channelName: string, conversationType: string, channelId?: string) {
+  async openChat(channelName: string, conversationType: 'channel' | 'direct-message', channelId?: string) {
     if (channelId) {
       this.chatModel.loadChat(channelId);
     }

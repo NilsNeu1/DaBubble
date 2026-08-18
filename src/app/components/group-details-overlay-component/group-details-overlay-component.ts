@@ -1,5 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChatModel } from '../../core/chat.model';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-group-details-overlay-component',
@@ -11,11 +13,14 @@ export class GroupDetailsOverlayComponent {
   @Output() close = new EventEmitter<void>();
   isOverlayOpen = false;
   channelId = '';
+  channelDetails = inject(ChatModel).activeChat;
+  allUsers = inject(Auth).allUsers;
 
   /** Opens the selected channel details. */
   open(channelId: string): void {
     this.channelId = channelId;
     this.isOverlayOpen = true;
+    console.log(this.channelDetails);
   }
 
   /** Closes the channel details overlay. */
@@ -27,5 +32,9 @@ export class GroupDetailsOverlayComponent {
   /** Closes the overlay after leaving the channel. */
   leaveChat(): void {
     this.closeOverlay();
+  }
+
+  getCreater(userId: string): string {
+    return this.allUsers().find(user => user.uid === userId)?.name ?? '';
   }
 }

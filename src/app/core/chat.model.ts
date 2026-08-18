@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { firestore } from '../../app/core/firebase.config';
 
 export interface chatModel {
@@ -35,4 +35,17 @@ export class ChatModel {
     });
     console.log('activeChat:', this.activeChat());
   }
+
+
+  async getChat(channelId: string): Promise<chatModel | null> {
+    const chatRef = doc(firestore, 'chats', channelId);
+    const snapshot = await getDoc(chatRef);
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return snapshot.data() as chatModel;
+  }
+
 }
