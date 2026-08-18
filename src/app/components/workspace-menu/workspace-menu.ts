@@ -109,12 +109,9 @@ export class WorkspaceMenu {
   }
 
   async openChat(channelName: string, conversationType: string, channelId?: string) {
-    console.log(channelId);
     if (channelId) {
       this.chatModel.loadChat(channelId);
     }
     this.outputSelectedChannel.emit({ channelName, conversationType, channelId });
-    console.log('currentUser:', this.currentUser());
-    console.log('allUsers:', this.allUsers());
   }
 }

@@ -1,4 +1,4 @@
-export type OnlineStatus = 'online' | 'offline' | 'away';
+export type OnlineStatus = 'online' | 'offline';
 
 export interface AppUser {
   uid: string;

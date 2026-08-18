@@ -19,7 +19,7 @@ export class CreateChannel {
   @Input() isOverlayOpen: boolean = false;
   @Output() close = new EventEmitter<void>();
 
-  isAddMembersOpen: boolean = false;
+  isAddMembersOpen: boolean = true;
   isChecked: string = 'existing';
 
   currentUser = inject(Auth).currentUser;
@@ -27,19 +27,21 @@ export class CreateChannel {
 
   selectedUser: string = '';
   members: { uid: string; role: string; name: string; avatarUrl: string }[] = [];
-  dropDownUsers: { name: string ; avatarUrl:string; uid: string }[] = [];
+  dropDownUsers: { name: string; avatarUrl: string; uid: string }[] = [];
 
   checkInput() {
     if (this.channelName === '') {
       return;
     }
     this.createChannel()
-    this.closeOverlay()
   }
 
   async createChannel() {
     const channelId = await this.addChannelToFirestore();
-    await this.addChannelToUser(channelId);
+    for ( let i = 0 ; i < this.members.length; i++ ) {
+      await this.addChannelToUser(channelId, this.members[i].uid);
+    }
+    this.closeOverlay()
   }
 
   closeOverlay() {
@@ -47,23 +49,23 @@ export class CreateChannel {
     this.channelName = '';
     this.channelDescription = '';
     this.isChecked = 'existing';
+    this.members = [];
     setTimeout(() => {
       this.isAddMembersOpen = false;
     }, 300);
   }
 
-  async addChannelToUser(channelId: string): Promise<void> {
-    const userId = this.currentUser()?.uid;
+  async addChannelToUser(channelId: string, userId: string): Promise<void> {
     if (!userId) {
+      console.log('User ID is undefined. Cannot add channel to user.');
       return;
     }
     const userRef = doc(firestore, 'users', userId);
 
     await updateDoc(userRef, {
-      [`channelMemberships.${this.channelName}`]: {
+      [`channelMemberships.${channelId}`]: {
         channelId: channelId,
         channelName: this.channelName,
-        role: 'admin',
       },
     });
   }
@@ -106,6 +108,12 @@ export class CreateChannel {
       ];
 
     } if (this.isChecked === 'custom') {
+      this.members.push({
+        uid: this.currentUser()?.uid || '',
+        role: 'admin',
+        name: this.currentUser()?.name || '',
+        avatarUrl: this.currentUser()?.avatarUrl || '',
+      });
       return this.members;
     }
     else {
@@ -120,10 +128,9 @@ export class CreateChannel {
   }
 
   filterUsers() {
-    console.log('Filtering users with selectedUser:', this.allUsers());
-    console.log('Filtering users with selectedUser:', this.selectedUser);
     this.dropDownUsers = this.allUsers().filter(user =>
-      user.name.toLowerCase().includes(this.selectedUser.toLowerCase())
+      user.name.toLowerCase().includes(this.selectedUser.toLowerCase()) &&
+      user.uid !== this.currentUser()?.uid
     );
   }
 
@@ -135,5 +142,9 @@ export class CreateChannel {
       name: user.name,
       avatarUrl: user.avatarUrl,
     });
+  }
+
+  removeUserFromChannel(member: { uid: string; role: string; name: string; avatarUrl: string }) {
+    this.members = this.members.filter(m => m.uid !== member.uid);
   }
 }

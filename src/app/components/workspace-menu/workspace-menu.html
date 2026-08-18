@@ -37,7 +37,7 @@
         </div>
         <div *ngFor="let user of allUsers()" [class.active]="selectedUser === user.name" class="direct-message-list"
             [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.name)"
-            (click)="openChat(user.name , 'direct-message')">
+            (click)="openChat(user.name , 'direct-message', user.uid)">
             <div class="user-icon-container"><img class="online-icon"
                     [src]="user.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'"
                     alt="Online Status"><img class="user_icon" [src]="user.avatarUrl" alt="User Image"></div>

@@ -36,7 +36,7 @@
         <div class="add-user-dropdown">
             <div class="drop-down-dropdown" [class.dnone]="isChecked !== 'custom'">
                 <div class="input-container-dropdown">
-                <div *ngFor="let member of members" class="selectUser"><img class="user-icon" [src]="member.avatarUrl" alt="User"><span>{{ member.name }}</span><img class="close-icon" src="assets/close.png" alt="Remove"></div>
+                <div *ngFor="let member of members" class="selectUser"><img class="user-icon" [src]="member.avatarUrl" alt="User"><span>{{ member.name }}</span><img (click)="removeUserFromChannel(member)" class="close-icon" src="assets/close.png" alt="Remove"></div>
                 <input id="SelctUser" type="text" placeholder="Name eingeben" autocomplete="off" [(ngModel)]="selectedUser"
                     (keyup)="filterUsers()">
                 </div>

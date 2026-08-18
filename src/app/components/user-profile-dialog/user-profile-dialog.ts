@@ -4,7 +4,9 @@ import {
   output,
   signal,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { Auth } from '../../core/services/auth';
 
 type UserProfileStatus = 'online' | 'offline';
 
@@ -78,6 +80,7 @@ export class UserProfileDialog {
   /** References the native user profile dialog. */
   @ViewChild('userProfileDialog')
   private userProfileDialog!: ElementRef<HTMLDialogElement>;
+  allUsers = inject(Auth).allUsers;
 
   /** Emits the user ID for a new direct message. */
   public readonly messageRequested = output<string>();
@@ -88,13 +91,20 @@ export class UserProfileDialog {
 
   /** Opens the selected temporary user profile. */
   public openUserProfileDialog(userId: string): void {
-    const user = TEMP_USER_PROFILES.find(
-      (profile) => profile.id === userId
+    const user = this.allUsers().find(
+      user => user.uid === userId
     );
 
     if (!user) return;
 
-    this.selectedUser.set(user);
+    this.selectedUser.set({
+      id: user.uid,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      status: user.status
+    });
+    
     this.showUserProfileDialog();
   }
 
