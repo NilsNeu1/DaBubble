@@ -1,0 +1,19 @@
+<header class="thread-header">
+    <div class="thread-header__title-wrapper">
+        <h2 class="thread-header__title">
+            Thread
+        </h2>
+
+        <span class="thread-header__conversation">
+            @if (conversationType() === 'channel') {
+            <span aria-hidden="true">#</span>
+            }
+
+            {{ conversationLabel() }}
+        </span>
+    </div>
+
+    <button class="thread-header__close-button" type="button" aria-label="Thread schließen" (click)="requestClose()">
+        <img src="assets/close.png" alt="" />
+    </button>
+</header>

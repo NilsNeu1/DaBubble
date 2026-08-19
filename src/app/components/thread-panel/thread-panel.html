@@ -1,0 +1,163 @@
+<section class="thread-panel">
+    <app-thread-header conversationType="channel" conversationLabel="Entwicklerteam"
+        (closeRequested)="closeRequested.emit()">
+    </app-thread-header>
+
+    <div class="thread-messages" #threadMessages>
+        <article class="thread-message">
+            <div class="thread-message__hover-actions">
+                <button class="thread-message__hover-action thread-message__hover-action--reaction" type="button"
+                    aria-label="Reaktion hinzufügen">
+                </button>
+            </div>
+            <div class="thread-message__avatar" role="button" tabindex="0"
+                (click)="requestUserProfile(parentMessage.senderId)"
+                (keydown.enter)="requestUserProfile(parentMessage.senderId)">
+                <img [src]="parentMessage.senderImageUrl" [alt]="parentMessage.senderName" />
+            </div>
+
+            <div class="thread-message__content">
+                <div class="thread-message__info">
+                    <span class="thread-message__name" role="button" tabindex="0"
+                        (click)="requestUserProfile(parentMessage.senderId)"
+                        (keydown.enter)="requestUserProfile(parentMessage.senderId)">
+                        {{ parentMessage.senderName }}
+                    </span>
+
+                    <span class="thread-message__timestamp">
+                        {{ parentMessage.timestamp }}
+                    </span>
+                </div>
+
+                <div class="thread-message__bubble">
+                    <p>{{ parentMessage.text }}</p>
+                </div>
+            </div>
+        </article>
+
+        <div class="thread-reply-divider">
+            <span>2 Antworten</span>
+            <div class="thread-reply-divider__line"></div>
+        </div>
+
+        @for (reply of replies; track reply.id) {
+        <article class="thread-message" [class.thread-message--own]="reply.isOwnMessage">
+            <div class="thread-message__hover-actions">
+                <button class="thread-message__hover-action thread-message__hover-action--reaction" type="button"
+                    aria-label="Reaktion hinzufügen">
+                </button>
+
+                @if (reply.isOwnMessage) {
+                <div class="thread-message__edit-menu-wrapper" (mouseenter)="cancelEditMenuClose()"
+                    (mouseleave)="scheduleEditMenuClose()">
+                    <button class="thread-message__hover-action thread-message__hover-action--edit" type="button"
+                        aria-label="Nachrichtenoptionen" [attr.aria-expanded]="openEditMenuId() === reply.id"
+                        (click)="toggleEditMenu(reply.id)">
+                    </button>
+
+                    @if (openEditMenuId() === reply.id) {
+                    <div class="thread-message__edit-menu" (mouseenter)="cancelEditMenuClose()"
+                        (mouseleave)="closeEditMenu()">
+                        <button type="button">
+                            Nachricht bearbeiten
+                        </button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            <div class="thread-message__avatar" role="button" tabindex="0" (click)="requestUserProfile(reply.senderId)"
+                (keydown.enter)="requestUserProfile(reply.senderId)">
+                <img [src]="reply.senderImageUrl" [alt]="reply.senderName" />
+            </div>
+
+            <div class="thread-message__content">
+                <div class="thread-message__info">
+                    <span class="thread-message__name" role="button" tabindex="0"
+                        (click)="requestUserProfile(reply.senderId)"
+                        (keydown.enter)="requestUserProfile(reply.senderId)">
+                        {{ reply.senderName }}
+                    </span>
+
+                    <span class="thread-message__timestamp">
+                        {{ reply.timestamp }}
+                    </span>
+                </div>
+
+                <div class="thread-message__bubble">
+                    <p>{{ reply.text }}</p>
+                </div>
+
+                <div class="thread-message__reactions">
+                    <div class="thread-message__reaction-list">
+                        @for (reaction of reply.reactions; track reaction.icon) {
+                        <button class="thread-message__reaction" type="button"
+                            [attr.aria-label]="'Reaktion ' + reaction.icon + ', ' + reaction.reactedBy.length">
+
+                            <span>{{ reaction.icon }}</span>
+                            <span>{{ reaction.reactedBy.length }}</span>
+
+                            <div class="thread-message__reaction-tooltip">
+                                <span class="thread-message__reaction-tooltip-icon">
+                                    {{ reaction.icon }}
+                                </span>
+
+                                @if (reaction.reactedBy.length <= 2) { <div
+                                    class="thread-message__reaction-tooltip-names">
+                                    @for (reactor of reaction.reactedBy; track reactor.id; let last = $last) {
+                                    <span>
+                                        {{ reactor.isCurrentUser ? 'Du' : reactor.name }}{{ !last ? ' und\u00A0 ' : ''
+                                        }}
+                                    </span>
+                                    }
+                            </div>
+                            } @else {
+                            <div
+                                class="thread-message__reaction-tooltip-names thread-message__reaction-tooltip-names--stacked">
+                                @for (reactor of reaction.reactedBy.slice(0, 5); track reactor.id) {
+                                <span>
+                                    {{ reactor.isCurrentUser ? 'Du' : reactor.name }}
+                                </span>
+                                }
+
+                                @if (reaction.reactedBy.length > 5) {
+                                <span>...</span>
+                                }
+                            </div>
+                            }
+
+                            <span class="thread-message__reaction-tooltip-text">
+                                hat reagiert
+                            </span>
+                    </div>
+                    </button>
+                    }
+                </div>
+
+                <button class="thread-message__add-reaction" type="button" aria-label="Reaktion hinzufügen">
+                </button>
+            </div>
+    </div>
+    </article>
+    }
+    </div>
+
+    <div class="thread-input">
+        <div class="thread-input__editor" contenteditable="true" role="textbox" aria-multiline="true"
+            data-placeholder="Antworten..." (input)="handleEditorInput($event)">
+        </div>
+
+        <div class="thread-input__actions">
+            <div class="thread-input__features">
+                <button class="thread-input__emoji" type="button" aria-label="Emoji hinzufügen">
+                </button>
+
+                <button class="thread-input__mention" type="button" aria-label="Person erwähnen">
+                </button>
+            </div>
+
+            <button class="thread-input__send" type="button" aria-label="Antwort senden">
+            </button>
+        </div>
+    </div>
+</section>

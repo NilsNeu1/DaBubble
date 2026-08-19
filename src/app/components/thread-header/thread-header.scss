@@ -1,0 +1,100 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.thread-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 96px;
+    padding: 0 32px;
+    box-sizing: border-box;
+    border-radius: 30px 30px 0 0;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.051);
+
+    button {
+        border: none;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    img {
+        display: block;
+    }
+
+    &__title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    &__title {
+        flex-shrink: 0;
+        margin: 0;
+        color: #000000;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    &__conversation {
+        min-width: 0;
+        color: #797ef3;
+        font-size: 16px;
+        font-weight: 400;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__close-button {
+        display: grid;
+        flex-shrink: 0;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 20px;
+        color: #000000;
+        background-color: transparent;
+
+        img {
+            display: none;
+        }
+
+        &::before {
+            width: 14px;
+            height: 14px;
+            background-color: currentColor;
+            content: '';
+            -webkit-mask-image: url('/assets/close.png');
+            mask-image: url('/assets/close.png');
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+        }
+
+        &:hover,
+        &:focus-visible {
+            color: #535af1;
+            background-color: #eceefe;
+            outline: none;
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    .thread-header {
+        height: 60px;
+        padding: 0 24px;
+        border-radius: 0;
+    }
+}
