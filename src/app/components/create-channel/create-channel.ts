@@ -2,7 +2,7 @@ import { Component, Input, EventEmitter, Output, inject } from '@angular/core';
 import { Auth } from '../../core/services/auth';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { doc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
 
 
@@ -19,7 +19,7 @@ export class CreateChannel {
   @Input() isOverlayOpen: boolean = false;
   @Output() close = new EventEmitter<void>();
 
-  isAddMembersOpen: boolean = true;
+  isAddMembersOpen: boolean = false;
   isChecked: string = 'existing';
 
   currentUser = inject(Auth).currentUser;
@@ -27,7 +27,10 @@ export class CreateChannel {
 
   selectedUser: string = '';
   members: { uid: string; role: string; name: string; avatarUrl: string }[] = [];
+  existingMembers: { uid: string; role: string; name: string; avatarUrl: string }[] = [];
   dropDownUsers: { name: string; avatarUrl: string; uid: string }[] = [];
+  topChannelID: string = '';
+  topChannelName: string = 'No channels found';
 
   checkInput() {
     if (this.channelName === '') {
@@ -38,10 +41,17 @@ export class CreateChannel {
 
   async createChannel() {
     const channelId = await this.addChannelToFirestore();
-    for ( let i = 0 ; i < this.members.length; i++ ) {
-      await this.addChannelToUser(channelId, this.members[i].uid);
+
+    const selectedMembers =
+      this.isChecked === 'existing'
+        ? this.existingMembers
+        : this.members;
+
+    for (let i = 0; i < selectedMembers.length; i++) {
+      await this.addChannelToUser(channelId, selectedMembers[i].uid);
     }
-    this.closeOverlay()
+
+    this.closeOverlay();
   }
 
   closeOverlay() {
@@ -50,6 +60,10 @@ export class CreateChannel {
     this.channelDescription = '';
     this.isChecked = 'existing';
     this.members = [];
+    this.existingMembers = [];
+    this.selectedUser = '';
+    this.topChannelID = '';
+
     setTimeout(() => {
       this.isAddMembersOpen = false;
     }, 300);
@@ -85,8 +99,10 @@ export class CreateChannel {
     return documentReference.id;
   }
 
-  toAddMembers() {
+  async toAddMembers() {
     this.isAddMembersOpen = true;
+    this.getFirstChannel();
+    await this.getMembersFromChannel(this.topChannelID);
   }
 
   selectMemberSource(source: 'existing' | 'custom') {
@@ -99,13 +115,7 @@ export class CreateChannel {
 
   getSelectedMembers() {
     if (this.isChecked === 'existing') {
-      return [
-        {
-          userId: this.currentUser()?.uid,
-          role: 'admin',
-          name: this.currentUser()?.name,
-        }
-      ];
+      return this.existingMembers;
 
     } if (this.isChecked === 'custom') {
       this.members.push({
@@ -146,5 +156,29 @@ export class CreateChannel {
 
   removeUserFromChannel(member: { uid: string; role: string; name: string; avatarUrl: string }) {
     this.members = this.members.filter(m => m.uid !== member.uid);
+  }
+
+  getFirstChannel() {
+    const channel = Object.values(this.currentUser()?.channelMemberships ?? {})[0];
+    this.topChannelID = channel?.channelId || '';
+
+    this.topChannelName = channel?.channelName || 'No channels found';
+
+    if(this.topChannelName === 'No channels found') {
+      this.isChecked = 'custom';
+    }
+  }
+
+  async getMembersFromChannel(channelID: any) {
+    if (channelID) {
+      const channelRef = doc(firestore, 'chats', channelID);
+      const channelSnap = await getDoc(channelRef);
+
+      if (channelSnap.exists()) {
+        const data = channelSnap.data()?.['members'] ?? [];;
+
+        this.existingMembers = data;
+      }
+    }
   }
 }

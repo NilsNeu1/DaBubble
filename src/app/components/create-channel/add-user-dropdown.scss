@@ -89,3 +89,13 @@
 .dnone {
     display: none !important;
 }
+
+.disableInput{
+    pointer-events: none;
+    color: #ADB0D9!important;
+    
+
+    p{
+        color: #ADB0D9 !important;
+    }
+}
