@@ -102,9 +102,17 @@
             color: #ffffff;
             background-color: #444df2;
 
-            &:not(:disabled):hover {
+            &:not(:disabled):hover,
+            &:not(:disabled):focus-visible {
                 border-color: #797ef3;
                 background-color: #797ef3;
+                outline: none;
+            }
+
+            &:disabled {
+                border-color: #686868;
+                background-color: #686868;
+                cursor: not-allowed;
             }
         }
     }

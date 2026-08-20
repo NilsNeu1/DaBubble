@@ -95,21 +95,21 @@
         </div>
         }
 
-        <!-- TEMP-HEADER-PREVIEW: Replace static user data with Firebase bindings. -->
         <button class="app-header__user-button" type="button" aria-label="Benutzermenü öffnen" aria-haspopup="dialog"
             aria-controls="header-user-dialog" [attr.aria-expanded]="isUserMenuOpen()" (click)="toggleUserMenu()">
             <span class="app-header__user-name">
-                Header Testuser
+                {{ currentUser()?.name }}
             </span>
 
             <span class="app-header__avatar-wrapper">
-                <img class="app-header__avatar" src="assets/default-user-avatar.png" alt="" />
+                <img class="app-header__avatar" [src]="currentUser()?.avatarUrl" alt="" />
 
-                <img class="app-header__status" src="assets/Online.png" alt="" />
+                <img class="app-header__status"
+                    [src]="currentUser()?.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'" alt="" />
             </span>
 
             <span class="visually-hidden">
-                Status: online
+                Status: {{ currentUser()?.status === 'online' ? 'online' : 'offline' }}
             </span>
 
             <span class="app-header__dropdown-icon" [class.app-header__dropdown-icon--open]="isUserMenuOpen()"
@@ -139,18 +139,19 @@
             </div>
             }
 
-            <!-- TEMP-HEADER-PREVIEW: Replace the static avatar with Firebase user data. -->
             <button class="app-header__mobile-user-button" type="button" aria-label="Benutzermenü öffnen"
                 aria-haspopup="dialog" aria-controls="header-user-dialog" [attr.aria-expanded]="isUserMenuOpen()"
                 (click)="toggleUserMenu()">
                 <span class="app-header__avatar-wrapper">
-                    <img class="app-header__avatar" src="assets/default-user-avatar.png" alt="" />
+                    <img class="app-header__avatar" [src]="currentUser()?.avatarUrl" alt="" />
 
-                    <img class="app-header__status" src="assets/Online.png" alt="" />
+                    <img class="app-header__status"
+                        [src]="currentUser()?.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'"
+                        alt="" />
                 </span>
 
                 <span class="visually-hidden">
-                    Status: online
+                    Status: {{ currentUser()?.status === 'online' ? 'online' : 'offline' }}
                 </span>
             </button>
         </div>
@@ -287,11 +288,15 @@
             </button>
 
             <a class="app-header__menu-button" routerLink="/imprint">
-                Impressum
+                <span class="app-header__menu-icon app-header__menu-icon--imprint" aria-hidden="true"></span>
+
+                <span>Impressum</span>
             </a>
 
             <a class="app-header__menu-button" routerLink="/privacy-policy">
-                Datenschutz
+                <span class="app-header__menu-icon app-header__menu-icon--privacy" aria-hidden="true"></span>
+
+                <span>Datenschutz</span>
             </a>
 
             <button class="app-header__menu-button" type="button" (click)="logout()">

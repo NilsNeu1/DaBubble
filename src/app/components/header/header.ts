@@ -15,7 +15,9 @@ import {
   Router,
   RouterLink
 } from '@angular/router';
-import { Auth } from '../../core/services/auth';
+import {
+  Auth
+} from '../../core/services/auth';
 
 type WorkspaceSearchResultType = 'user' | 'channel' | 'message';
 
@@ -39,6 +41,9 @@ interface WorkspaceSearchResult {
 export class Header {
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
+
+  /** Provides the currently authenticated user. */
+  protected readonly currentUser = this.authService.currentUser;
 
   /** References the native user menu dialog. */
   @ViewChild('userDialog')

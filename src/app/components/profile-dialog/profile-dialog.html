@@ -1,6 +1,44 @@
 <dialog #profileDialog class="profile-dialog" aria-labelledby="profile-dialog-title"
     (cancel)="handleProfileCancel($event)" (click)="closeProfileFromBackdrop($event)">
     <section class="profile-dialog__content">
+        @if (isAvatarMode()) {
+        <div class="profile-dialog__avatar-selection">
+            <header class="profile-dialog__avatar-selection-header">
+                <button class="profile-dialog__back-button" type="button" aria-label="Zurück"
+                    (click)="closeAvatarSelection()">
+                    <span aria-hidden="true"></span>
+                </button>
+
+                <h2 id="profile-dialog-title" class="profile-dialog__title profile-dialog__title--avatar">
+                    Wähle deinen Avatar
+                </h2>
+            </header>
+
+            <img class="profile-dialog__avatar-selection-preview" [src]="selectedAvatarUrl()"
+                alt="Ausgewählter Avatar" />
+
+            <div class="profile-dialog__avatar-options-section">
+                <p class="profile-dialog__avatar-options-label">
+                    Aus der Liste wählen
+                </p>
+
+                <div class="profile-dialog__avatar-options" aria-label="Avatar auswählen">
+                    @for (avatarUrl of availableAvatars; track avatarUrl) {
+                    <button class="profile-dialog__avatar-option" type="button"
+                        [class.profile-dialog__avatar-option--selected]="selectedAvatarUrl() === avatarUrl"
+                        [attr.aria-pressed]="selectedAvatarUrl() === avatarUrl" (click)="selectAvatar(avatarUrl)">
+                        <img [src]="avatarUrl" alt="" />
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <button class="profile-dialog__avatar-next-button" type="button" [disabled]="!hasAvatarSelectionChanged()"
+                (click)="confirmAvatarSelection()">
+                Weiter
+            </button>
+        </div>
+        } @else {
         <header class="profile-dialog__header">
             <h2 id="profile-dialog-title" class="profile-dialog__title">
                 @if (isEditMode()) {
@@ -16,7 +54,17 @@
             </button>
         </header>
 
-        <img class="profile-dialog__avatar" [src]="profileAvatarUrl" alt="Profilbild von {{ profileName() }}" />
+        <div class="profile-dialog__avatar-wrapper">
+            <img class="profile-dialog__avatar" [src]="isEditMode() ? draftAvatarUrl() : localProfileAvatarUrl()"
+                alt="Profilbild von {{ profileName() }}" />
+
+            @if (isEditMode()) {
+            <button class="profile-dialog__avatar-edit-button" type="button" aria-label="Avatar bearbeiten"
+                (click)="openAvatarSelection()">
+                <span class="profile-dialog__avatar-edit-icon" aria-hidden="true"></span>
+            </button>
+            }
+        </div>
 
         @if (isEditMode()) {
         <form class="profile-dialog__form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
@@ -47,13 +95,14 @@
                 </button>
 
                 <button class="profile-dialog__button profile-dialog__button--primary" type="submit"
-                    [disabled]="profileForm.invalid">
+                    [disabled]="!canSaveProfile()">
                     Speichern
                 </button>
             </div>
         </form>
+
         } @else {
-        <!-- TEMP-HEADER-PREVIEW: Replace profile test data with Firebase bindings. -->
+
         <div class="profile-dialog__profile-data">
             <div class="profile-dialog__name-row">
                 <h3 class="profile-dialog__name">
@@ -71,14 +120,15 @@
             </div>
 
             <div class="profile-dialog__status-row">
-                <img class="profile-dialog__status-icon" src="assets/Online.png" alt="" />
+                <img class="profile-dialog__status-icon"
+                    [src]="profileStatus() === 'online' ? 'assets/Online.png' : 'assets/Offline.png'" alt="" />
 
                 <span class="profile-dialog__status-text">
-                    Aktiv
+                    {{ profileStatus() === 'online' ? 'Aktiv' : 'Offline' }}
                 </span>
 
                 <span class="visually-hidden">
-                    Status: {{ profileStatus }}
+                    Status: {{ profileStatus() }}
                 </span>
             </div>
 
@@ -89,11 +139,12 @@
                     <h3>E-Mail-Adresse</h3>
                 </div>
 
-                <a class="profile-dialog__email-address" [href]="'mailto:' + profileEmail">
-                    {{ profileEmail }}
+                <a class="profile-dialog__email-address" [href]="'mailto:' + profileEmail()">
+                    {{ profileEmail() }}
                 </a>
             </div>
         </div>
+        }
         }
     </section>
 </dialog>

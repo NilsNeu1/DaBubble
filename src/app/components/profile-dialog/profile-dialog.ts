@@ -11,6 +11,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-profile-dialog',
@@ -23,34 +24,73 @@ export class ProfileDialog {
   @ViewChild('profileDialog')
   private profileDialog!: ElementRef<HTMLDialogElement>;
 
+  private readonly authService = inject(Auth);
+
+  protected readonly currentUser = this.authService.currentUser;
+
   private readonly formBuilder = inject(FormBuilder);
-  private readonly profileMode = signal<'view' | 'edit'>('view');
 
-  /** TEMP-HEADER-PREVIEW: Replace with Firebase profile data. */
-  protected readonly profileName = signal('Header Testuser');
+  private readonly profileMode = signal<'view' | 'edit' | 'avatar'>('view');
 
-  /** TEMP-HEADER-PREVIEW: Replace with Firebase authentication data. */
-  protected readonly profileEmail = 'header.test@example.com';
+  protected readonly profileName = signal('');
 
-  /** TEMP-HEADER-PREVIEW: Replace with the saved Firebase avatar. */
-  protected readonly profileAvatarUrl =
-    'assets/default-user-avatar.png';
+  protected readonly profileEmail = computed(
+    () => this.currentUser()?.email ?? ''
+  );
 
-  /** TEMP-HEADER-PREVIEW: Replace with the actual user status. */
-  protected readonly profileStatus = 'online';
+  protected readonly profileAvatarUrl = computed(
+    () => this.currentUser()?.avatarUrl ?? 'assets/default-user-avatar.png'
+  );
+
+  protected readonly profileStatus = computed(
+    () => this.currentUser()?.status ?? 'offline'
+  );
+
+  /** Provides the available profile avatars. */
+  protected readonly availableAvatars = [
+    'assets/00.Charaters.png',
+    'assets/01.Charaters.png',
+    'assets/02.Charaters.png',
+    'assets/03.Charaters.png',
+    'assets/04.Charaters.png',
+    'assets/05.Charaters.png',
+  ];
+
+  /** Stores the currently previewed avatar selection. */
+  protected readonly selectedAvatarUrl = signal('');
+
+  /** Stores the avatar confirmed for the current profile edit. */
+  protected readonly draftAvatarUrl = signal('');
+
+  /** TEMP-PROFILE-EDIT: Stores the locally applied avatar until Firebase profile updates are connected. */
+  protected readonly localProfileAvatarUrl = signal('');
+
+  /** Indicates whether the avatar selection differs from the current edit draft. */
+  protected readonly hasAvatarSelectionChanged = computed(
+    () => this.selectedAvatarUrl() !== this.draftAvatarUrl()
+  );
 
   /** Indicates whether the profile is being edited. */
   protected readonly isEditMode = computed(
     () => this.profileMode() === 'edit'
   );
 
+  /** Indicates whether the avatar selection is open. */
+  protected readonly isAvatarMode = computed(
+    () => this.profileMode() === 'avatar'
+  );
+
   /** Stores and validates the editable profile name. */
   protected readonly profileForm = this.formBuilder.nonNullable.group({
-    fullName: ['', [Validators.required, Validators.pattern(/\S/)]],
+    fullName: ['', [Validators.pattern(/\S/)]],
   });
 
   /** Opens the profile in view mode. */
   public openProfileDialog(): void {
+    this.profileName.set(this.currentUser()?.name ?? '');
+    this.localProfileAvatarUrl.set(this.profileAvatarUrl());
+    this.draftAvatarUrl.set(this.profileAvatarUrl());
+    this.selectedAvatarUrl.set(this.profileAvatarUrl());
     this.profileMode.set('view');
     this.resetProfileForm();
 
@@ -72,26 +112,50 @@ export class ProfileDialog {
   /** Switches to the profile editing view. */
   protected startProfileEditing(): void {
     this.resetProfileForm();
+    this.draftAvatarUrl.set(this.localProfileAvatarUrl());
+    this.selectedAvatarUrl.set(this.localProfileAvatarUrl());
     this.profileMode.set('edit');
   }
 
   /** Discards changes and returns to the profile view. */
   protected cancelProfileEditing(): void {
     this.resetProfileForm();
+    this.draftAvatarUrl.set(this.localProfileAvatarUrl());
+    this.selectedAvatarUrl.set(this.localProfileAvatarUrl());
     this.profileMode.set('view');
   }
 
-  /** Saves the temporary profile name. */
+  /** Checks whether the entered profile name differs from the current name. */
+  protected hasNameChanged(): boolean {
+    const fullName = this.profileForm.controls.fullName.value.trim();
+
+    return fullName.length > 0 && fullName !== this.profileName();
+  }
+
+  /** Checks whether the profile edit contains any changes. */
+  protected hasProfileChanges(): boolean {
+    return (
+      this.hasNameChanged() ||
+      this.draftAvatarUrl() !== this.localProfileAvatarUrl()
+    );
+  }
+
+  /** Checks whether the current profile changes can be saved. */
+  protected canSaveProfile(): boolean {
+    return this.profileForm.valid && this.hasProfileChanges();
+  }
+
+  /** TEMP-PROFILE-EDIT: Applies profile changes locally until Firebase updates are connected. */
   protected saveProfile(): void {
-    if (this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
-      return;
+    if (!this.canSaveProfile()) return;
+
+    const fullName = this.profileForm.controls.fullName.value.trim();
+
+    if (this.hasNameChanged()) {
+      this.profileName.set(fullName);
     }
 
-    const fullName =
-      this.profileForm.controls.fullName.value.trim();
-
-    this.profileName.set(fullName);
+    this.localProfileAvatarUrl.set(this.draftAvatarUrl());
     this.profileMode.set('view');
     this.resetProfileForm();
   }
@@ -114,5 +178,29 @@ export class ProfileDialog {
     this.profileForm.reset({
       fullName: '',
     });
+  }
+
+  /** Opens the avatar selection without resetting profile edits. */
+  protected openAvatarSelection(): void {
+    this.selectedAvatarUrl.set(this.draftAvatarUrl());
+    this.profileMode.set('avatar');
+  }
+
+  /** Selects an avatar for the current avatar preview. */
+  protected selectAvatar(avatarUrl: string): void {
+    this.selectedAvatarUrl.set(avatarUrl);
+  }
+
+  /** Returns to profile editing without discarding profile edits. */
+  protected closeAvatarSelection(): void {
+    this.profileMode.set('edit');
+  }
+
+  /** Confirms the selected avatar for the current profile edit. */
+  protected confirmAvatarSelection(): void {
+    if (!this.hasAvatarSelectionChanged()) return;
+
+    this.draftAvatarUrl.set(this.selectedAvatarUrl());
+    this.profileMode.set('edit');
   }
 }

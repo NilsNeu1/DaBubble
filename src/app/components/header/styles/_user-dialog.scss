@@ -61,8 +61,19 @@
         mask-image: url('/assets/account_circle.png');
     }
 
+    &--imprint {
+        -webkit-mask-image: url('/assets/legal-imprint-info.png');
+        mask-image: url('/assets/legal-imprint-info.png');
+    }
+
+    &--privacy {
+        -webkit-mask-image: url('/assets/legal-privacy-shield.png');
+        mask-image: url('/assets/legal-privacy-shield.png');
+    }
+
     &--logout {
         -webkit-mask-image: url('/assets/logout.png');
         mask-image: url('/assets/logout.png');
     }
+
 }
