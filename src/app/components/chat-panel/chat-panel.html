@@ -39,7 +39,7 @@
                     <div class="msg-info">
                         <div class="autor">
                             <span class="autor-name">{{ message.senderName }}</span>
-                            <span class="msg-timestamp">{{ message.timestamp }}</span>
+                            <span class="msg-timestamp">{{ message.timestamp | date:'HH:mm'}}</span>
                         </div>
 
                          <div class="msg-interaction-options">

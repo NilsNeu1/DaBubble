@@ -8,7 +8,7 @@ export interface chatModel {
   channelName: string;
 
   members: unknown[];
-  messages: unknown[];
+  // messages: unknown[];
 }
 
 @Injectable({

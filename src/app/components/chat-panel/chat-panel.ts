@@ -1,6 +1,8 @@
-import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inject } from '@angular/core';
+import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inject, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EmojiPicker } from '../emoji-picker/emoji-picker'; // Pfad ggf. anpassen
+import { EmojiPicker } from '../emoji-picker/emoji-picker';
+import { ChatMessagesService } from './../../core/services/chat-messages';
+import { ChatMessage } from './../../core/models/message.model';
 
 interface MentionPerson {
   type: 'person';
@@ -16,22 +18,22 @@ interface MentionChannel {
 
 type MentionItem = MentionPerson | MentionChannel;
 
-interface Reaction {
-  icon: string;
-  count: number;
-}
+// interface Reaction {
+//   icon: string;
+//   count: number;
+// }
 
-interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  senderImageUrl: string;
-  timestamp: string;
-  text: string;
-  hasThread: boolean;
-  lastReply?: string;
-  reactions: Reaction[];
-}
+// interface Message {
+//   id: string;
+//   senderId: string;
+//   senderName: string;
+//   senderImageUrl: string;
+//   timestamp: string;
+//   text: string;
+//   hasThread: boolean;
+//   lastReply?: string;
+//   reactions: Reaction[];
+// }
 
 @Component({
   selector: 'app-chat-panel',
@@ -40,9 +42,11 @@ interface Message {
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.scss',
 })
-export class ChatPanel {
+export class ChatPanel implements OnInit, OnDestroy {
   private renderer = inject(Renderer2);
+  private chatMessages = inject(ChatMessagesService);
 
+  @Input({ required: true }) channelId!: string;
   @ViewChild('messageInput') messageInput!: ElementRef<HTMLElement>;
   @ViewChild('emotePicker') emotePicker!: ElementRef<HTMLDivElement>;
   @ViewChild('emoteBtn') emoteBtn!: ElementRef<HTMLDivElement>;
@@ -75,38 +79,51 @@ export class ChatPanel {
   // ---------------- Chat-Dummy -----------------
   currentUserId: string = 'u1';
 
-  messages: Message[] = [
-    {
-      id: 'm1',
-      senderId: 'u2',
-      senderName: 'Erika Mustermann',
-      senderImageUrl: '/assets/01.Charaters.png',
-      timestamp: '2:00 PM',
-      text: 'styling test',
-      hasThread: true,
-      lastReply: 'Letzte Antwort 14:55',
-      reactions: [{ icon: '👍', count: 1 }]
-    },
-    {
-      id: 'm2',
-      senderId: 'u1',
-      senderName: 'Frederik Beck',
-      senderImageUrl: '/assets/02.Charaters.png',
-      timestamp: '3:06 PM',
-      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      hasThread: false,
-      reactions: [
-        { icon: '🚀', count: 1 },
-        { icon: '✅', count: 1 }
-      ]
-    }
-  ];
+  get messages(): ChatMessage[] {
+    return this.chatMessages.messages();
+  }
 
+  // ngOnInit(): void {
+  //   this.chatMessages.loadMessages(this.channelId);
+  // }
+
+  ngOnDestroy(): void {
+    this.chatMessages.stopListening();
+  }
+
+
+  // messages: Message[] = [
+  //   {
+  //     id: 'm1',
+  //     senderId: 'u2',
+  //     senderName: 'Erika Mustermann',
+  //     senderImageUrl: '/assets/01.Charaters.png',
+  //     timestamp: '2:00 PM',
+  //     text: 'styling test',
+  //     hasThread: true,
+  //     lastReply: 'Letzte Antwort 14:55',
+  //     reactions: [{ icon: '👍', count: 1 }]
+  //   },
+  //   {
+  //     id: 'm2',
+  //     senderId: 'u1',
+  //     senderName: 'Frederik Beck',
+  //     senderImageUrl: '/assets/02.Charaters.png',
+  //     timestamp: '3:06 PM',
+  //     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+  //     hasThread: false,
+  //     reactions: [
+  //       { icon: '🚀', count: 1 },
+  //       { icon: '✅', count: 1 }
+  //     ]
+  //   }
+  // ];
+  // ---------------- Chat-features -----------------
   readonly quickReactions: string[] = ['👍', '❤️', '😂', '🎉', '👀', '✅'];
 
   activeReactionPickerId = signal<string | null>(null);
 
-  trackByMessageId(index: number, message: Message): string {
+  trackByMessageId(index: number, message: ChatMessage): string {
     return message.id;
   }
 
@@ -122,13 +139,13 @@ export class ChatPanel {
     return this.activeReactionPickerId() === pickerId;
   }
 
-  addReaction(message: Message, icon: string): void {
-    const existing = message.reactions.find(r => r.icon === icon);
-    if (existing) {
-      existing.count++;
-    } else {
-      message.reactions.push({ icon, count: 1 });
-    }
+  async addReaction(message: ChatMessage, icon: string): Promise<void> {
+    await this.chatMessages.addReaction(
+      this.channelId,
+      message.id,
+      icon,
+      message.reactions
+    );
     this.activeReactionPickerId.set(null);
   }
 
@@ -257,6 +274,21 @@ export class ChatPanel {
     return result.trim();
   }
 
+  async sendMessage(): Promise<void> {
+    const text = this.getPlainTextValue();
+    if (!text) return;
+
+    await this.chatMessages.sendMessage(this.channelId, {
+      senderId: this.currentUserId,
+      senderName: '', // from Auth-Service
+      senderImageUrl: '', // from Auth-Service
+      text,
+    });
+
+    this.messageInput.nativeElement.textContent = '';
+    this.updateEmptyState();
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as Node;
@@ -286,4 +318,15 @@ export class ChatPanel {
     }
 
   }
+
+
+  async ngOnInit(): Promise<void> {
+  this.chatMessages.loadMessages(this.channelId);
+
+   // TEMPORÄR!!   AUF KEINEN FALL WIEDER EINKOMMENTIEREN!!!
+  //  await this.chatMessages.seedDummyMessages(this.channelId);
+}
+
+
+
 }

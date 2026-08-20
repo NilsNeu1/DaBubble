@@ -13,7 +13,9 @@
             (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)">
         </app-chat-header>
 
-        <app-chat-panel />
+        @if (selectedChat) {
+            <app-chat-panel [channelId]="selectedChat.id"/>
+        }
     </section>
     <app-user-profile-dialog #userProfileDialog />
 </main>
