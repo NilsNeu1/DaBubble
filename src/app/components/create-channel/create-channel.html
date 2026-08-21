@@ -1,5 +1,7 @@
 <section class="create-channel" [ngClass]="isOverlayOpen ? 'overlay-open' : 'overlay-close'">
-    <article class="overlay" [ngClass]="!isAddMembersOpen ? 'overlay-open' : 'overlay-close'">
+    <article class="overlay" [ngClass]="isMobile
+  ? 'mobile-class'
+  : (!isAddMembersOpen ? 'overlay-open' : 'overlay-close')">
         <div class="overlay-header">
             <h1>Channel erstellen</h1><img class="close-img" src="assets/close.png" alt="Close"
                 (click)="closeOverlay()">
@@ -22,6 +24,9 @@
         </article>
     </article>
     <article class="overlay-add-members" [ngClass]="isAddMembersOpen ? 'overlay-open' : 'overlay-close'">
+        <div class="mobile-border">
+            <div></div>
+        </div>
         <div class="members-header">
             <h1>Leute hinzufügen</h1><img class="close-img" src="assets/close.png" alt="Close" (click)="closeOverlay()">
         </div>
@@ -63,4 +68,5 @@
             </button>
         </div>
     </article>
+     <div [ngClass]="isMobile && isAddMembersOpen ? 'section-mobile-add-members' : ''"></div>//muss angepasst werden noch mal schauen wegen section 
 </section>

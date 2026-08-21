@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { doc, updateDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
+import { HostListener } from '@angular/core';
 
 
 @Component({
@@ -31,6 +32,9 @@ export class CreateChannel {
   dropDownUsers: { name: string; avatarUrl: string; uid: string }[] = [];
   topChannelID: string = '';
   topChannelName: string = 'No channels found';
+
+  @HostListener('window:resize')
+  isMobile = window.innerWidth <= 1024;
 
   checkInput() {
     if (this.channelName === '') {
@@ -140,12 +144,14 @@ export class CreateChannel {
   filterUsers() {
     this.dropDownUsers = this.allUsers().filter(user =>
       user.name.toLowerCase().includes(this.selectedUser.toLowerCase()) &&
-      user.uid !== this.currentUser()?.uid
+      user.uid !== this.currentUser()?.uid &&
+      user.uid !== this.members.find(member => member.uid === user.uid)?.uid
     );
   }
 
   selectUser(user: { name: string; avatarUrl: string; uid: string }) {
     this.selectedUser = '';
+    if (this.members.some(member => member.uid === user.uid)) {return}
     this.members.push({
       uid: user.uid,
       role: 'member',
@@ -181,4 +187,13 @@ export class CreateChannel {
       }
     }
   }
+
+  @HostListener('window:resize')
+onResize(): void {
+  if (window.innerWidth <= 768) {
+    console.log('Mobile Ansicht');
+  } else {
+    console.log('Desktop Ansicht');
+  }
+}
 }
