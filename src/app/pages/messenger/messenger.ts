@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { ChatHeader } from '../../components/chat-header/chat-header';
 import { UserProfileDialog } from '../../components/user-profile-dialog/user-profile-dialog';
@@ -24,13 +24,13 @@ import { ChatModel } from '../../core/chat.model';
   styleUrl: './messenger.scss',
 })
 export class Messenger {
-  isWorkspaceMenuOpen: boolean = true;
-  isMobileChatOpen: boolean = false;
-  isChannelDetailsOpen: boolean = false;
-  chatType: 'channel' | 'direct-message' | 'new-message' = 'channel';
+  isWorkspaceMenuOpen = signal(true);
+  isMobileChatOpen = signal(false);
+  isChannelDetailsOpen = signal(false);
+  chatType = signal<'channel' | 'direct-message' | 'new-message'>('channel');
   allUsers = inject(Auth).allUsers;
   currentUser = inject(Auth).currentUser;
-  selectedChat: any = null;
+  selectedChat = signal<any>(null);
   activeChat = inject(ChatModel).activeChat;
   private readonly chatModel = inject(ChatModel);
 
@@ -40,7 +40,7 @@ export class Messenger {
     conversationType: 'channel' | 'direct-message';
     channelId?: string;
   }): Promise<void> {
-    this.chatType = event.conversationType;
+    this.chatType.set(event.conversationType);
 
     if (event.conversationType === 'channel') {
       await this.selectChannel(event);
@@ -48,7 +48,7 @@ export class Messenger {
       this.selectDirectMessage(event.channelId);
     }
 
-    this.isMobileChatOpen = true;
+    this.isMobileChatOpen.set(true);
   }
 
   async selectChannel(event: { channelName: string; channelId?: string; }): Promise<void> {
@@ -56,14 +56,26 @@ export class Messenger {
     const channel = await this.chatModel.getChat(event.channelId);
     if (!channel) return;
 
-    this.selectedChat = {
+    this.selectedChat.set({
       type: 'channel',
       id: event.channelId ?? '',
       name: event.channelName,
-      members: channel.members ?? [],
+      members: this.mapChannelMembers(channel.members ?? []),
       description: channel.description ?? '',
       createdBy: channel.createdBy ?? ''
-    };
+    });
+  }
+
+  /** Maps raw Firestore channel members to the chat-header member shape. */
+  private mapChannelMembers(members: unknown[]) {
+    return (members as { uid: string; name: string; avatarUrl: string }[]).map(
+      (member) => ({
+        id: member.uid,
+        name: member.name,
+        avatarUrl: member.avatarUrl,
+        status: this.allUsers().find((user) => user.uid === member.uid)?.status ?? 'offline',
+      })
+    );
   }
 
   selectDirectMessage(channelId?: string): void {
@@ -73,25 +85,25 @@ export class Messenger {
 
     if (!user) return;
 
-    this.selectedChat = {
+    this.selectedChat.set({
       type: 'direct-message',
       id: user.uid,
       name: user.name,
       avatarUrl: user.avatarUrl,
       status: user.status,
       isCurrentUser: user.uid === this.currentUser()?.uid
-    };
+    });
   }
 
   /** Opens the new message view in the chat header. */
   openNewMessage(): void {
-    this.chatType = 'new-message';
-    this.isMobileChatOpen = true;
+    this.chatType.set('new-message');
+    this.isMobileChatOpen.set(true);
   }
 
   /** Returns to the mobile workspace menu. */
   showMobileWorkspaceMenu(): void {
-    this.isMobileChatOpen = false;
+    this.isMobileChatOpen.set(false);
   }
 
   /** Opens the matching profile dialog for the selected user. */
@@ -113,12 +125,12 @@ export class Messenger {
     channelId: string,
     overlay: GroupDetailsOverlayComponent
   ): void {
-    this.isChannelDetailsOpen = true;
+    this.isChannelDetailsOpen.set(true);
     overlay.open(channelId);
   }
 
   /** Resets the channel details state after closing. */
   closeChannelDetails(): void {
-    this.isChannelDetailsOpen = false;
+    this.isChannelDetailsOpen.set(false);
   }
 }
