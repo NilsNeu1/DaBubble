@@ -71,32 +71,32 @@ export class ChatMessagesService {
 
 
   // dummy dummy dummy dummy
-  async seedDummyMessages(channelId: string): Promise<void> {
-    const dummyMessages: Pick<ChatMessage, 'senderId' | 'senderName' | 'senderImageUrl' | 'text'>[] = [
-      {
-        senderId: 'l4N4HA2P7DNSkPbU5O2K6HfoeA72',
-        senderName: 'Riccardo Schöpf',
-        senderImageUrl: '/assets/01.Charaters.png',
-        text: 'Hey zusammen, willkommen im Test-Channel!',
-      },
-      {
-        senderId: 'tJYL0vjvUUSI47RiTooe6sLfShz2',
-        senderName: 'Dominik Rapp',
-        senderImageUrl: 'assets/default-user-avatar.png',
-        text: 'Danke! Freue mich, dabei zu sein.',
-      },
-      {
-        senderId: 'zgWtFKjdPmMxxLIQ2WztYTEODpo1',
-        senderName: 'Nils Neumann',
-        senderImageUrl: 'assets/default-user-avatar.png',
-        text: 'Das ist meine eigene Nachricht als Test.',
-      },
-    ];
+  // async seedDummyMessages(channelId: string): Promise<void> {
+  //   const dummyMessages: Pick<ChatMessage, 'senderId' | 'senderName' | 'senderImageUrl' | 'text'>[] = [
+  //     {
+  //       senderId: 'l4N4HA2P7DNSkPbU5O2K6HfoeA72',
+  //       senderName: 'Riccardo Schöpf',
+  //       senderImageUrl: '/assets/01.Charaters.png',
+  //       text: 'Hey zusammen, willkommen im Test-Channel!',
+  //     },
+  //     {
+  //       senderId: 'tJYL0vjvUUSI47RiTooe6sLfShz2',
+  //       senderName: 'Dominik Rapp',
+  //       senderImageUrl: 'assets/default-user-avatar.png',
+  //       text: 'Danke! Freue mich, dabei zu sein.',
+  //     },
+  //     {
+  //       senderId: 'zgWtFKjdPmMxxLIQ2WztYTEODpo1',
+  //       senderName: 'Nils Neumann',
+  //       senderImageUrl: 'assets/default-user-avatar.png',
+  //       text: 'Das ist meine eigene Nachricht als Test.',
+  //     },
+  //   ];
 
-    for (const msg of dummyMessages) {
-      await this.sendMessage(channelId, msg);
-    }
-  }
+  //   for (const msg of dummyMessages) {
+  //     await this.sendMessage(channelId, msg);
+  //   }
+  // }
   
   // dummy dummy dummy dummy
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
 import { ChatMessage } from './../../core/models/message.model';
+import { Auth } from './../../core/services/auth';
 
 interface MentionPerson {
   type: 'person';
@@ -45,6 +46,7 @@ type MentionItem = MentionPerson | MentionChannel;
 export class ChatPanel implements OnInit, OnDestroy {
   private renderer = inject(Renderer2);
   private chatMessages = inject(ChatMessagesService);
+  private auth = inject(Auth);
 
   @Input({ required: true }) channelId!: string;
   @ViewChild('messageInput') messageInput!: ElementRef<HTMLElement>;
@@ -77,7 +79,7 @@ export class ChatPanel implements OnInit, OnDestroy {
   ];
 
   // ---------------- Chat-Dummy -----------------
-  currentUserId: string = 'u1';
+  // currentUserId: string = 'u1';
 
   get messages(): ChatMessage[] {
     return this.chatMessages.messages();
@@ -86,6 +88,10 @@ export class ChatPanel implements OnInit, OnDestroy {
   // ngOnInit(): void {
   //   this.chatMessages.loadMessages(this.channelId);
   // }
+
+  private get currentUser() {
+    return this.auth.currentUser();
+  }
 
   ngOnDestroy(): void {
     this.chatMessages.stopListening();
@@ -128,7 +134,7 @@ export class ChatPanel implements OnInit, OnDestroy {
   }
 
   isOwnMessage(senderId: string): boolean {
-    return senderId === this.currentUserId;
+    return senderId === this.currentUser?.uid;
   }
 
   toggleReactionPicker(pickerId: string): void {
@@ -274,20 +280,24 @@ export class ChatPanel implements OnInit, OnDestroy {
     return result.trim();
   }
 
-  async sendMessage(): Promise<void> {
+async sendMessage(): Promise<void> {
     const text = this.getPlainTextValue();
     if (!text) return;
 
+    const user = this.currentUser;
+    if (!user) return;
+
     await this.chatMessages.sendMessage(this.channelId, {
-      senderId: this.currentUserId,
-      senderName: '', // from Auth-Service
-      senderImageUrl: '', // from Auth-Service
+      senderId: user.uid,
+      senderName: user.name,
+      senderImageUrl: user.avatarUrl,
       text,
     });
 
     this.messageInput.nativeElement.textContent = '';
     this.updateEmptyState();
   }
+
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
