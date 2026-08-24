@@ -56,6 +56,16 @@ section.open {
     padding: 10px 20px;
 }
 
+.no-border {
+    border: none !important;
+    padding: 0 !important;
+}
+
+.errorInput{
+     border: 2px solid #ff0000 !important;
+     color: #ff0000 !important;
+}
+
 div {
     width: 100%;
 }
@@ -164,4 +174,14 @@ h2 {
         background-color: #E5E5E5;
         content: url('../../../../public/assets/close-hover.png')
     }
+}
+
+.edit-input {
+    border: 1px solid #ADB0D9;
+    border-radius: 30px;
+    padding: 10px;
+    margin-bottom: 20px;
+    height: 50px;
+    font-size: 18px;
+    font-weight: 400;
 }

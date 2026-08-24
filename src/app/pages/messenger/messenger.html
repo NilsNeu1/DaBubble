@@ -8,7 +8,7 @@
     </app-workspace-menu>
     <section class="chat-container">
 
-        <app-chat-header [chat]="selectedChat()" [previewType]="chatType()" [channelDetailsOpen]="isChannelDetailsOpen()"
+        <app-chat-header [chat]="headerChat()" [previewType]="chatType()" [channelDetailsOpen]="isChannelDetailsOpen()"
             (channelDetailsRequested)="openChannelDetails($event, groupDetailsOverlayComponent)"
             (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)">
         </app-chat-header>

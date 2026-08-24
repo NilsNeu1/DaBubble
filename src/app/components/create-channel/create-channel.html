@@ -31,7 +31,7 @@
             <h1>Leute hinzufügen</h1><img class="close-img" src="assets/close.png" alt="Close" (click)="closeOverlay()">
         </div>
         <div class="flex-start margin-bottom input-container" (click)="selectMemberSource('existing')"
-            [ngClass]="{'disableInput': topChannelName === 'No channels found'}"><input type="radio"
+            [ngClass]="{'disableInput': topChannelName === 'Keine Channels gefunden'}"><input type="radio"
                 [checked]="isChecked === 'existing'">
             <h2 class="flex-start">Alle Mitglieder von <p>{{topChannelName}}</p> hinzufügen</h2>
         </div>
@@ -68,5 +68,5 @@
             </button>
         </div>
     </article>
-     <div [ngClass]="isMobile && isAddMembersOpen ? 'section-mobile-add-members' : ''"></div>//muss angepasst werden noch mal schauen wegen section 
+     <div [ngClass]="isMobile && isAddMembersOpen ? 'section-mobile-add-members' : ''"></div>
 </section>

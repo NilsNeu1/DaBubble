@@ -31,7 +31,7 @@ export class CreateChannel {
   existingMembers: { uid: string; role: string; name: string; avatarUrl: string }[] = [];
   dropDownUsers: { name: string; avatarUrl: string; uid: string }[] = [];
   topChannelID: string = '';
-  topChannelName: string = 'No channels found';
+  topChannelName: string = 'Keine Channels gefunden';
 
   @HostListener('window:resize')
   isMobile = window.innerWidth <= 1024;
@@ -75,7 +75,6 @@ export class CreateChannel {
 
   async addChannelToUser(channelId: string, userId: string): Promise<void> {
     if (!userId) {
-      console.log('User ID is undefined. Cannot add channel to user.');
       return;
     }
     const userRef = doc(firestore, 'users', userId);
@@ -83,7 +82,6 @@ export class CreateChannel {
     await updateDoc(userRef, {
       [`channelMemberships.${channelId}`]: {
         channelId: channelId,
-        channelName: this.channelName,
       },
     });
   }
@@ -168,9 +166,9 @@ export class CreateChannel {
     const channel = Object.values(this.currentUser()?.channelMemberships ?? {})[0];
     this.topChannelID = channel?.channelId || '';
 
-    this.topChannelName = channel?.channelName || 'No channels found';
+    this.topChannelName = channel?.channelName || 'Keine Channels gefunden';
 
-    if(this.topChannelName === 'No channels found') {
+    if(this.topChannelName === 'Keine Channels gefunden') {
       this.isChecked = 'custom';
     }
   }

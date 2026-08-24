@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CreateChannel } from '../create-channel/create-channel';
 import { Auth } from '../../core/services/auth';
@@ -33,11 +33,15 @@ export class WorkspaceMenu {
   allUsers = inject(Auth).allUsers;
   private readonly chatModel = inject(ChatModel);
 
-  readonly channels = computed(() =>
-    Object.values(
-      this.currentUser()?.channelMemberships ?? {}
-    )
-  );
+  readonly channels = this.chatModel.channels;
+
+  constructor() {
+    effect(() => {
+      const memberships = this.currentUser()?.channelMemberships ?? {};
+      this.chatModel.getChannels(Object.keys(memberships));
+    });
+  }
+
 
   toggleChannel() {
     if (this.isChannelOpen) {
@@ -119,3 +123,4 @@ export class WorkspaceMenu {
     this.outputSelectedChannel.emit({ channelName, conversationType, channelId });
   }
 }
+

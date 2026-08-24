@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { ChatHeader } from '../../components/chat-header/chat-header';
 import { UserProfileDialog } from '../../components/user-profile-dialog/user-profile-dialog';
@@ -132,5 +132,20 @@ export class Messenger {
   /** Resets the channel details state after closing. */
   closeChannelDetails(): void {
     this.isChannelDetailsOpen.set(false);
+  }
+
+  headerChat() {
+    const selected = this.selectedChat();
+    const active = this.activeChat();
+
+    if (selected?.type === 'channel' && active) {
+      return {
+        ...selected,
+        name: active.channelName,
+        description: active.description,
+      };
+    }
+
+    return selected;
   }
 }

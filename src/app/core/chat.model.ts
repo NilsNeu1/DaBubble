@@ -19,6 +19,9 @@ export class ChatModel {
 
   readonly activeChat = signal<chatModel | null>(null);
   private unsubscribeChat?: Unsubscribe;
+  readonly channels = signal<
+    { channelId: string; channelName: string }[]
+  >([]);
 
   async loadChat(channelId: string): Promise<void> {
     this.unsubscribeChat?.();
@@ -46,6 +49,30 @@ export class ChatModel {
     }
 
     return snapshot.data() as chatModel;
+  }
+
+  async getChannels(channelIds: string[]): Promise<void> {
+    const channels = await Promise.all(
+      channelIds.map(async channelId => {
+        const channel = await this.getChat(channelId);
+
+        return channel
+          ? {
+            channelId,
+            channelName: channel.channelName,
+          }
+          : null;
+      })
+    );
+
+    this.channels.set(
+      channels.filter(
+        (
+          channel
+        ): channel is { channelId: string; channelName: string } =>
+          channel !== null
+      )
+    );
   }
 
 }

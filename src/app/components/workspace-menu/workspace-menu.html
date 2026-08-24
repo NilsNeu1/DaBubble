@@ -18,9 +18,10 @@
             <img (click)="openOverlay()" class="add-img" src="assets/add.png" alt="Add">
         </div>
         <div class="channel-list" [ngClass]="{'dnone': !isChannelOpen}">
-            <p (click)="openChannel(channel.channelName); openChat(channel.channelName , 'channel', channel.channelId)"
-                [class.active]="selectedChannel === channel.channelName" class="channel-list-element"
-                *ngFor="let channel of channels()"><img src="assets/tag_black.svg" alt="Channel">{{channel.channelName}}
+            <p *ngFor="let channel of channels()"
+                (click)="openChannel(channel.channelName); openChat(channel.channelName , 'channel', channel.channelId)"
+                [class.active]="selectedChannel === channel.channelName" class="channel-list-element"><img
+                    src="assets/tag_black.svg" alt="Channel">{{channel.channelName}}
             </p>
             <div (click)="openOverlay()" class="add-channel-btn"><img class="add-img-btn" src="assets/add_circle.png"
                     alt="Add">Channel hinzufügen</div>
@@ -41,7 +42,8 @@
             <div class="user-icon-container"><img class="online-icon"
                     [src]="user.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'"
                     alt="Online Status"><img class="user_icon" [src]="user.avatarUrl" alt="User Image"></div>
-            <h3>{{user.name}}</h3><p *ngIf="user.uid === currentUser()?.uid">(Du)</p>
+            <h3>{{user.name}}</h3>
+            <p *ngIf="user.uid === currentUser()?.uid">(Du)</p>
         </div>
     </article>
 </section>

@@ -4,16 +4,26 @@
             <h1># {{channelDetails()?.channelName}}</h1>
             <img class="x-img" (click)="closeOverlay()" src="assets/close.png">
         </div>
-        <div class="group-style group-details-overlay-content">
-            <div><h2>Channel name</h2><button class="edit-btn">Bearbeiten</button></div>
-            <h3 class="group-name"># {{ channelDetails()?.channelName }}</h3>
+        <div class="group-style group-details-overlay-content"
+            [ngClass]="editingField === 'channelName' ? 'no-border' : ''">
+            <div>
+                <h2>Channel name</h2><button class="edit-btn" (click)="editChannelName()">{{ editingField ===
+                    'channelName' ? 'Speichern' : 'Bearbeiten' }}</button>
+            </div>
+            <h3 class="group-name" *ngIf="editingField !== 'channelName'"># {{ channelDetails()?.channelName }}</h3>
+            <input *ngIf="editingField === 'channelName'" class="edit-input"
+                [placeholder]="errorInput === 'channelName' ? 'Fehlerhafte Eingabe' : '# ' + channelDetails()?.channelName" [(ngModel)]="channelName" [ngClass]="errorInput === 'channelName' ? 'errorInput' : ''">
         </div>
 
-        <div class="group-style group-description">
-             <div class="description-header"><h2>Beschreibung</h2><button class="edit-btn">Bearbeiten</button></div>
-             <p>{{channelDetails()?.description}}</p>
-             <h2>Erstellt von</h2>
-             <h3 class="groupHost">{{getCreater(channelDetails()?.createdBy ?? '')}}</h3>
+        <div class="group-style group-description" [ngClass]="editingField === 'description' ? 'no-border' : ''">
+            <div class="description-header">
+                <h2>Beschreibung</h2><button class="edit-btn" (click)="editDescription()">{{ editingField ===
+                    'description' ? 'Speichern' : 'Bearbeiten' }}</button>
+            </div>
+            <p *ngIf="editingField !== 'description'">{{channelDetails()?.description}}</p>
+            <input *ngIf="editingField === 'description'" class="edit-input" [placeholder]="errorInput === 'description' ? 'Fehlerhafte Eingabe' : 'Dein Text hier'" [(ngModel)]="description" [ngClass]="errorInput === 'description' ? 'errorInput' : ''">
+            <h2>Erstellt von</h2>
+            <h3 class="groupHost">{{getCreater(channelDetails()?.createdBy ?? '')}}</h3>
         </div>
 
         <div class="btn-container"><button (click)="leaveChat()">Channel verlassen</button></div>
