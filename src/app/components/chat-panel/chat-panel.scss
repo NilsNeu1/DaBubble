@@ -62,6 +62,9 @@ section {
 
 .chat-container {
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 
 }
 
@@ -77,14 +80,11 @@ section {
 
 .chat-input-container {
     box-sizing: border-box;
-    position: absolute;
-    bottom: 20px;
-    left: 0px;
-    right: 0px;
+    flex: 0 0 auto;
     border: 2px solid #ADB0D9;
     border-radius: 20px;
     height: auto;
-    margin: 0 40px;
+    margin: 20px 40px;
     transition: border-color 0.2s ease;
 
     &:hover {
@@ -368,6 +368,34 @@ section {
   flex-direction: column;
   gap: 24px;
   padding: 24px;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &:hover {
+    scrollbar-color: #444DF2 transparent;
+  }
+
+  // WebKit (Chrome, Edge, Safari)
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 20px;
+    transition: background-color 0.2s ease;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: #444DF2;
+  }
 }
 
 .msg-divider {

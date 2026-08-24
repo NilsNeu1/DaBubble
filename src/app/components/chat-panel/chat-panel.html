@@ -109,7 +109,8 @@
         <div class="chat-input-container">
             <article #messageInput class="message-editor" contenteditable="true" role="textbox" aria-multiline="true"
                 data-placeholder="Nachricht an #Entwicklerteam" [class.is-empty]="isEmpty()" (input)="onInput()"
-                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()">
+                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()"
+                (keydown.enter)="onEnterKey($event)">
             </article>
 
             <div class="chat-input-actions">
@@ -157,8 +158,10 @@
                         }
                     </div>
                 </div>
-                <div class="send-btn">
-                    <div class="send-btn" role="img" tabindex="0"></div>
+                <div class="send-btn-wrapper">
+                    <div class="send-btn" role="img" tabindex="0" (click)="sendMessage()" (keydown.enter)="sendMessage()">
+
+                    </div>
                 </div>
             </div>
         </div>

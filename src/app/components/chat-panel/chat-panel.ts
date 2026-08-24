@@ -280,7 +280,7 @@ export class ChatPanel implements OnInit, OnDestroy {
     return result.trim();
   }
 
-async sendMessage(): Promise<void> {
+  async sendMessage(): Promise<void> {
     const text = this.getPlainTextValue();
     if (!text) return;
 
@@ -296,6 +296,13 @@ async sendMessage(): Promise<void> {
 
     this.messageInput.nativeElement.textContent = '';
     this.updateEmptyState();
+  }
+
+  onEnterKey(event: Event): void {
+    if (!(event instanceof KeyboardEvent)) return;
+    if (event.shiftKey) return;
+      event.preventDefault();
+      this.sendMessage();
   }
 
 
@@ -331,11 +338,11 @@ async sendMessage(): Promise<void> {
 
 
   async ngOnInit(): Promise<void> {
-  this.chatMessages.loadMessages(this.channelId);
+    this.chatMessages.loadMessages(this.channelId);
 
-   // TEMPORÄR!!   AUF KEINEN FALL WIEDER EINKOMMENTIEREN!!!
-  //  await this.chatMessages.seedDummyMessages(this.channelId);
-}
+    // TEMPORÄR!!   AUF KEINEN FALL WIEDER EINKOMMENTIEREN!!!
+    //  await this.chatMessages.seedDummyMessages(this.channelId);
+  }
 
 
 
