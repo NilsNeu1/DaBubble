@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import {
   User as FirebaseUser,
   GoogleAuthProvider,
@@ -26,11 +26,14 @@ import {
 import { firebaseAuth, firestore } from '../firebase.config';
 import { AppUser, AVAILABLE_AVATARS, DEFAULT_AVATAR } from '../models/user.model';
 import { mapAuthError } from './auth-error';
+import { ChatModel } from '../chat.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
+  private readonly chatModel = inject(ChatModel);
+
   readonly currentUser = signal<AppUser | null>(null);
   readonly allUsers = signal<AppUser[]>([]);
   readonly authReady = signal(false);
@@ -45,6 +48,11 @@ export class Auth {
 
     onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       if (!firebaseUser) {
+        this.unsubscribeCurrentUser?.();
+        this.unsubscribeCurrentUser = undefined;
+        this.unsubscribeAllUsers?.();
+        this.unsubscribeAllUsers = undefined;
+        this.chatModel.stopListening();
         this.currentUser.set(null);
         this.allUsers.set([]);
         this.authReady.set(true);
@@ -80,7 +88,8 @@ export class Auth {
 
   async login(email: string, password: string): Promise<void> {
     try {
-      await signInWithEmailAndPassword(firebaseAuth, email, password);
+      const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+      this.currentUser.set(await this.loadOrCreateProfile(credential.user));
     } catch (error) {
       throw new Error(mapAuthError(error));
     }
@@ -107,6 +116,7 @@ export class Auth {
       }
 
       const profile = existing.data() as AppUser;
+      this.currentUser.set(profile);
       return !AVAILABLE_AVATARS.includes(profile.avatarUrl);
     } catch (error) {
       throw new Error(mapAuthError(error));
@@ -115,7 +125,8 @@ export class Auth {
 
   async loginAsGuest(): Promise<void> {
     try {
-      await signInAnonymously(firebaseAuth);
+      const credential = await signInAnonymously(firebaseAuth);
+      this.currentUser.set(await this.loadOrCreateProfile(credential.user));
     } catch (error) {
       throw new Error(mapAuthError(error));
     }
@@ -164,6 +175,9 @@ export class Auth {
       await deleteUser(user);
       return;
     }
+    if (user) {
+      await setDoc(doc(firestore, 'users', user.uid), { status: 'offline' }, { merge: true });
+    }
     await signOut(firebaseAuth);
   }
 
@@ -171,7 +185,9 @@ export class Auth {
     const ref = doc(firestore, 'users', firebaseUser.uid);
     const snapshot = await getDoc(ref);
     if (snapshot.exists()) {
-      return snapshot.data() as AppUser;
+      const profile = { ...(snapshot.data() as AppUser), status: 'online' as const };
+      await setDoc(ref, { status: 'online' }, { merge: true });
+      return profile;
     }
     const fallback: AppUser = {
       uid: firebaseUser.uid,
