@@ -21,10 +21,10 @@ export class ChatMessagesService {
   loadMessages(channelId: string): void {
     this.unsubscribeMessages?.();
 
-    const messagesRef = collection(firestore, 'chats', channelId, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'asc'));
+    const messagesRef = collection(firestore, 'chats', channelId, 'messages'); // points at the firestore Path
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));  // builds a query to order the messages by timestamp
 
-    this.unsubscribeMessages = onSnapshot(q, (snapshot) => {
+    this.unsubscribeMessages = onSnapshot(q, (snapshot) => {  //firsttime load and then listen for changes in the messages collection
       const messages = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -69,34 +69,4 @@ export class ChatMessagesService {
     this.messages.set([]);
   }
 
-
-  // dummy dummy dummy dummy
-  // async seedDummyMessages(channelId: string): Promise<void> {
-  //   const dummyMessages: Pick<ChatMessage, 'senderId' | 'senderName' | 'senderImageUrl' | 'text'>[] = [
-  //     {
-  //       senderId: 'l4N4HA2P7DNSkPbU5O2K6HfoeA72',
-  //       senderName: 'Riccardo Schöpf',
-  //       senderImageUrl: '/assets/01.Charaters.png',
-  //       text: 'Hey zusammen, willkommen im Test-Channel!',
-  //     },
-  //     {
-  //       senderId: 'tJYL0vjvUUSI47RiTooe6sLfShz2',
-  //       senderName: 'Dominik Rapp',
-  //       senderImageUrl: 'assets/default-user-avatar.png',
-  //       text: 'Danke! Freue mich, dabei zu sein.',
-  //     },
-  //     {
-  //       senderId: 'zgWtFKjdPmMxxLIQ2WztYTEODpo1',
-  //       senderName: 'Nils Neumann',
-  //       senderImageUrl: 'assets/default-user-avatar.png',
-  //       text: 'Das ist meine eigene Nachricht als Test.',
-  //     },
-  //   ];
-
-  //   for (const msg of dummyMessages) {
-  //     await this.sendMessage(channelId, msg);
-  //   }
-  // }
-  
-  // dummy dummy dummy dummy
 }

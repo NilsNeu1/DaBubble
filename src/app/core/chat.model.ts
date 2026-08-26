@@ -29,7 +29,7 @@ export class ChatModel {
     const chatRef = doc(firestore, 'chats', channelId);
 
     this.unsubscribeChat = onSnapshot(chatRef, (snapshot) => {
-      if (!snapshot.exists()) {
+      if (!snapshot.exists()) {             // If the document doesn't exist, set activeChat to null
         this.activeChat.set(null);
         return;
       }

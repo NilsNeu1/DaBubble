@@ -1,4 +1,4 @@
-import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inject, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
@@ -43,7 +43,7 @@ type MentionItem = MentionPerson | MentionChannel;
   templateUrl: './chat-panel.html',
   styleUrl: './chat-panel.scss',
 })
-export class ChatPanel implements OnInit, OnDestroy {
+export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   private renderer = inject(Renderer2);
   private chatMessages = inject(ChatMessagesService);
   private auth = inject(Auth);
@@ -78,16 +78,16 @@ export class ChatPanel implements OnInit, OnDestroy {
     { type: 'person', name: 'Nils N', imageUrl: '/assets/02.Charaters.png' }
   ];
 
-  // ---------------- Chat-Dummy -----------------
-  // currentUserId: string = 'u1';
+  // ---------------- Chat-Listener -----------------
 
   get messages(): ChatMessage[] {
     return this.chatMessages.messages();
   }
 
-  // ngOnInit(): void {
-  //   this.chatMessages.loadMessages(this.channelId);
-  // }
+  async ngOnInit(): Promise<void> {
+    this.chatMessages.loadMessages(this.channelId);
+    console.log('init');
+  }
 
   private get currentUser() {
     return this.auth.currentUser();
@@ -97,33 +97,14 @@ export class ChatPanel implements OnInit, OnDestroy {
     this.chatMessages.stopListening();
   }
 
+    ngOnChanges(changes: SimpleChanges): void { 
+    if (changes['channelId'] && !changes['channelId'].firstChange) {
+      this.chatMessages.stopListening();
+      this.chatMessages.loadMessages(this.channelId);
+      console.log('changes');
+    }
+  }
 
-  // messages: Message[] = [
-  //   {
-  //     id: 'm1',
-  //     senderId: 'u2',
-  //     senderName: 'Erika Mustermann',
-  //     senderImageUrl: '/assets/01.Charaters.png',
-  //     timestamp: '2:00 PM',
-  //     text: 'styling test',
-  //     hasThread: true,
-  //     lastReply: 'Letzte Antwort 14:55',
-  //     reactions: [{ icon: '👍', count: 1 }]
-  //   },
-  //   {
-  //     id: 'm2',
-  //     senderId: 'u1',
-  //     senderName: 'Frederik Beck',
-  //     senderImageUrl: '/assets/02.Charaters.png',
-  //     timestamp: '3:06 PM',
-  //     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-  //     hasThread: false,
-  //     reactions: [
-  //       { icon: '🚀', count: 1 },
-  //       { icon: '✅', count: 1 }
-  //     ]
-  //   }
-  // ];
   // ---------------- Chat-features -----------------
   readonly quickReactions: string[] = ['👍', '❤️', '😂', '🎉', '👀', '✅'];
 
@@ -301,8 +282,8 @@ export class ChatPanel implements OnInit, OnDestroy {
   onEnterKey(event: Event): void {
     if (!(event instanceof KeyboardEvent)) return;
     if (event.shiftKey) return;
-      event.preventDefault();
-      this.sendMessage();
+    event.preventDefault();
+    this.sendMessage();
   }
 
 
@@ -334,14 +315,6 @@ export class ChatPanel implements OnInit, OnDestroy {
       }
     }
 
-  }
-
-
-  async ngOnInit(): Promise<void> {
-    this.chatMessages.loadMessages(this.channelId);
-
-    // TEMPORÄR!!   AUF KEINEN FALL WIEDER EINKOMMENTIEREN!!!
-    //  await this.chatMessages.seedDummyMessages(this.channelId);
   }
 
 
