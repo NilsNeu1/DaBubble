@@ -23,6 +23,13 @@ export class ChatModel {
     { channelId: string; channelName: string }[]
   >([]);
 
+  stopListening(): void {
+    this.unsubscribeChat?.();
+    this.unsubscribeChat = undefined;
+    this.activeChat.set(null);
+    this.channels.set([]);
+  }
+
   async loadChat(channelId: string): Promise<void> {
     this.unsubscribeChat?.();
 
