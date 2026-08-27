@@ -1,6 +1,5 @@
 import {
   Component,
-  computed,
   ElementRef,
   inject,
   input,
@@ -9,38 +8,27 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
-  ProfileDialog
-} from '../profile-dialog/profile-dialog';
-import {
   Router,
   RouterLink
 } from '@angular/router';
+import { Auth } from '../../core/services/auth';
+import { ProfileDialog } from '../profile-dialog/profile-dialog';
 import {
-  Auth
-} from '../../core/services/auth';
-
-type WorkspaceSearchResultType = 'user' | 'channel' | 'message';
-
-interface WorkspaceSearchResult {
-  id: string;
-  type: WorkspaceSearchResultType;
-  label: string;
-  avatarUrl?: string;
-  status?: 'online' | 'offline';
-  contextLabel?: string;
-  authorName?: string;
-  timestamp?: string;
-}
+  HeaderSearch,
+  WorkspaceSearchResult,
+} from './header-search';
 
 @Component({
   selector: 'app-header',
   imports: [ProfileDialog, RouterLink],
+  providers: [HeaderSearch],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
 export class Header {
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
+  private readonly headerSearch = inject(HeaderSearch);
 
   /** Provides the currently authenticated user. */
   protected readonly currentUser = this.authService.currentUser;
@@ -62,6 +50,21 @@ export class Header {
   /** Emits when the mobile back button is selected. */
   public readonly mobileBackRequested = output<void>();
 
+  /** Emits the selected user ID from the workspace search. */
+  public readonly userProfileRequested = output<string>();
+
+  /** Emits the selected channel from the workspace search. */
+  public readonly channelRequested = output<{
+    channelId: string;
+    channelName: string;
+  }>();
+
+  /** Emits the selected message location from the workspace search. */
+  public readonly messageRequested = output<{
+    channelId: string;
+    messageId: string;
+  }>();
+
   /** Defines the breakpoint for the mobile user menu. */
   private readonly mobileBreakpoint = '(max-width: 1024px)';
 
@@ -74,13 +77,20 @@ export class Header {
   /** Tracks whether the profile should open after closing the user menu. */
   private readonly shouldOpenProfile = signal(false);
 
-  /** Stores the current workspace search value. */
-  protected readonly workspaceSearchTerm = signal('');
+  /** Provides the current workspace search value. */
+  protected readonly workspaceSearchTerm = this.headerSearch.searchTerm;
+
+  /** Provides matching workspace search suggestions. */
+  protected readonly workspaceSearchSuggestions =
+    this.headerSearch.suggestions;
+
+  /** Indicates whether search suggestions are available. */
+  protected readonly isSearchSuggestionListOpen =
+    this.headerSearch.hasSuggestions;
 
   /** Indicates whether the mobile search view is active. */
-  protected readonly isMobileSearchActive = computed(
-    () => this.workspaceSearchTerm().length > 0
-  );
+  protected readonly isMobileSearchActive =
+    this.headerSearch.isMobileActive;
 
   /** Closes the user menu before opening the profile dialog. */
   protected openProfileFromUserMenu(): void {
@@ -93,158 +103,56 @@ export class Header {
     this.mobileBackRequested.emit();
   }
 
-  /** TEMP-HEADER-PREVIEW: Provides users for testing search suggestions. */
-  private readonly tempUserSuggestions: WorkspaceSearchResult[] = [
-    {
-      id: 'temp-user-current',
-      type: 'user',
-      label: 'Header Testuser (Du)',
-      avatarUrl: 'assets/default-user-avatar.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-frederik',
-      type: 'user',
-      label: 'Frederik Beck',
-      avatarUrl: 'assets/00.Charaters.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-sofia',
-      type: 'user',
-      label: 'Sofia Müller',
-      avatarUrl: 'assets/01.Charaters.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-noah',
-      type: 'user',
-      label: 'Noah Braun',
-      avatarUrl: 'assets/02.Charaters.png',
-      status: 'offline',
-    },
-    {
-      id: 'temp-user-elise',
-      type: 'user',
-      label: 'Elise Roth',
-      avatarUrl: 'assets/03.Charaters.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-elias',
-      type: 'user',
-      label: 'Elias Neumann',
-      avatarUrl: 'assets/04.Charaters.png',
-      status: 'offline',
-    },
-    {
-      id: 'temp-user-steffen',
-      type: 'user',
-      label: 'Steffen Hoffmann',
-      avatarUrl: 'assets/05.Charaters.png',
-      status: 'online',
-    },
-  ];
+  /** Handles selecting a workspace search result. */
+  protected selectWorkspaceSearchResult(
+    result: WorkspaceSearchResult
+  ): void {
+    this.emitWorkspaceSearchResult(result);
+    this.clearWorkspaceSearch();
+  }
 
-  /** TEMP-HEADER-PREVIEW: Provides channels for testing search suggestions. */
-  private readonly tempChannelSuggestions: WorkspaceSearchResult[] = [
-    {
-      id: 'temp-channel-1',
-      type: 'channel',
-      label: 'TEMP Allgemein',
-    },
-    {
-      id: 'temp-channel-2',
-      type: 'channel',
-      label: 'TEMP Entwicklerteam',
-    },
-    {
-      id: 'temp-channel-3',
-      type: 'channel',
-      label: 'TEMP Office-team',
-    },
-  ];
+  /** Emits the matching event for one workspace search result. */
+  private emitWorkspaceSearchResult(
+    result: WorkspaceSearchResult
+  ): void {
+    if (result.type === 'user') {
+      this.emitUserSearchResult(result);
+      return;
+    }
+    if (result.type === 'channel') {
+      this.emitChannelSearchResult(result);
+      return;
+    }
+    this.emitMessageSearchResult(result);
+  }
 
-  /** TEMP-HEADER-PREVIEW: Provides messages for testing workspace search. */
-  private readonly tempMessageSuggestions: WorkspaceSearchResult[] = [
-    {
-      id: 'temp-message-current',
-      type: 'message',
-      label: 'Ich habe den Header für Desktop und Mobile vorbereitet.',
-      contextLabel: '# Entwicklerteam',
-      authorName: 'Header Testuser (Du)',
-      timestamp: '14:20 Uhr',
-      avatarUrl: 'assets/default-user-avatar.png',
-    },
-    {
-      id: 'temp-message-frederik',
-      type: 'message',
-      label: 'Der Chat-Header kann jetzt als eigene Komponente umgesetzt werden.',
-      contextLabel: '# Entwicklerteam',
-      authorName: 'Frederik Beck',
-      timestamp: '14:25 Uhr',
-      avatarUrl: 'assets/00.Charaters.png',
-    },
-    {
-      id: 'temp-message-sofia',
-      type: 'message',
-      label: 'Ich kümmere mich als Nächstes um die Nachrichtenansicht.',
-      contextLabel: 'Direktnachricht mit Sofia Müller',
-      authorName: 'Sofia Müller',
-      timestamp: '14:30 Uhr',
-      avatarUrl: 'assets/01.Charaters.png',
-    },
-    {
-      id: 'temp-message-noah',
-      type: 'message',
-      label: 'Der Channel wurde für das Entwicklerteam erstellt.',
-      contextLabel: '# Entwicklerteam',
-      authorName: 'Noah Braun',
-      timestamp: 'Gestern, 11:10 Uhr',
-      avatarUrl: 'assets/02.Charaters.png',
-    },
-    {
-      id: 'temp-message-elise',
-      type: 'message',
-      label: 'Die Profilansicht sollte auf Mobile mittig angezeigt werden.',
-      contextLabel: '# Allgemein',
-      authorName: 'Elise Roth',
-      timestamp: 'Montag, 09:40 Uhr',
-      avatarUrl: 'assets/03.Charaters.png',
-    },
-    {
-      id: 'temp-message-elias',
-      type: 'message',
-      label: 'Die Firebase-Anbindung machen wir später gemeinsam.',
-      contextLabel: '# Office-team',
-      authorName: 'Elias Neumann',
-      timestamp: '28.07., 16:20 Uhr',
-      avatarUrl: 'assets/04.Charaters.png',
-    },
-    {
-      id: 'temp-message-steffen',
-      type: 'message',
-      label: 'Ich habe die responsive Darstellung noch einmal getestet.',
-      contextLabel: 'Direktnachricht mit Steffen Hoffmann',
-      authorName: 'Steffen Hoffmann',
-      timestamp: '28.07.2025, 18:10 Uhr',
-      avatarUrl: 'assets/05.Charaters.png',
-    },
-  ];
+  /** Emits the selected user search result. */
+  private emitUserSearchResult(
+    result: WorkspaceSearchResult
+  ): void {
+    this.userProfileRequested.emit(result.id);
+  }
 
-  /** Returns matching suggestions for the current search value. */
-  protected readonly workspaceSearchSuggestions = computed(() => {
-    const term = this.workspaceSearchTerm().trim();
+  /** Emits the selected channel search result. */
+  private emitChannelSearchResult(
+    result: WorkspaceSearchResult
+  ): void {
+    this.channelRequested.emit({
+      channelId: result.id,
+      channelName: result.label,
+    });
+  }
 
-    if (!term) return [];
-
-    return this.getSearchSuggestions(term);
-  });
-
-  /** Indicates whether search suggestions are available. */
-  protected readonly isSearchSuggestionListOpen = computed(
-    () => this.workspaceSearchSuggestions().length > 0
-  );
+  /** Emits the selected message result when its location is valid. */
+  private emitMessageSearchResult(
+    result: WorkspaceSearchResult
+  ): void {
+    if (!result.channelId || !result.messageId) return;
+    this.messageRequested.emit({
+      channelId: result.channelId,
+      messageId: result.messageId,
+    });
+  }
 
   /** Opens or closes the user menu. */
   protected toggleUserMenu(): void {
@@ -256,12 +164,12 @@ export class Header {
   /** Updates the shared workspace search value. */
   protected updateWorkspaceSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.workspaceSearchTerm.set(input.value);
+    this.headerSearch.updateTerm(input.value);
   }
 
   /** Clears the shared workspace search value. */
   protected clearWorkspaceSearch(): void {
-    this.workspaceSearchTerm.set('');
+    this.headerSearch.clearTerm();
   }
 
   /** Opens the user menu as a modal dialog. */
@@ -277,15 +185,15 @@ export class Header {
       this.isUserMenuClosing.set(true);
       return;
     }
-
     this.finishUserMenuClose();
   }
 
   /** Closes the dialog after the exit animation. */
-  protected handleUserMenuAnimationEnd(event: AnimationEvent): void {
+  protected handleUserMenuAnimationEnd(
+    event: AnimationEvent
+  ): void {
     if (!this.isUserMenuClosing()) return;
     if (event.target !== this.userDialog.nativeElement) return;
-
     this.finishUserMenuClose();
   }
 
@@ -303,7 +211,9 @@ export class Header {
   }
 
   /** Closes the menu when the backdrop is clicked. */
-  protected closeUserMenuFromBackdrop(event: MouseEvent): void {
+  protected closeUserMenuFromBackdrop(
+    event: MouseEvent
+  ): void {
     if (event.target === this.userDialog.nativeElement) {
       this.closeUserMenu();
     }
@@ -312,9 +222,7 @@ export class Header {
   /** Finishes closing the native dialog. */
   private finishUserMenuClose(): void {
     const dialog = this.userDialog.nativeElement;
-
     if (dialog.open) dialog.close();
-
     this.isUserMenuOpen.set(false);
     this.isUserMenuClosing.set(false);
   }
@@ -322,63 +230,6 @@ export class Header {
   /** Checks whether the mobile layout is active. */
   private isMobileViewport(): boolean {
     return window.matchMedia(this.mobileBreakpoint).matches;
-  }
-
-  /** Selects the temporary suggestions for the entered prefix. */
-  private getSuggestionsByPrefix(
-    prefix: string
-  ): WorkspaceSearchResult[] {
-    return prefix === '@'
-      ? this.tempUserSuggestions
-      : this.tempChannelSuggestions;
-  }
-
-  /** Selects the correct search mode for the entered value. */
-  private getSearchSuggestions(
-    term: string
-  ): WorkspaceSearchResult[] {
-    const prefix = term.charAt(0);
-
-    return prefix === '@' || prefix === '#'
-      ? this.filterPrefixSuggestions(prefix, term.slice(1))
-      : this.filterMessageSuggestions(term);
-  }
-
-  /** Filters user or channel suggestions. */
-  private filterPrefixSuggestions(
-    prefix: string,
-    query: string
-  ): WorkspaceSearchResult[] {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return this.getSuggestionsByPrefix(prefix).filter(({ label }) =>
-      label.toLowerCase().includes(normalizedQuery)
-    );
-  }
-
-  /** Filters temporary messages and their context information. */
-  private filterMessageSuggestions(
-    query: string
-  ): WorkspaceSearchResult[] {
-    const normalizedQuery = query.toLowerCase();
-
-    return this.tempMessageSuggestions.filter((message) =>
-      this.matchesMessageSearch(message, normalizedQuery)
-    );
-  }
-
-  /** Checks whether a message matches the search value. */
-  private matchesMessageSearch(
-    message: WorkspaceSearchResult,
-    query: string
-  ): boolean {
-    const searchableText = [
-      message.label,
-      message.contextLabel,
-      message.authorName,
-    ].join(' ').toLowerCase();
-
-    return searchableText.includes(query);
   }
 
   /** Logs the current user out and redirects to the login page. */
@@ -396,7 +247,6 @@ export class Header {
   /** Opens the profile after the user menu has fully closed. */
   private openPendingProfile(): void {
     if (!this.shouldOpenProfile()) return;
-
     this.shouldOpenProfile.set(false);
     this.profileDialogComponent.openProfileDialog();
   }

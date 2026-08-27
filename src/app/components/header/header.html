@@ -14,19 +14,20 @@
                 aria-controls="desktop-search-results" [value]="workspaceSearchTerm()"
                 (input)="updateWorkspaceSearch($event)" />
 
-            <button class="app-header__search-button" type="button" aria-label="Suche starten">
+            <span class="app-header__search-button" aria-hidden="true">
                 <img src="assets/search.png" alt="" />
-            </button>
+            </span>
 
             @if (isSearchSuggestionListOpen()) {
-            <!-- TEMP-HEADER-PREVIEW: Displays temporary desktop search suggestions. -->
+
             <div id="desktop-search-results" class="app-header__search-results app-header__search-results--desktop"
                 role="listbox" aria-label="Suchergebnisse">
                 @for (
                 suggestion of workspaceSearchSuggestions();
                 track suggestion.id
                 ) {
-                <button class="app-header__search-result" type="button" role="option" aria-selected="false">
+                <button class="app-header__search-result" type="button" role="option" aria-selected="false"
+                    (click)="selectWorkspaceSearchResult(suggestion)">
                     @if (suggestion.type === 'message') {
                     @if (suggestion.avatarUrl) {
                     <span class="app-header__search-result-avatar-wrapper">
@@ -160,7 +161,7 @@
         @if (isMobileSearchActive()) {
         <div class="app-header__mobile-search-header">
             <h2 class="app-header__mobile-search-title">
-                Search
+                Suchen
             </h2>
 
             <button class="app-header__mobile-search-close" type="button" aria-label="Suche leeren und schließen"
@@ -182,13 +183,13 @@
                     aria-controls="mobile-search-results" [value]="workspaceSearchTerm()"
                     (input)="updateWorkspaceSearch($event)" />
 
-                <button class="app-header__search-button" type="button" aria-label="Suche öffnen">
+                <span class="app-header__search-button" aria-hidden="true">
                     <img src="assets/search.png" alt="" />
-                </button>
+                </span>
             </div>
 
             @if (isSearchSuggestionListOpen()) {
-            <!-- TEMP-HEADER-PREVIEW: Displays mobile search results until the workspace handles them. -->
+
             <div id="mobile-search-results" class="app-header__search-results app-header__search-results--mobile"
                 role="listbox" aria-label="Suchergebnisse">
                 @for (
@@ -196,7 +197,7 @@
                 track suggestion.id
                 ) {
                 <button class="app-header__search-result app-header__search-result--mobile" type="button" role="option"
-                    aria-selected="false">
+                    aria-selected="false" (click)="selectWorkspaceSearchResult(suggestion)">
                     @if (suggestion.type === 'message') {
                     @if (suggestion.avatarUrl) {
                     <span class="app-header__search-result-avatar-wrapper">
@@ -302,7 +303,7 @@
             <button class="app-header__menu-button" type="button" (click)="logout()">
                 <span class="app-header__menu-icon app-header__menu-icon--logout" aria-hidden="true"></span>
 
-                <span>Log out</span>
+                <span>Abmelden</span>
             </button>
         </div>
     </dialog>
