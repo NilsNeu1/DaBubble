@@ -1,7 +1,9 @@
-<app-header #headerComponent [isMobileChatView]="isMobileChatOpen()" (mobileBackRequested)="showMobileWorkspaceMenu()" />
+<app-header #headerComponent [isMobileChatView]="isMobileChatOpen()" (mobileBackRequested)="showMobileWorkspaceMenu()"
+    (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)"
+    (channelRequested)="openChannelFromSearch($event)" (messageRequested)="openMessageFromSearch($event)" />
 <app-group-details-overlay-component #groupDetailsOverlayComponent (close)="closeChannelDetails()" />
 <main class="messenger-page" [class.messenger-page--mobile-chat]="isMobileChatOpen()">
-    <!-- TEMP-CHAT-HEADER-PREVIEW: Replace with the active chat later. -->
+
     <app-workspace-menu class="close-workspace-menu" (workspaceMenuOpenChanged)="isWorkspaceMenuOpen.set($event)"
         (outputSelectedChannel)="onOutputSelectedChannel($event)" (newDirectMessage)="openNewMessage()"
         [ngClass]="{'dnone': !isWorkspaceMenuOpen()}">
@@ -14,7 +16,7 @@
         </app-chat-header>
 
         @if (selectedChat(); as chat) {
-            <app-chat-panel [channelId]="chat.id"/>
+        <app-chat-panel [channelId]="chat.id" />
         }
     </section>
     <app-user-profile-dialog #userProfileDialog />

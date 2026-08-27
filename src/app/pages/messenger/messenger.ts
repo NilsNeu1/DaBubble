@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Header } from '../../components/header/header';
 import { ChatHeader } from '../../components/chat-header/chat-header';
 import { UserProfileDialog } from '../../components/user-profile-dialog/user-profile-dialog';
@@ -112,12 +112,40 @@ export class Messenger {
     header: Header,
     userProfileDialog: UserProfileDialog
   ): void {
-    if (userId === 'temp-user-current') {
+    if (userId === this.currentUser()?.uid) {
       header.openProfileDialog();
       return;
     }
 
     userProfileDialog.openUserProfileDialog(userId);
+  }
+
+  /** Opens a channel selected from the workspace search. */
+  async openChannelFromSearch(event: {
+    channelId: string;
+    channelName: string;
+  }): Promise<void> {
+    await this.chatModel.loadChat(event.channelId);
+    await this.onOutputSelectedChannel({
+      channelName: event.channelName,
+      conversationType: 'channel',
+      channelId: event.channelId,
+    });
+  }
+
+  /** Opens the channel containing the selected message result. */
+  async openMessageFromSearch(event: {
+    channelId: string;
+    messageId: string;
+  }): Promise<void> {
+    const channel = await this.chatModel.getChat(event.channelId);
+    if (!channel) return;
+    await this.chatModel.loadChat(event.channelId);
+    await this.onOutputSelectedChannel({
+      channelName: channel.channelName,
+      conversationType: 'channel',
+      channelId: event.channelId,
+    });
   }
 
   /** Opens the selected channel details. */

@@ -22,7 +22,7 @@
                     Aus der Liste wählen
                 </p>
 
-                <div class="profile-dialog__avatar-options" aria-label="Avatar auswählen">
+                <div class="profile-dialog__avatar-options" role="group" aria-label="Avatar auswählen">
                     @for (avatarUrl of availableAvatars; track avatarUrl) {
                     <button class="profile-dialog__avatar-option" type="button"
                         [class.profile-dialog__avatar-option--selected]="selectedAvatarUrl() === avatarUrl"
@@ -55,7 +55,7 @@
         </header>
 
         <div class="profile-dialog__avatar-wrapper">
-            <img class="profile-dialog__avatar" [src]="isEditMode() ? draftAvatarUrl() : localProfileAvatarUrl()"
+            <img class="profile-dialog__avatar" [src]="isEditMode() ? draftAvatarUrl() : profileAvatarUrl()"
                 alt="Profilbild von {{ profileName() }}" />
 
             @if (isEditMode()) {
@@ -76,7 +76,9 @@
                 </label>
 
                 <input id="profile-full-name" class="profile-dialog__input" type="text" formControlName="fullName"
-                    autocomplete="name" aria-describedby="profile-name-error" [placeholder]="profileName()" />
+                    autocomplete="name"
+                    [attr.aria-describedby]="profileForm.controls.fullName.touched && profileForm.controls.fullName.invalid ? 'profile-name-error' : null"
+                    [placeholder]="profileName()" />
 
                 @if (
                 profileForm.controls.fullName.touched &&
