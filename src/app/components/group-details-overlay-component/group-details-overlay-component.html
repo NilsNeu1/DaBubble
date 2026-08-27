@@ -7,7 +7,7 @@
         <div class="group-style group-details-overlay-content"
             [ngClass]="editingField === 'channelName' ? 'no-border' : ''">
             <div>
-                <h2>Channel name</h2><button class="edit-btn" (click)="editChannelName()">{{ editingField ===
+                <h2>Channel name</h2><button class="edit-btn" (click)="editChannelName()" [ngClass]="currentUser()?.uid === channelDetails()?.createdBy ? '' : 'dnone'">{{ editingField ===
                     'channelName' ? 'Speichern' : 'Bearbeiten' }}</button>
             </div>
             <h3 class="group-name" *ngIf="editingField !== 'channelName'"># {{ channelDetails()?.channelName }}</h3>
@@ -17,7 +17,7 @@
 
         <div class="group-style group-description" [ngClass]="editingField === 'description' ? 'no-border' : ''">
             <div class="description-header">
-                <h2>Beschreibung</h2><button class="edit-btn" (click)="editDescription()">{{ editingField ===
+                <h2>Beschreibung</h2><button class="edit-btn" (click)="editDescription()" [ngClass]="currentUser()?.uid === channelDetails()?.createdBy ? '' : 'dnone'">{{ editingField ===
                     'description' ? 'Speichern' : 'Bearbeiten' }}</button>
             </div>
             <p *ngIf="editingField !== 'description'">{{channelDetails()?.description}}</p>

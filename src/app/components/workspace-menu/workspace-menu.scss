@@ -8,6 +8,9 @@
     padding: 25px 20px;
     padding-left: 40px;
 
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .workspace-open {
@@ -53,8 +56,11 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 100%;
-    margin-left: 60px;
+    width: 90%;
+    margin-left: 35px;
+    margin-right: 5px;
+    max-height: 250px;
+    overflow-y: auto;
 
     .add-channel-btn {
         display: flex;
@@ -183,6 +189,8 @@
 .direct-message-container {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
 
     .direct-message-header {
         margin-top: 30px;
@@ -220,7 +228,7 @@
         gap: 10px;
         width: fit-content;
         padding: 5px 15px;
-        margin-left: 35px;
+        margin-left: 15px;
         margin-top: 10px;
         cursor: pointer;
 
@@ -314,6 +322,35 @@
     display: none;
 }
 
+.overflow-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.channel-list,
+.overflow-container {
+    scrollbar-width: thin;
+    scrollbar-color: #797ef3 transparent;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #797ef3;
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: #444df2;
+    }
+}
+
 @media (max-width: 1024px) {
     .workspace-toggle-btn {
         display: none;
@@ -327,16 +364,16 @@
         width: 100%;
         max-width: none;
         height: 100vh;
-        min-width: 100vh;
+        min-width: 100%;
         padding-left: 10px;
     }
 
-    .direct-message-list{
-        margin-left: 0px !important; 
+    .direct-message-list {
+        margin-left: 0px !important;
     }
 
-    .channel-list{
-        margin-left: 0px !important; 
+    .channel-list {
+        margin-left: 0px !important;
     }
 
     .new-message-mobile-btn {
