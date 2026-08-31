@@ -5,11 +5,14 @@ import { Auth } from '../../core/services/auth';
 import { deleteField, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
 import { FormsModule } from '@angular/forms';
-import { ChannelAddMembersDropdown } from '../channel-add-members-dropdown/channel-add-members-dropdown'
+import { ChannelMembersDropdown  } from '../channel-members-dropdown/channel-members-dropdown';
+import {
+  ChannelMemberDropdownUser
+} from '../channel-members-dropdown/channel-members-dropdown';
 
 @Component({
   selector: 'app-group-details-overlay-component',
-  imports: [CommonModule, FormsModule, ChannelAddMembersDropdown],
+  imports: [CommonModule, FormsModule, ChannelMembersDropdown ],
   templateUrl: './group-details-overlay-component.html',
   styleUrl: './group-details-overlay-component.scss',
 })
@@ -134,4 +137,23 @@ export class GroupDetailsOverlayComponent {
   triggerError(field: 'channelName' | 'description') {
     this.errorInput = field;
   }
+
+/*  getChannelMembers(): ChannelMemberDropdownUser[] {
+  const members = this.channelDetails()?.members ?? [];
+
+  return (
+    members as {
+      uid: string;
+      name: string;
+      avatarUrl: string;
+    }[]
+  ).map((member) => ({
+    uid: member.uid,
+    name: member.name,
+    avatarUrl: member.avatarUrl,
+    status:
+      this.allUsers().find((user) => user.uid === member.uid)?.status
+      ?? 'offline',
+  }));
+} */
 }

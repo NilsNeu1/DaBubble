@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, signal, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CreateChannel } from '../create-channel/create-channel';
 import { Auth } from '../../core/services/auth';
@@ -13,6 +13,7 @@ import { ChatModel } from '../../core/chat.model';
 
 export class WorkspaceMenu {
   isChannelOpen: boolean = true;
+  initialChatOpened: boolean = false;
   hoverChannel: boolean = false;
   isDirectMessageOpen: boolean = true;
   hoverDirectMessage: boolean = false;
@@ -35,14 +36,28 @@ export class WorkspaceMenu {
 
   readonly channels = this.chatModel.channels;
 
+  /** Initializes the automatic direct-message selection and channel membership loading. */
   constructor() {
+
+    effect(() => {
+      const currentUser = this.currentUser();
+      const users = this.allUsers();
+
+      if (this.initialChatOpened ||!currentUser ||!users.some((user) => user.uid === currentUser.uid)) {return;}
+
+      this.initialChatOpened = true;
+      this.openDirectMessage(currentUser.name);
+      this.openChat(currentUser.name, 'direct-message', currentUser.uid);
+    });
+
+
     effect(() => {
       const memberships = this.currentUser()?.channelMemberships ?? {};
       this.chatModel.getChannels(Object.keys(memberships));
     });
   }
 
-
+  /** Toggles the visibility of the channel list. */
   toggleChannel() {
     if (this.isChannelOpen) {
       this.isChannelOpen = false;
@@ -51,6 +66,7 @@ export class WorkspaceMenu {
     }
   }
 
+  /** Toggles the visibility of the direct-message list. */
   toggleDirectMessage() {
     if (this.isDirectMessageOpen) {
       this.isDirectMessageOpen = false;
@@ -59,6 +75,7 @@ export class WorkspaceMenu {
     }
   }
 
+  /** Toggles the workspace menu and emits its updated visibility state. */
   toggleWorkspaceMenu() {
     if (this.isWorkspaceMenuOpen) {
       this.isWorkspaceMenuOpen = false;
@@ -68,6 +85,7 @@ export class WorkspaceMenu {
     this.workspaceMenuOpenChanged.emit(this.isWorkspaceMenuOpen);
   }
 
+  /** Returns the workspace toggle icon for the current open and hover state. */
   getWorkspaceToggleIcon() {
     if (this.hoverWorkspaceMenu && this.isWorkspaceMenuOpen) {
       return 'assets/Group 2-hover.png';
@@ -82,6 +100,7 @@ export class WorkspaceMenu {
     }
   }
 
+  /** Returns the matching arrow icon for a collapsible workspace section. */
   channelIconToggle(ref: 'isChannelOpen' | 'isDirectMessageOpen', refHover: 'hoverDirectMessage' | 'hoverChannel'): string {
     if (this[refHover] && this[ref]) {
       return 'assets/arrow_drop_down-hover.png';
@@ -96,26 +115,31 @@ export class WorkspaceMenu {
     }
   }
 
+  /** Marks a channel as selected and clears the selected direct-message user. */
   openChannel(channelName: string) {
     this.selectedChannel = channelName;
     this.selectedUser = null;
   }
 
+  /** Marks a direct-message user as selected and clears the selected channel. */
   openDirectMessage(userName: string) {
     this.selectedUser = userName;
     this.selectedChannel = null;
   }
 
+  /** Requests opening the new direct-message view. */
   openNewDirectMessage() {
     this.newDirectMessage.emit();
   }
 
+  /** Opens the create-channel overlay when it is currently closed. */
   openOverlay() {
     if (!this.isOpen) {
       this.isOpen = true;
     }
   }
 
+  /** Loads a chat when an ID is available and emits the selected conversation. */
   async openChat(channelName: string, conversationType: 'channel' | 'direct-message', channelId?: string) {
     if (channelId) {
       this.chatModel.loadChat(channelId);

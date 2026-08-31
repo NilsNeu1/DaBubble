@@ -73,7 +73,7 @@
             <span class="chat-header__member-avatars" aria-hidden="true">
                 @for (
                 member of chat.members.slice(0, 3);
-                track member.id
+                track member.uid
                 ) {
                 <img class="chat-header__member-avatar" [src]="member.avatarUrl" [alt]="member.name" />
                 }
@@ -99,7 +99,8 @@
     }
 
     @if (isAddMembersDropdownOpen()) {
-    <app-channel-add-members-dropdown [channelName]="chat.name" (closeRequested)="closeAddMembersDropdown()">
+    <app-channel-add-members-dropdown [channelName]="chat.name" [channelId]="chat.id" [members]="chat.members"
+        (closeRequested)="closeAddMembersDropdown()">
     </app-channel-add-members-dropdown>
     }
 

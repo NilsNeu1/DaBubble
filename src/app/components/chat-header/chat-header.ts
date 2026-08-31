@@ -18,7 +18,7 @@ type ChatHeaderStatus = 'online' | 'offline';
 type ChatHeaderPreviewType = 'channel' | 'direct-message' | 'new-message';
 
 interface ChatHeaderMember {
-  id: string;
+  uid: string;
   name: string;
   avatarUrl: string;
   status: ChatHeaderStatus;
@@ -60,31 +60,31 @@ const TEMP_CHANNEL: ChannelHeaderData = {
   name: 'Entwicklerteam',
   members: [
     {
-      id: 'temp-user-current',
+      uid: 'temp-user-current',
       name: 'Header Testuser (Du)',
       avatarUrl: 'assets/default-user-avatar.png',
       status: 'online',
     },
     {
-      id: 'temp-user-frederik',
+      uid: 'temp-user-frederik',
       name: 'Frederik Beck',
       avatarUrl: 'assets/00.Charaters.png',
       status: 'online',
     },
     {
-      id: 'temp-user-sofia',
+      uid: 'temp-user-sofia',
       name: 'Sofia Müller',
       avatarUrl: 'assets/01.Charaters.png',
       status: 'online',
     },
     {
-      id: 'temp-user-noah',
+      uid: 'temp-user-noah',
       name: 'Noah Braun',
       avatarUrl: 'assets/02.Charaters.png',
       status: 'offline',
     },
     {
-      id: 'temp-user-steffen',
+      uid: 'temp-user-steffen',
       name: 'Steffen Hoffmann',
       avatarUrl: 'assets/05.Charaters.png',
       status: 'online',
