@@ -318,5 +318,36 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   }
 
 
+  // ----------------- Edit Message -----------------
+
+  editingMessageId = signal<string | null>(null);
+editText = signal<string>('');
+
+isEditingMessage(messageId: string): boolean {
+  return this.editingMessageId() === messageId;
+}
+
+// temp. later is used in the hover button
+startEditMessage(message: ChatMessage): void {
+  this.editingMessageId.set(message.id);
+  this.editText.set(message.text);
+}
+
+cancelEditMessage(): void {
+  this.editingMessageId.set(null);
+  this.editText.set('');
+}
+
+async saveEditMessage(message: ChatMessage): Promise<void> {
+  const newText = this.editText().trim();
+  if (!newText || newText === message.text) {
+    this.cancelEditMessage();
+    return;
+  }
+  await this.chatMessages.updateMessage(this.channelId, message.id, newText);
+  this.cancelEditMessage();
+}
+
+
 
 }

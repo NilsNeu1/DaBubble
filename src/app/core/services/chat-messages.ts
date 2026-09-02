@@ -46,6 +46,15 @@ export class ChatMessagesService {
     });
   }
 
+  async updateMessage(
+  channelId: string,
+  messageId: string,
+  newText: string
+): Promise<void> {
+  const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
+  await updateDoc(messageRef, { text: newText });
+}
+
 
   async addReaction(
     channelId: string,
