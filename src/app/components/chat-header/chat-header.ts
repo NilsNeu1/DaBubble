@@ -1,24 +1,34 @@
 import {
   Component,
   computed,
+  effect,
   HostListener,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
-
 import {
-  ChannelMembersDropdown,
+  ChannelMembersDropdown
 } from '../channel-members-dropdown/channel-members-dropdown';
 import {
-  ChannelAddMembersDropdown
+  ChannelAddMembersDropdown,
 } from '../channel-add-members-dropdown/channel-add-members-dropdown';
+import {
+  ChatModel
+} from '../../core/chat.model';
+import type {
+  AppUser
+} from '../../core/models/user.model';
+import {
+  Auth
+} from '../../core/services/auth';
 
 type ChatHeaderStatus = 'online' | 'offline';
 type ChatHeaderPreviewType = 'channel' | 'direct-message' | 'new-message';
 
 interface ChatHeaderMember {
-  id: string;
+  uid: string;
   name: string;
   avatarUrl: string;
   status: ChatHeaderStatus;
@@ -31,6 +41,11 @@ interface NewMessageSearchSuggestion {
   email?: string;
   avatarUrl?: string;
   status?: ChatHeaderStatus;
+}
+
+export interface NewMessageRecipient {
+  id: string;
+  type: 'user' | 'channel';
 }
 
 interface ChannelHeaderData {
@@ -49,153 +64,26 @@ interface DirectMessageHeaderData {
   isCurrentUser: boolean;
 }
 
-type ChatHeaderData =
-  | ChannelHeaderData
-  | DirectMessageHeaderData;
-
-/** TEMP-CHAT-HEADER-PREVIEW: Provides fallback channel data. */
-const TEMP_CHANNEL: ChannelHeaderData = {
-  type: 'channel',
-  id: 'temp-developer-team',
-  name: 'Entwicklerteam',
-  members: [
-    {
-      id: 'temp-user-current',
-      name: 'Header Testuser (Du)',
-      avatarUrl: 'assets/default-user-avatar.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-frederik',
-      name: 'Frederik Beck',
-      avatarUrl: 'assets/00.Charaters.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-sofia',
-      name: 'Sofia Müller',
-      avatarUrl: 'assets/01.Charaters.png',
-      status: 'online',
-    },
-    {
-      id: 'temp-user-noah',
-      name: 'Noah Braun',
-      avatarUrl: 'assets/02.Charaters.png',
-      status: 'offline',
-    },
-    {
-      id: 'temp-user-steffen',
-      name: 'Steffen Hoffmann',
-      avatarUrl: 'assets/05.Charaters.png',
-      status: 'online',
-    },
-  ],
-};
-
-const TEMP_DIRECT_MESSAGE: DirectMessageHeaderData = {
-  type: 'direct-message',
-  id: 'temp-user-sofia',
-  name: 'Sofia Müller',
-  avatarUrl: 'assets/01.Charaters.png',
-  status: 'online',
-  isCurrentUser: false,
-};
-
-/** TEMP-CHAT-HEADER-PREVIEW: Provides users for the new message search. */
-const TEMP_NEW_MESSAGE_USERS: NewMessageSearchSuggestion[] = [
-  {
-    id: 'temp-user-current',
-    type: 'user',
-    label: 'Header Testuser (Du)',
-    email: 'testuser@dabubble.de',
-    avatarUrl: 'assets/default-user-avatar.png',
-    status: 'online',
-  },
-  {
-    id: 'temp-user-frederik',
-    type: 'user',
-    label: 'Frederik Beck',
-    email: 'frederik.beck@dabubble.de',
-    avatarUrl: 'assets/00.Charaters.png',
-    status: 'online',
-  },
-  {
-    id: 'temp-user-sofia',
-    type: 'user',
-    label: 'Sofia Müller',
-    email: 'sofia.mueller@dabubble.de',
-    avatarUrl: 'assets/01.Charaters.png',
-    status: 'online',
-  },
-  {
-    id: 'temp-user-noah',
-    type: 'user',
-    label: 'Noah Braun',
-    email: 'noah.braun@dabubble.de',
-    avatarUrl: 'assets/02.Charaters.png',
-    status: 'offline',
-  },
-  {
-    id: 'temp-user-elise',
-    type: 'user',
-    label: 'Elise Roth',
-    email: 'elise.roth@dabubble.de',
-    avatarUrl: 'assets/03.Charaters.png',
-    status: 'online',
-  },
-  {
-    id: 'temp-user-elias',
-    type: 'user',
-    label: 'Elias Neumann',
-    email: 'elias.neumann@dabubble.de',
-    avatarUrl: 'assets/04.Charaters.png',
-    status: 'offline',
-  },
-  {
-    id: 'temp-user-steffen',
-    type: 'user',
-    label: 'Steffen Hoffmann',
-    email: 'steffen.hoffmann@dabubble.de',
-    avatarUrl: 'assets/05.Charaters.png',
-    status: 'online',
-  },
-];
-
-/** TEMP-CHAT-HEADER-PREVIEW: Provides channels for the new message search. */
-const TEMP_NEW_MESSAGE_CHANNELS: NewMessageSearchSuggestion[] = [
-  {
-    id: 'temp-channel-1',
-    type: 'channel',
-    label: 'Allgemein',
-  },
-  {
-    id: 'temp-channel-2',
-    type: 'channel',
-    label: 'Entwicklerteam',
-  },
-  {
-    id: 'temp-channel-3',
-    type: 'channel',
-    label: 'Office-team',
-  },
-];
+type ChatHeaderData = ChannelHeaderData | DirectMessageHeaderData;
 
 @Component({
   selector: 'app-chat-header',
-  imports: [
-    ChannelMembersDropdown,
-    ChannelAddMembersDropdown,
-  ],
+  imports: [ChannelMembersDropdown, ChannelAddMembersDropdown],
   templateUrl: './chat-header.html',
   styleUrl: './chat-header.scss',
 })
 export class ChatHeader {
-  /** Receives the currently active chat later. */
+  private readonly auth = inject(Auth);
+  private readonly chatModel = inject(ChatModel);
+
+  /** Receives the currently active chat. */
   public readonly chat = input<ChatHeaderData | null>(null);
 
-  /** TEMP-CHAT-HEADER-PREVIEW: Selects the preview state. */
-  public readonly previewType =
-    input<ChatHeaderPreviewType>('channel');
+  /** Selects the current chat header state. */
+  public readonly previewType = input<ChatHeaderPreviewType>('channel');
+
+  /** Receives whether the channel details are open. */
+  public readonly channelDetailsOpen = input(false);
 
   /** Emits when channel details should open. */
   public readonly channelDetailsRequested = output<string>();
@@ -206,8 +94,14 @@ export class ChatHeader {
   /** Emits when a user profile should open. */
   public readonly userProfileRequested = output<string>();
 
+  /** Emits when a new message recipient is selected. */
+  public readonly newMessageRecipientSelected = output<NewMessageRecipient>();
+
   /** Stores the current new message search value. */
   protected readonly newMessageSearchTerm = signal('');
+
+  /** Stores the selected suggestion for a new message. */
+  protected readonly selectedNewMessageSuggestion = signal<NewMessageSearchSuggestion | null>(null);
 
   /** Stores whether the channel member dropdown is open. */
   protected readonly isMembersDropdownOpen = signal(false);
@@ -215,13 +109,14 @@ export class ChatHeader {
   /** Stores whether the add-member dropdown is open. */
   protected readonly isAddMembersDropdownOpen = signal(false);
 
-  /** Returns matching temporary new message suggestions. */
+  /** Stores the responsive placeholder for the new message search. */
+  protected newMessagePlaceholder = this.getNewMessagePlaceholder();
+
+  /** Returns matching new message suggestions. */
   protected readonly newMessageSearchSuggestions = computed(() => {
+    if (this.selectedNewMessageSuggestion()) return [];
     const term = this.newMessageSearchTerm().trim();
-
-    if (!term) return [];
-
-    return this.getNewMessageSearchSuggestions(term);
+    return term ? this.getNewMessageSearchSuggestions(term) : [];
   });
 
   /** Indicates whether new message suggestions are available. */
@@ -229,36 +124,26 @@ export class ChatHeader {
     () => this.newMessageSearchSuggestions().length > 0
   );
 
-  /** Receives whether the channel details are open. */
-  public readonly channelDetailsOpen = input(false);
+  /** Provides the currently selected chat with up-to-date user data. */
+  protected readonly activeChat = computed(() => this.getActiveChat());
 
-  /** Stores the responsive placeholder for the new message search. */
-  protected newMessagePlaceholder = this.getNewMessagePlaceholder();
-
-  /** TEMP-CHAT-HEADER-PREVIEW: Provides fallback preview data. */
-  protected readonly activeChat = computed<ChatHeaderData>(() => {
-    if (this.chat()) return this.chat()!;
-
-    return this.previewType() === 'direct-message'
-      ? TEMP_DIRECT_MESSAGE
-      : TEMP_CHANNEL;
+  /** Resets the compose state when leaving the new message view. */
+  private readonly resetNewMessageEffect = effect(() => {
+    if (this.previewType() === 'new-message') return;
+    this.resetNewMessageState();
   });
 
   /** Requests the active channel details. */
   protected requestChannelDetails(): void {
     const chat = this.activeChat();
-
-    if (chat.type !== 'channel') return;
-
+    if (!chat || chat.type !== 'channel') return;
     this.channelDetailsRequested.emit(chat.id);
   }
 
   /** Opens the member overview of the active channel. */
   protected requestMembers(): void {
     const chat = this.activeChat();
-
-    if (chat.type !== 'channel') return;
-
+    if (!chat || chat.type !== 'channel') return;
     this.isAddMembersDropdownOpen.set(false);
     this.isMembersDropdownOpen.set(true);
   }
@@ -266,10 +151,8 @@ export class ChatHeader {
   /** Opens the responsive add-member view. */
   protected requestAddMember(): void {
     const chat = this.activeChat();
-
-    if (chat.type !== 'channel') return;
+    if (!chat || chat.type !== 'channel') return;
     if (window.innerWidth <= 1024) return this.requestMembers();
-
     this.openAddMembersDropdown();
   }
 
@@ -294,12 +177,6 @@ export class ChatHeader {
     this.isAddMembersDropdownOpen.set(false);
   }
 
-  /** Opens only the add-member dropdown. */
-  private openAddMembersDropdown(): void {
-    this.isMembersDropdownOpen.set(false);
-    this.isAddMembersDropdownOpen.set(true);
-  }
-
   /** Requests the selected user's profile. */
   protected requestUserProfile(userId: string): void {
     this.userProfileRequested.emit(userId);
@@ -311,6 +188,41 @@ export class ChatHeader {
     this.newMessagePlaceholder = this.getNewMessagePlaceholder();
   }
 
+  /** Updates the new message search value. */
+  protected updateNewMessageSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedNewMessageSuggestion.set(null);
+    this.newMessageSearchTerm.set(input.value);
+  }
+
+  /** Selects a recipient for the new message. */
+  protected selectNewMessageRecipient(
+    suggestion: NewMessageSearchSuggestion
+  ): void {
+    const recipient = this.createNewMessageRecipient(suggestion);
+    this.selectedNewMessageSuggestion.set(suggestion);
+    this.newMessageSearchTerm.set('');
+    this.newMessageRecipientSelected.emit(recipient);
+  }
+
+  /** Opens only the add-member dropdown. */
+  private openAddMembersDropdown(): void {
+    this.isMembersDropdownOpen.set(false);
+    this.isAddMembersDropdownOpen.set(true);
+  }
+
+  /** Clears the current new message compose state. */
+  private resetNewMessageState(): void {
+    this.newMessageSearchTerm.set('');
+    this.selectedNewMessageSuggestion.set(null);
+  }
+
+  /** Clears the selected new message recipient. */
+  protected clearNewMessageRecipient(): void {
+    this.selectedNewMessageSuggestion.set(null);
+    this.newMessageSearchTerm.set('');
+  }
+
   /** Returns the responsive new message placeholder. */
   private getNewMessagePlaceholder(): string {
     return window.innerWidth <= 1024
@@ -318,45 +230,118 @@ export class ChatHeader {
       : 'An: #channel, oder @jemand oder E-Mail Adresse';
   }
 
-  /** Updates the new message search value. */
-  protected updateNewMessageSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.newMessageSearchTerm.set(input.value);
+  /** Returns the currently selected chat with refreshed user data. */
+  private getActiveChat(): ChatHeaderData | null {
+    const chat = this.chat();
+    if (!chat) return null;
+    return chat.type === 'direct-message'
+      ? this.getDirectMessageHeaderData(chat)
+      : this.getChannelHeaderData(chat);
+  }
+
+  /** Refreshes direct-message header data from the current user list. */
+  private getDirectMessageHeaderData(chat: DirectMessageHeaderData): DirectMessageHeaderData {
+    const user = this.auth.allUsers().find(({ uid }) => uid === chat.id);
+    if (!user) return chat;
+    return {
+      ...chat,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      status: user.status,
+      isCurrentUser: user.uid === this.auth.currentUser()?.uid,
+    };
+  }
+
+  /** Refreshes channel member data from the current user list. */
+  private getChannelHeaderData(chat: ChannelHeaderData): ChannelHeaderData {
+    return {
+      ...chat,
+      members: chat.members.map((member) => this.getChannelMemberData(member)),
+    };
+  }
+
+  /** Refreshes one channel member from the current user list. */
+  private getChannelMemberData(member: ChatHeaderMember): ChatHeaderMember {
+    const user = this.auth.allUsers().find(({ uid }) => uid === member.uid);
+    if (!user) return member;
+    return {
+      ...member,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      status: user.status,
+    };
+  }
+
+  /** Creates the recipient payload for the parent component. */
+  private createNewMessageRecipient(
+    suggestion: NewMessageSearchSuggestion
+  ): NewMessageRecipient {
+    return {
+      id: suggestion.id,
+      type: suggestion.type,
+    };
   }
 
   /** Selects the correct suggestions for the entered value. */
-  private getNewMessageSearchSuggestions(
-    term: string
-  ): NewMessageSearchSuggestion[] {
+  private getNewMessageSearchSuggestions(term: string): NewMessageSearchSuggestion[] {
     const prefix = term.charAt(0);
-
     if (prefix === '#') return this.filterNewMessageChannels(term.slice(1));
     if (prefix === '@') return this.filterNewMessageUsers(term.slice(1));
 
     return this.filterNewMessageUsers(term);
   }
 
-  /** Filters temporary users by name or email. */
-  private filterNewMessageUsers(
-    query: string
-  ): NewMessageSearchSuggestion[] {
+  /** Filters available users by name or email. */
+  private filterNewMessageUsers(query: string): NewMessageSearchSuggestion[] {
     const normalizedQuery = query.trim().toLowerCase();
-
-    return TEMP_NEW_MESSAGE_USERS.filter((user) =>
-      `${user.label} ${user.email ?? ''}`
-        .toLowerCase()
-        .includes(normalizedQuery)
-    );
+    return this.auth
+      .allUsers()
+      .filter((user) => this.matchesNewMessageUser(user, normalizedQuery))
+      .map((user) => this.mapUserToSearchSuggestion(user));
   }
 
-  /** Filters temporary channels by name. */
-  private filterNewMessageChannels(
-    query: string
-  ): NewMessageSearchSuggestion[] {
-    const normalizedQuery = query.trim().toLowerCase();
+  /** Checks whether a user matches the current search query. */
+  private matchesNewMessageUser(user: AppUser, query: string): boolean {
+    return `${user.name} ${user.email}`.toLowerCase().includes(query);
+  }
 
-    return TEMP_NEW_MESSAGE_CHANNELS.filter(({ label }) =>
-      label.toLowerCase().includes(normalizedQuery)
-    );
+  /** Maps a user to a new-message search suggestion. */
+  private mapUserToSearchSuggestion(user: AppUser): NewMessageSearchSuggestion {
+    return {
+      id: user.uid,
+      type: 'user',
+      label: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      status: user.status,
+    };
+  }
+
+  /** Filters available channels by name. */
+  private filterNewMessageChannels(query: string): NewMessageSearchSuggestion[] {
+    const normalizedQuery = query.trim().toLowerCase();
+    return this.chatModel
+      .channels()
+      .filter(({ channelName }) => this.matchesNewMessageChannel(channelName, normalizedQuery))
+      .map(({ channelId, channelName }) =>
+        this.mapChannelToSearchSuggestion(channelId, channelName)
+      );
+  }
+
+  /** Checks whether a channel matches the current search query. */
+  private matchesNewMessageChannel(channelName: string, query: string): boolean {
+    return channelName.toLowerCase().includes(query);
+  }
+
+  /** Maps a channel to a new-message search suggestion. */
+  private mapChannelToSearchSuggestion(
+    channelId: string,
+    channelName: string
+  ): NewMessageSearchSuggestion {
+    return {
+      id: channelId,
+      type: 'channel',
+      label: channelName,
+    };
   }
 }

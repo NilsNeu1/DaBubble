@@ -11,9 +11,9 @@
     </header>
 
     <div class="channel-members-dropdown__member-list">
-        @for (member of members(); track member.id) {
+        @for (member of members(); track member.uid) {
         <button class="channel-members-dropdown__member" type="button"
-            [attr.aria-label]="'Profil von ' + member.name + ' öffnen'" (click)="requestUserProfile(member.id)">
+            [attr.aria-label]="'Profil von ' + member.name + ' öffnen'" (click)="requestUserProfile(member.uid)">
 
             <span class="channel-members-dropdown__avatar-wrapper">
                 <img class="channel-members-dropdown__avatar" [src]="member.avatarUrl"

@@ -70,7 +70,7 @@ export class Messenger {
   private mapChannelMembers(members: unknown[]) {
     return (members as { uid: string; name: string; avatarUrl: string }[]).map(
       (member) => ({
-        id: member.uid,
+        uid: member.uid,
         name: member.name,
         avatarUrl: member.avatarUrl,
         status: this.allUsers().find((user) => user.uid === member.uid)?.status ?? 'offline',
@@ -171,6 +171,7 @@ export class Messenger {
         ...selected,
         name: active.channelName,
         description: active.description,
+        members: this.mapChannelMembers(active.members ?? []),
       };
     }
 

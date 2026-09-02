@@ -7,7 +7,7 @@ import {
 type ChannelMemberStatus = 'online' | 'offline';
 
 export interface ChannelMemberDropdownUser {
-  id: string;
+  uid: string;
   name: string;
   avatarUrl: string;
   status: ChannelMemberStatus;

@@ -36,6 +36,7 @@
                 class="arrow-img" [src]="channelIconToggle('isDirectMessageOpen', 'hoverDirectMessage')">
             <h2><img class="account-icon" src="assets/account_circle.png">Directnachrichten</h2>
         </div>
+         <div class="overflow-container">
         <div *ngFor="let user of allUsers()" [class.active]="selectedUser === user.name" class="direct-message-list"
             [ngClass]="{'dnone': !isDirectMessageOpen}" (click)="openDirectMessage(user.name)"
             (click)="openChat(user.name , 'direct-message', user.uid)">
@@ -44,6 +45,7 @@
                     alt="Online Status"><img class="user_icon" [src]="user.avatarUrl" alt="User Image"></div>
             <h3>{{user.name}}</h3>
             <p *ngIf="user.uid === currentUser()?.uid">(Du)</p>
+        </div>
         </div>
     </article>
 </section>

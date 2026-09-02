@@ -4,10 +4,15 @@ import {
   input,
   output,
   signal,
+  inject
 } from '@angular/core';
+import { Auth } from '../../core/services/auth';
+import { firestore } from '../../core/firebase.config';
+import { Firestore } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 interface AddMemberSuggestion {
-  id: string;
+  uid: string;
   name: string;
   avatarUrl: string;
   status: 'online' | 'offline';
@@ -20,19 +25,32 @@ interface AddMemberSuggestion {
   styleUrl: './channel-add-members-dropdown.scss',
 })
 export class ChannelAddMembersDropdown {
+  allUsers = inject(Auth).allUsers;
+
   /** Receives the active channel name. */
   public readonly channelName = input.required<string>();
+
+  /** Receives the active channel ID. */
+  public readonly channelId = input.required<string>();
+
+  /** Receives the active channel members. */
+  public readonly members = input.required<AddMemberSuggestion[]>();
+
+  /** Checks whether a user is already a member of the active channel. */
+  private isAlreadyChannelMember(userId: string): boolean {
+    return this.members().some((member) => member.uid === userId);
+  }
 
   /** TEMP: Provides users that are not part of the active channel yet. */
   private readonly tempAddMemberSuggestions: AddMemberSuggestion[] = [
     {
-      id: 'temp-user-elise',
+      uid: 'temp-user-elise',
       name: 'Elise Roth',
       avatarUrl: 'assets/03.Charaters.png',
       status: 'offline',
     },
     {
-      id: 'temp-user-elias',
+      uid: 'temp-user-elias',
       name: 'Elias Neumann',
       avatarUrl: 'assets/04.Charaters.png',
       status: 'online',
@@ -70,6 +88,8 @@ export class ChannelAddMembersDropdown {
   /** Requests closing the add-member dropdown. */
   protected requestClose(): void {
     this.closeRequested.emit();
+    this.selectedMembers.set([]);
+    this.searchTerm.set('');
   }
 
   /** Updates the add-member search value. */
@@ -83,9 +103,10 @@ export class ChannelAddMembersDropdown {
     const normalizedQuery = query.toLowerCase();
     const tolerantQuery = normalizedQuery.slice(0, -1);
 
-    return this.tempAddMemberSuggestions.filter((member) =>
-      !this.isMemberSelected(member.id)
-      && this.matchesSearch(member.name, normalizedQuery, tolerantQuery)
+    return this.allUsers().filter((user) =>
+      !this.isAlreadyChannelMember(user.uid) &&
+      !this.isMemberSelected(user.uid) &&
+      this.matchesSearch(user.name, normalizedQuery, tolerantQuery)
     );
   }
 
@@ -103,7 +124,7 @@ export class ChannelAddMembersDropdown {
 
   /** Adds a suggested member to the current selection. */
   protected selectMember(member: AddMemberSuggestion): void {
-    if (this.isMemberSelected(member.id)) return;
+    if (this.isMemberSelected(member.uid)) return;
 
     this.selectedMembers.update((members) => [...members, member]);
     this.searchTerm.set('');
@@ -112,7 +133,7 @@ export class ChannelAddMembersDropdown {
   /** Removes a member from the current selection. */
   protected removeSelectedMember(memberId: string): void {
     this.selectedMembers.update((members) =>
-      members.filter(({ id }) => id !== memberId)
+      members.filter(({ uid }) => uid !== memberId)
     );
   }
 
@@ -121,11 +142,51 @@ export class ChannelAddMembersDropdown {
     if (event.key !== 'Backspace' || this.searchTerm()) return;
 
     const lastMember = this.selectedMembers().at(-1);
-    if (lastMember) this.removeSelectedMember(lastMember.id);
+    if (lastMember) this.removeSelectedMember(lastMember.uid);
   }
 
   /** Checks whether a member is already selected. */
   private isMemberSelected(memberId: string): boolean {
-    return this.selectedMembers().some(({ id }) => id === memberId);
+    return this.selectedMembers().some(({ uid }) => uid === memberId);
+  }
+
+  /** Adds the selected user to the channel. */
+  async addUserToChannel() {
+    const channelId = this.channelId();
+    const channelRef = doc(firestore, 'chats', channelId);
+
+    for (let i = 0; i < this.selectedMembers().length; i++) {
+      await updateDoc(channelRef, {
+        members: arrayUnion({
+          avatarUrl: this.selectedMembers()[i].avatarUrl,
+          name: this.selectedMembers()[i].name,
+          role: 'member',
+          uid: this.selectedMembers()[i].uid,
+        }),
+      });
+    }
+
+    for (let i = 0; i < this.selectedMembers().length; i++) {
+      await this.addChannelToUser(channelId, this.selectedMembers()[i].uid);
+    }
+
+    this.requestClose()
+  }
+
+  /** Adds a channel to a user's channel memberships. */
+  async addChannelToUser(channelId: string, userId: string): Promise<void> {
+    if (!userId) {
+      return;
+    }
+    const userRef = doc(firestore, 'users', userId);
+
+    await updateDoc(userRef, {
+      [`channelMemberships.${channelId}`]: {
+        channelId: channelId,
+      },
+    });
   }
 }
+
+
+
