@@ -189,9 +189,7 @@ export class CreateChannel {
   @HostListener('window:resize')
 onResize(): void {
   if (window.innerWidth <= 768) {
-    console.log('Mobile Ansicht');
   } else {
-    console.log('Desktop Ansicht');
   }
 }
 }
