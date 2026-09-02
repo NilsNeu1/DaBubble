@@ -113,6 +113,7 @@
     background-color: #ECEEFE;
     border-radius: 20px;
     color: #535AF1;
+    font-size: clamp(16px, 2vw, 18px);
 
     img {
         content: url('../../../../public/assets/tag.png');
@@ -233,7 +234,7 @@
         cursor: pointer;
 
         h3 {
-            font-size: 18px;
+            font-size: clamp(16px, 2vw, 18px);
             font-weight: 400;
         }
 
@@ -352,6 +353,10 @@
 }
 
 @media (max-width: 1024px) {
+    .overflow-container{
+        width: 100%;
+    }
+
     .workspace-toggle-btn {
         display: none;
     }
@@ -372,8 +377,14 @@
         margin-left: 0px !important;
     }
 
+    .direct-message-container{
+        width: 100%;
+        padding: 5px 0px
+    }
+
     .channel-list {
         margin-left: 0px !important;
+        width: 100%;
     }
 
     .new-message-mobile-btn {
