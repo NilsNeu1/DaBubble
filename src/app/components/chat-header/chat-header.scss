@@ -1,3 +1,6 @@
+// Loads new-message styles without emitting them before the base header styles.
+@use './styles/new-message';
+
 :host {
     display: block;
     min-width: 0;
@@ -27,135 +30,6 @@
 
     img {
         display: block;
-    }
-
-    &--new-message {
-        align-items: stretch;
-        height: auto;
-        padding: 20px 28px 12px;
-    }
-
-    &__new-message {
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        gap: 12px;
-        width: 100%;
-        min-width: 0;
-    }
-
-    &__new-message-title {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-    }
-
-    &__new-message-input {
-        width: 100%;
-        height: 55px;
-        padding: 0 20px;
-        box-sizing: border-box;
-        border: 1px solid #adb0d9;
-        border-radius: 30px;
-        font-family: inherit;
-        font-size: 20px;
-        font-weight: 600;
-        background-color: #ffffff;
-
-        &::placeholder {
-            color: #686868;
-            font-size: 18px;
-            font-weight: 400;
-            opacity: 1;
-        }
-
-        &::-webkit-search-cancel-button {
-            cursor: pointer;
-        }
-
-        &:focus {
-            outline: none;
-        }
-    }
-
-    &__new-message-results {
-        position: absolute;
-        top: calc(100% + 2px);
-        left: 20px;
-        z-index: 10;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 350px;
-        max-width: 100%;
-        max-height: calc(100dvh - 180px);
-        padding: 12px;
-        box-sizing: border-box;
-        overflow-x: hidden;
-        overflow-y: auto;
-        border: 1px solid #adb0d9;
-        border-radius: 0 20px 20px 20px;
-        background-color: #ffffff;
-    }
-
-    &__new-message-result {
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 12px;
-        width: 100%;
-        min-height: 58px;
-        padding: 4px 12px;
-        box-sizing: border-box;
-        border-radius: 35px;
-        color: #000000;
-        font-family: inherit;
-        font-size: 18px;
-        font-weight: 400;
-        text-align: left;
-        background-color: transparent;
-        cursor: pointer;
-
-        &:hover {
-            background-color: #eceefe;
-        }
-
-        &:active {
-            color: #535af1;
-            background-color: #eceefe;
-        }
-    }
-
-    &__new-message-avatar-wrapper {
-        position: relative;
-        flex-shrink: 0;
-        width: 50px;
-        height: 50px;
-    }
-
-    &__new-message-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    &__new-message-status {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-    }
-
-    &__new-message-channel-icon {
-        flex-shrink: 0;
-        font-size: 18px;
-        font-weight: 700;
-    }
-
-    &__new-message-result-label {
-        font-size: 18px;
-        font-weight: 400;
     }
 
     &__channel-button {
@@ -244,7 +118,6 @@
     }
 
     &__member-count {
-
         font-size: 20px;
         font-weight: 600;
     }
@@ -350,15 +223,6 @@
         &__members-button {
             display: none;
         }
-
-        &--new-message {
-            height: 125px;
-            padding: 14px 16px 10px;
-        }
-
-        &__new-message-title {
-            font-size: 20px;
-        }
     }
 }
 
@@ -366,10 +230,6 @@
     .chat-header {
         &:not(.chat-header--new-message) {
             padding: 0 8px;
-        }
-
-        &--new-message {
-            padding: 14px 8px 10px;
         }
 
         &__channel-button,
@@ -385,12 +245,5 @@
     }
 }
 
-@media (max-width: 370px) {
-    .chat-header {
-        &__new-message-input {
-            &::placeholder {
-                font-size: 16px;
-            }
-        }
-    }
-}
+// Applies new-message overrides after the base header styles to preserve cascade order.
+@include new-message.styles;
