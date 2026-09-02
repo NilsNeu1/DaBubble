@@ -33,8 +33,12 @@ export class CreateChannel {
   topChannelID: string = '';
   topChannelName: string = 'Keine Channels gefunden';
 
-  @HostListener('window:resize')
   isMobile = window.innerWidth <= 1024;
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isMobile = window.innerWidth <= 1024;
+  }
 
   checkInput() {
     if (this.channelName === '') {
@@ -149,7 +153,7 @@ export class CreateChannel {
 
   selectUser(user: { name: string; avatarUrl: string; uid: string }) {
     this.selectedUser = '';
-    if (this.members.some(member => member.uid === user.uid)) {return}
+    if (this.members.some(member => member.uid === user.uid)) { return }
     this.members.push({
       uid: user.uid,
       role: 'member',
@@ -168,7 +172,7 @@ export class CreateChannel {
 
     this.topChannelName = channel?.channelName || 'Keine Channels gefunden';
 
-    if(this.topChannelName === 'Keine Channels gefunden') {
+    if (this.topChannelName === 'Keine Channels gefunden') {
       this.isChecked = 'custom';
     }
   }
@@ -185,11 +189,4 @@ export class CreateChannel {
       }
     }
   }
-
-  @HostListener('window:resize')
-onResize(): void {
-  if (window.innerWidth <= 768) {
-  } else {
-  }
-}
 }

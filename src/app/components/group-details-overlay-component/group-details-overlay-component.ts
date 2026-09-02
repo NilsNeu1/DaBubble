@@ -1,24 +1,24 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChatModel } from '../../core/chat.model';
 import { Auth } from '../../core/services/auth';
 import { deleteField, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
 import { FormsModule } from '@angular/forms';
-import { ChannelMembersDropdown  } from '../channel-members-dropdown/channel-members-dropdown';
 import {
   ChannelMemberDropdownUser
 } from '../channel-members-dropdown/channel-members-dropdown';
 
 @Component({
   selector: 'app-group-details-overlay-component',
-  imports: [CommonModule, FormsModule, ChannelMembersDropdown ],
+  imports: [CommonModule, FormsModule ],
   templateUrl: './group-details-overlay-component.html',
   styleUrl: './group-details-overlay-component.scss',
 })
 export class GroupDetailsOverlayComponent {
   @Output() close = new EventEmitter<void>();
   isOverlayOpen = false;
+  isMobile = false;
   channelId = '';
   channelDetails = inject(ChatModel).activeChat;
   allUsers = inject(Auth).allUsers;
@@ -34,7 +34,7 @@ export class GroupDetailsOverlayComponent {
   open(channelId: string): void {
     this.channelId = channelId;
     this.isOverlayOpen = true;
-    console.log(this.channelDetails);
+    console.log(this.channelDetails());
   }
 
   /** Closes the channel details overlay. */
@@ -138,22 +138,16 @@ export class GroupDetailsOverlayComponent {
     this.errorInput = field;
   }
 
-/*  getChannelMembers(): ChannelMemberDropdownUser[] {
-  const members = this.channelDetails()?.members ?? [];
+  getUserStatus(uid: string): 'online' | 'offline' {
+  return this.allUsers().find(user => user.uid === uid)?.status ?? 'offline';
+}
 
-  return (
-    members as {
-      uid: string;
-      name: string;
-      avatarUrl: string;
-    }[]
-  ).map((member) => ({
-    uid: member.uid,
-    name: member.name,
-    avatarUrl: member.avatarUrl,
-    status:
-      this.allUsers().find((user) => user.uid === member.uid)?.status
-      ?? 'offline',
-  }));
-} */
+@HostListener('window:resize')
+onResize(): void {
+  if (window.innerWidth <= 1024) {
+    this.isMobile = true;
+  } else {
+    this.isMobile = false;
+  }
+}
 }
