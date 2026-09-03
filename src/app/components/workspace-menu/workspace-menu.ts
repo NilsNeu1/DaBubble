@@ -13,7 +13,6 @@ import { ChatModel } from '../../core/chat.model';
 
 export class WorkspaceMenu {
   isChannelOpen: boolean = true;
-  initialChatOpened: boolean = false;
   hoverChannel: boolean = false;
   isDirectMessageOpen: boolean = true;
   hoverDirectMessage: boolean = false;
@@ -36,21 +35,8 @@ export class WorkspaceMenu {
 
   readonly channels = this.chatModel.channels;
 
-  /** Initializes the automatic direct-message selection and channel membership loading. */
+  /** Initializes the automatic direct-message selection. */
   constructor() {
-
-    effect(() => {
-      const currentUser = this.currentUser();
-      const users = this.allUsers();
-
-      if (this.initialChatOpened ||!currentUser ||!users.some((user) => user.uid === currentUser.uid)) {return;}
-
-      this.initialChatOpened = true;
-      this.openDirectMessage(currentUser.name);
-      this.openChat(currentUser.name, 'direct-message', currentUser.uid);
-    });
-
-
     effect(() => {
       const memberships = this.currentUser()?.channelMemberships ?? {};
       this.chatModel.getChannels(Object.keys(memberships));

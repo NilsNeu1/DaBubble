@@ -20,27 +20,41 @@
                             <span class="msg-timestamp">{{ message.timestamp | date:'HH:mm'}}</span>
                         </div>
 
-                         <div class="msg-interaction-options">
-                            <div class="interaction-btn" (click)="addReaction(message, '✅')" type="button" title="Check">✅</div>
-                            <div class="interaction-btn" (click)="addReaction(message, '👍')" type="button" title="Like">👍</div>
-                            <div class="interaction-btn" (click)="toggleReactionPicker(message.id + '-options')" type="button" title="Add Reaction">
+                        <div class="msg-interaction-options">
+                            <div class="interaction-btn" (click)="addReaction(message, '✅')" type="button"
+                                title="Check">✅</div>
+                            <div class="interaction-btn" (click)="addReaction(message, '👍')" type="button"
+                                title="Like">👍</div>
+                            <div class="interaction-btn" (click)="toggleReactionPicker(message.id + '-options')"
+                                type="button" title="Add Reaction">
                                 x
-                                <app-emoji-picker
-                                    *ngIf="isReactionPickerOpen(message.id + '-options')"
+                                <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-options')"
                                     [emojis]="quickReactions"
-                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'"
-                                    [direction]=" 'up'"
-                                    (emojiSelected)="addReaction(message, $event)"
-                                ></app-emoji-picker>
+                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]=" 'up'"
+                                    (emojiSelected)="addReaction(message, $event)"></app-emoji-picker>
                             </div>
                             <div class="interaction-btn" type="button" title="Answer">x</div>
+                            <!-- TEMPORÄR: wandert später ins Hover-Menü der Nachricht -->
+                            <div class="interaction-btn" *ngIf="isOwnMessage(message.senderId)"
+                                (click)="startEditMessage(message)" type="button" title="Bearbeiten">✏️</div>
                         </div>
-                    
+
 
                     </div>
 
-                    <div class="msg-text">
+                    <div class="msg-text" *ngIf="!isEditingMessage(message.id)">
                         <p>{{ message.text }}</p>
+                    </div>
+
+                    <div class="msg-edit-box" *ngIf="isEditingMessage(message.id)">
+                        <textarea class="msg-edit-textarea" [value]="editText()"
+                            (input)="editText.set($any($event.target).value)"></textarea>
+                        <div class="msg-edit-actions">
+                            <button class="msg-edit-cancel" type="button"
+                                (click)="cancelEditMessage()">Abbrechen</button>
+                            <button class="msg-edit-save" type="button"
+                                (click)="saveEditMessage(message)">Speichern</button>
+                        </div>
                     </div>
 
                     <div class="msg-interactions">
@@ -54,7 +68,8 @@
                                 title="Reagieren">
                                 <img src="/assets/add_reaction.png" alt="">
 
-                                <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-instant')" [emojis]="quickReactions"
+                                <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-instant')"
+                                    [emojis]="quickReactions"
                                     [align]="isOwnMessage(message.senderId) ? 'right' : 'left'"
                                     (emojiSelected)="addReaction(message, $event)"></app-emoji-picker>
                             </div>
@@ -87,8 +102,7 @@
         <div class="chat-input-container">
             <article #messageInput class="message-editor" contenteditable="true" role="textbox" aria-multiline="true"
                 data-placeholder="Nachricht an #Entwicklerteam" [class.is-empty]="isEmpty()" (input)="onInput()"
-                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()"
-                (keydown.enter)="onEnterKey($event)">
+                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()" (keydown.enter)="onEnterKey($event)">
             </article>
 
             <div class="chat-input-actions">
@@ -137,7 +151,8 @@
                     </div>
                 </div>
                 <div class="send-btn-wrapper">
-                    <div class="send-btn" role="img" tabindex="0" (click)="sendMessage()" (keydown.enter)="sendMessage()">
+                    <div class="send-btn" role="img" tabindex="0" (click)="sendMessage()"
+                        (keydown.enter)="sendMessage()">
 
                     </div>
                 </div>

@@ -7,8 +7,14 @@ export interface chatModel {
   description: string;
   channelName: string;
 
-  members: unknown[];
-  // messages: unknown[];
+  members: ChannelMember[];
+}
+
+export interface ChannelMember {
+  uid: string;
+  role: string;
+  name: string;
+  avatarUrl: string;
 }
 
 @Injectable({

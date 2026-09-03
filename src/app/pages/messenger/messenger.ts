@@ -30,7 +30,7 @@ export class Messenger {
   chatType = signal<'channel' | 'direct-message' | 'new-message'>('channel');
   allUsers = inject(Auth).allUsers;
   currentUser = inject(Auth).currentUser;
-  selectedChat = signal<any>(null);
+  selectedChat = signal<any>(null);  // ? start channel??
   activeChat = inject(ChatModel).activeChat;
   private readonly chatModel = inject(ChatModel);
 

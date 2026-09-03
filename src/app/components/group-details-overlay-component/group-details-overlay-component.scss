@@ -189,3 +189,64 @@ h2 {
 .dnone {
     display: none !important;
 }
+
+.member-container{
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    .member-info{
+        position: relative;
+        display: flex;
+        align-items: center;
+        
+        .avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        .status-img {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0px;
+        }
+    }
+}
+
+.add-member-container{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px;
+
+}
+
+.dnone {
+    display: none !important;
+}
+
+@media (max-width: 1024px) {
+    section{
+        background-color: transparent;
+        align-items: flex-start;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    }
+
+    .overlay-header{
+         width: 100%;
+  border-bottom: 1px solid #ADB0D9;
+  padding-inline: 20px;
+  box-sizing: border-box;
+    }
+
+    .group-details-overlay {
+        max-width: none;
+    }
+}

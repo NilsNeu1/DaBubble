@@ -30,10 +30,15 @@
             <h2>Erstellt von</h2>
             <h3 class="groupHost">{{getCreater(channelDetails()?.createdBy ?? '')}}</h3>
         </div>
-        <div class="group-style">
-     <!--   <app-channel-members-dropdown
-  [members]="getChannelMembers()">
-</app-channel-members-dropdown> -->
+        <div class="group-style" [ngClass]="isMobile ? '' : 'dnone'">
+            <div *ngFor="let member of channelDetails()?.members" class="member-container">
+                <p class="member-info"><img class="avatar-img" [src]="member.avatarUrl" alt="{{ member.name }}"><img
+                        class="status-img" [src]="getUserStatus(member.uid) === 'online'
+    ? 'assets/Online.png'
+    : 'assets/Offline.png'" alt=""> </p>{{
+                member.name }}
+            </div>
+            <div class="add-member-container"><img src="assets/person_add.png" alt="Add member">Person Hinzufügen</div>
         </div>
 
         <div class="btn-container"><button (click)="leaveChat()">Channel verlassen</button></div>
