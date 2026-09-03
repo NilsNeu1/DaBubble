@@ -69,6 +69,7 @@ export class Auth {
   }
 
   async register(name: string, email: string, password: string): Promise<void> {
+    const previousUser = firebaseAuth.currentUser;
     try {
       const credential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
       await updateProfile(credential.user, { displayName: name });
@@ -81,21 +82,25 @@ export class Auth {
         isGuest: false,
         createdAt: Date.now(),
       });
+      await this.cleanupStaleAnonymousUser(previousUser);
     } catch (error) {
       throw new Error(mapAuthError(error));
     }
   }
 
   async login(email: string, password: string): Promise<void> {
+    const previousUser = firebaseAuth.currentUser;
     try {
       const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
       this.currentUser.set(await this.loadOrCreateProfile(credential.user));
+      await this.cleanupStaleAnonymousUser(previousUser);
     } catch (error) {
       throw new Error(mapAuthError(error));
     }
   }
 
   async loginWithGoogle(): Promise<boolean> {
+    const previousUser = firebaseAuth.currentUser;
     try {
       const credential = await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
       const existing = await getDoc(doc(firestore, 'users', credential.user.uid));
@@ -112,11 +117,13 @@ export class Auth {
           createdAt: Date.now(),
         });
 
+        await this.cleanupStaleAnonymousUser(previousUser);
         return true;
       }
 
       const profile = existing.data() as AppUser;
       this.currentUser.set(profile);
+      await this.cleanupStaleAnonymousUser(previousUser);
       return !AVAILABLE_AVATARS.includes(profile.avatarUrl);
     } catch (error) {
       throw new Error(mapAuthError(error));
@@ -205,6 +212,21 @@ export class Auth {
   private async saveProfile(user: AppUser): Promise<void> {
     await setDoc(doc(firestore, 'users', user.uid), user);
     this.currentUser.set(user);
+  }
+
+  /** Removes a leftover anonymous guest account left behind by a new sign-in. */
+  private async cleanupStaleAnonymousUser(previousUser: FirebaseUser | null): Promise<void> {
+    if (!previousUser?.isAnonymous) return;
+    try {
+      await deleteDoc(doc(firestore, 'users', previousUser.uid));
+    } catch {
+      // best-effort cleanup; ignore failures
+    }
+    try {
+      await deleteUser(previousUser);
+    } catch {
+      // best-effort cleanup; ignore failures
+    }
   }
 
   listenToAllUsers(): void {
