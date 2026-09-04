@@ -33,8 +33,9 @@
                                     [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]=" 'up'"
                                     (emojiSelected)="addReaction(message, $event)"></app-emoji-picker>
                             </div>
-                            <div class="interaction-btn" type="button" title="Answer">x</div>
-                            <!-- TEMPORÄR: wandert später ins Hover-Menü der Nachricht -->
+                            <div class="interaction-btn" (click)="openThread(message)" type="button" title="Answer">x
+                            </div>
+
                             <div class="interaction-btn" *ngIf="isOwnMessage(message.senderId)"
                                 (click)="startEditMessage(message)" type="button" title="Bearbeiten">✏️</div>
                         </div>
@@ -58,10 +59,13 @@
                     </div>
 
                     <div class="msg-interactions">
-                        <div class="msg-threads" *ngIf="message.hasThread">
-                            <span class="msg-thread-count">Antworten</span>
+                        @if (message.hasThread) {
+                        <div class="msg-threads" role="button" tabindex="0" (click)="openThread(message)"
+                            (keydown.enter)="openThread(message)">
+                            <span class="msg-thread-count">Thread</span>
                             <span class="msg-last-reply">{{ message.lastReply }}</span>
                         </div>
+                        }
                         <div class="msg-reaction">
 
                             <div class="instant-reaction-btn" (click)="toggleReactionPicker(message.id + '-instant')"

@@ -2,11 +2,14 @@ import {
     AfterViewInit,
     Component,
     ElementRef,
+    Input,
     output,
     signal,
     ViewChild
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ThreadHeader } from '../thread-header/thread-header';
+import { ChatMessage } from '../../core/models/message.model';
 
 interface ThreadReactionUser {
     id: string;
@@ -32,7 +35,7 @@ interface ThreadMessage {
 
 @Component({
     selector: 'app-thread-panel',
-    imports: [ThreadHeader],
+    imports: [CommonModule, ThreadHeader],
     templateUrl: './thread-panel.html',
     styleUrl: './thread-panel.scss',
 })
@@ -49,17 +52,19 @@ export class ThreadPanel implements AfterViewInit {
 
     private editMenuCloseTimeout?: ReturnType<typeof setTimeout>;
 
+    @Input({ required: true }) parentMessage!: ChatMessage;
+
     // TEMP-THREAD-PREVIEW: Provides the selected parent message until real message data is connected.
-    protected readonly parentMessage: ThreadMessage = {
-        id: 'temp-thread-parent',
-        senderId: 'temp-user-erika',
-        senderName: 'Erika Mustermann',
-        senderImageUrl: '/assets/01.Charaters.png',
-        timestamp: '14:25 Uhr',
-        text: 'styling test',
-        reactions: [],
-        isOwnMessage: false,
-    };
+    // protected readonly parentMessage: ThreadMessage = {
+    //     id: 'temp-thread-parent',
+    //     senderId: 'temp-user-erika',
+    //     senderName: 'Erika Mustermann',
+    //     senderImageUrl: '/assets/01.Charaters.png',
+    //     timestamp: '14:25 Uhr',
+    //     text: 'styling test',
+    //     reactions: [],
+    //     isOwnMessage: false,
+    // };
 
     // TEMP-THREAD-PREVIEW: Provides replies until Firestore thread data is connected.
     protected readonly replies: ThreadMessage[] = [
