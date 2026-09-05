@@ -1,6 +1,11 @@
+export interface ReactionUser {
+  uid: string;
+  name: string;
+}
+
 export interface Reaction {
   icon: string;
-  count: number;
+  reactedBy: ReactionUser[];
 }
 
 export interface ChatMessage {

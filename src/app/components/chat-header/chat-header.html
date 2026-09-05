@@ -130,7 +130,7 @@
     }
     } @else {
     <button class="chat-header__direct-message-button" type="button" aria-label="Profil von {{ chat.name }} öffnen"
-        (click)="requestUserProfile(chat.id)">
+        (click)="requestUserProfile(chat.partnerId)">
         <span class="chat-header__direct-avatar-wrapper">
             <img class="chat-header__direct-avatar" [src]="chat.avatarUrl" [alt]="'Profilbild von ' + chat.name" />
 

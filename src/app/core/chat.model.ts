@@ -17,6 +17,11 @@ export interface ChannelMember {
   avatarUrl: string;
 }
 
+/** Builds a stable, symmetric channel id for a direct-message conversation between two users. */
+export function getDirectMessageId(uidA: string, uidB: string): string {
+  return [uidA, uidB].sort().join('_');
+}
+
 @Injectable({
   providedIn: 'root',
 })

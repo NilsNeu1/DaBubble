@@ -2,7 +2,7 @@ import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inje
 import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
-import { ChatMessage } from './../../core/models/message.model';
+import { ChatMessage, Reaction } from './../../core/models/message.model';
 import { Auth } from './../../core/services/auth';
 
 interface MentionPerson {
@@ -126,14 +126,27 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
     return this.activeReactionPickerId() === pickerId;
   }
 
-  async addReaction(message: ChatMessage, icon: string): Promise<void> {
-    await this.chatMessages.addReaction(
+  async toggleReaction(message: ChatMessage, icon: string): Promise<void> {
+    const user = this.currentUser;
+    if (!user) return;
+
+    await this.chatMessages.toggleReaction(
       this.channelId,
       message.id,
       icon,
-      message.reactions
+      { uid: user.uid, name: user.name }
     );
     this.activeReactionPickerId.set(null);
+  }
+
+  hasReacted(reaction: Reaction): boolean {
+    return reaction.reactedBy.some((u) => u.uid === this.currentUser?.uid);
+  }
+
+  reactionTooltip(reaction: Reaction): string {
+    return reaction.reactedBy
+      .map((u) => (u.uid === this.currentUser?.uid ? 'Du' : u.name))
+      .join(', ');
   }
 
   // ------------------ Emote-/Mention-Picker --------------

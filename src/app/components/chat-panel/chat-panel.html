@@ -21,9 +21,9 @@
                         </div>
 
                         <div class="msg-interaction-options">
-                            <div class="interaction-btn" (click)="addReaction(message, '✅')" type="button"
+                            <div class="interaction-btn" (click)="toggleReaction(message, '✅')" type="button"
                                 title="Check">✅</div>
-                            <div class="interaction-btn" (click)="addReaction(message, '👍')" type="button"
+                            <div class="interaction-btn" (click)="toggleReaction(message, '👍')" type="button"
                                 title="Like">👍</div>
                             <div class="interaction-btn" (click)="toggleReactionPicker(message.id + '-options')"
                                 type="button" title="Add Reaction">
@@ -31,7 +31,7 @@
                                 <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-options')"
                                     [emojis]="quickReactions"
                                     [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]=" 'up'"
-                                    (emojiSelected)="addReaction(message, $event)"></app-emoji-picker>
+                                    (emojiSelected)="toggleReaction(message, $event)"></app-emoji-picker>
                             </div>
                             <div class="interaction-btn" type="button" title="Answer">x</div>
                             <!-- TEMPORÄR: wandert später ins Hover-Menü der Nachricht -->
@@ -71,12 +71,14 @@
                                 <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-instant')"
                                     [emojis]="quickReactions"
                                     [align]="isOwnMessage(message.senderId) ? 'right' : 'left'"
-                                    (emojiSelected)="addReaction(message, $event)"></app-emoji-picker>
+                                    (emojiSelected)="toggleReaction(message, $event)"></app-emoji-picker>
                             </div>
 
-                            <div class="msg-reaction-item" *ngFor="let reaction of message.reactions">
+                            <div class="msg-reaction-item" *ngFor="let reaction of message.reactions"
+                                [class.own-reaction]="hasReacted(reaction)" [title]="reactionTooltip(reaction)"
+                                (click)="toggleReaction(message, reaction.icon)">
                                 <span class="msg-reaction-icon">{{ reaction.icon }}</span>
-                                <span class="msg-reaction-count">{{ reaction.count }}</span>
+                                <span class="msg-reaction-count">{{ reaction.reactedBy.length }}</span>
                             </div>
                         </div>
                     </div>

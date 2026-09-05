@@ -27,12 +27,14 @@ import { firebaseAuth, firestore } from '../firebase.config';
 import { AppUser, AVAILABLE_AVATARS, DEFAULT_AVATAR } from '../models/user.model';
 import { mapAuthError } from './auth-error';
 import { ChatModel } from '../chat.model';
+import { ChatMessagesService } from './chat-messages';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
   private readonly chatModel = inject(ChatModel);
+  private readonly chatMessages = inject(ChatMessagesService);
 
   readonly currentUser = signal<AppUser | null>(null);
   readonly allUsers = signal<AppUser[]>([]);
@@ -178,6 +180,11 @@ export class Auth {
   async logout(): Promise<void> {
     const user = firebaseAuth.currentUser;
     if (user?.isAnonymous) {
+      try {
+        await this.chatMessages.deleteMessagesBySender(user.uid);
+      } catch {
+        // best-effort cleanup; the guest must still be signed out even if this fails
+      }
       await deleteDoc(doc(firestore, 'users', user.uid));
       await deleteUser(user);
       return;
@@ -217,6 +224,11 @@ export class Auth {
   /** Removes a leftover anonymous guest account left behind by a new sign-in. */
   private async cleanupStaleAnonymousUser(previousUser: FirebaseUser | null): Promise<void> {
     if (!previousUser?.isAnonymous) return;
+    try {
+      await this.chatMessages.deleteMessagesBySender(previousUser.uid);
+    } catch {
+      // best-effort cleanup; ignore failures
+    }
     try {
       await deleteDoc(doc(firestore, 'users', previousUser.uid));
     } catch {

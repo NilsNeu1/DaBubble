@@ -7,7 +7,7 @@ import { ChatPanel } from '../../components/chat-panel/chat-panel';
 import { GroupDetailsOverlayComponent } from '../../components/group-details-overlay-component/group-details-overlay-component';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../core/services/auth';
-import { ChatModel } from '../../core/chat.model';
+import { ChatModel, getDirectMessageId } from '../../core/chat.model';
 
 @Component({
   selector: 'app-messenger',
@@ -85,13 +85,16 @@ export class Messenger {
 
     if (!user) return;
 
+    const currentUid = this.currentUser()?.uid;
+
     this.selectedChat.set({
       type: 'direct-message',
-      id: user.uid,
+      id: currentUid ? getDirectMessageId(currentUid, user.uid) : user.uid,
+      partnerId: user.uid,
       name: user.name,
       avatarUrl: user.avatarUrl,
       status: user.status,
-      isCurrentUser: user.uid === this.currentUser()?.uid
+      isCurrentUser: user.uid === currentUid
     });
   }
 

@@ -3,15 +3,20 @@ import {
   collection,
   doc,
   addDoc,
+  deleteDoc,
+  getDocs,
   updateDoc,
   onSnapshot,
   query,
   orderBy,
+  runTransaction,
+  where,
   Unsubscribe,
-} 
+}
 from 'firebase/firestore';
 import { firestore } from '../firebase.config';
-import { ChatMessage, Reaction } from '../models/message.model';
+import { getDirectMessageId } from '../chat.model';
+import { ChatMessage, Reaction, ReactionUser } from '../models/message.model';
 
 @Injectable({ providedIn: 'root' })
 export class ChatMessagesService {
@@ -56,21 +61,65 @@ export class ChatMessagesService {
 }
 
 
-  async addReaction(
+  /**
+   * Adds the given user's reaction if they haven't reacted with this icon yet, otherwise removes it (un-react).
+   * Runs as a transaction so two users reacting at the same moment can't overwrite each other's change.
+   */
+  async toggleReaction(
     channelId: string,
     messageId: string,
     icon: string,
-    currentReactions: Reaction[]
+    user: ReactionUser
   ): Promise<void> {
-    const existing = currentReactions.find((r) => r.icon === icon);
-    const updatedReactions = existing
-      ? currentReactions.map((r) =>
-          r.icon === icon ? { ...r, count: r.count + 1 } : r
-        )
-      : [...currentReactions, { icon, count: 1 }];
-
     const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
-    await updateDoc(messageRef, { reactions: updatedReactions });
+
+    await runTransaction(firestore, async (transaction) => {
+      const snapshot = await transaction.get(messageRef);
+      if (!snapshot.exists()) return;
+
+      const currentReactions = (snapshot.data()['reactions'] ?? []) as Reaction[];
+      const existing = currentReactions.find((r) => r.icon === icon);
+      const alreadyReacted = existing?.reactedBy.some((u) => u.uid === user.uid) ?? false;
+
+      let updatedReactions: Reaction[];
+      if (existing && alreadyReacted) {
+        const reactedBy = existing.reactedBy.filter((u) => u.uid !== user.uid);
+        updatedReactions = reactedBy.length
+          ? currentReactions.map((r) => (r.icon === icon ? { ...r, reactedBy } : r))
+          : currentReactions.filter((r) => r.icon !== icon);
+      } else if (existing) {
+        updatedReactions = currentReactions.map((r) =>
+          r.icon === icon ? { ...r, reactedBy: [...r.reactedBy, user] } : r
+        );
+      } else {
+        updatedReactions = [...currentReactions, { icon, reactedBy: [user] }];
+      }
+
+      transaction.update(messageRef, { reactions: updatedReactions });
+    });
+  }
+
+  /** Deletes every message this user sent, across all channels and direct messages (used to purge a guest's messages on logout). */
+  async deleteMessagesBySender(userId: string): Promise<void> {
+    const [chatsSnapshot, usersSnapshot] = await Promise.all([
+      getDocs(collection(firestore, 'chats')),
+      getDocs(collection(firestore, 'users')),
+    ]);
+
+    // Direct-message "channels" have no chat document of their own - their id is derived
+    // from both participants' uids - so every DM pair involving this user is checked too.
+    const channelIds = new Set<string>([
+      ...chatsSnapshot.docs.map((chatDoc) => chatDoc.id),
+      ...usersSnapshot.docs.map((userDoc) => getDirectMessageId(userId, userDoc.id)),
+    ]);
+
+    await Promise.all(
+      Array.from(channelIds).map(async (channelId) => {
+        const messagesRef = collection(firestore, 'chats', channelId, 'messages');
+        const ownMessages = await getDocs(query(messagesRef, where('senderId', '==', userId)));
+        await Promise.all(ownMessages.docs.map((messageDoc) => deleteDoc(messageDoc.ref)));
+      })
+    );
   }
 
   stopListening(): void {

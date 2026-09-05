@@ -58,6 +58,7 @@ interface ChannelHeaderData {
 interface DirectMessageHeaderData {
   type: 'direct-message';
   id: string;
+  partnerId: string;
   name: string;
   avatarUrl: string;
   status: ChatHeaderStatus;
@@ -241,7 +242,7 @@ export class ChatHeader {
 
   /** Refreshes direct-message header data from the current user list. */
   private getDirectMessageHeaderData(chat: DirectMessageHeaderData): DirectMessageHeaderData {
-    const user = this.auth.allUsers().find(({ uid }) => uid === chat.id);
+    const user = this.auth.allUsers().find(({ uid }) => uid === chat.partnerId);
     if (!user) return chat;
     return {
       ...chat,
