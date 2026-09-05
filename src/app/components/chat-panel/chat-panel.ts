@@ -1,4 +1,6 @@
-import { Component, signal, ElementRef, HostListener, ViewChild, Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges, Input } from '@angular/core';
+import { Component, signal, ElementRef, HostListener, ViewChild, 
+  Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges, 
+  Input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
@@ -360,6 +362,15 @@ async saveEditMessage(message: ChatMessage): Promise<void> {
   await this.chatMessages.updateMessage(this.channelId, message.id, newText);
   this.cancelEditMessage();
 }
+
+
+
+  // ---------------- Thread -----------------
+  readonly threadRequested = output<ChatMessage>();
+
+  openThread(message: ChatMessage): void {
+    this.threadRequested.emit(message);
+  }
 
 
 

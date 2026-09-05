@@ -8,6 +8,8 @@ import { GroupDetailsOverlayComponent } from '../../components/group-details-ove
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../core/services/auth';
 import { ChatModel, getDirectMessageId } from '../../core/chat.model';
+import { ThreadPanel } from '../../components/thread-panel/thread-panel';
+import { ChatMessage } from '../../core/models/message.model';
 
 @Component({
   selector: 'app-messenger',
@@ -18,7 +20,8 @@ import { ChatModel, getDirectMessageId } from '../../core/chat.model';
     WorkspaceMenu,
     ChatPanel,
     CommonModule,
-    GroupDetailsOverlayComponent
+    GroupDetailsOverlayComponent,
+    ThreadPanel
   ],
   templateUrl: './messenger.html',
   styleUrl: './messenger.scss',
@@ -180,4 +183,18 @@ export class Messenger {
 
     return selected;
   }
+
+/** Toggles the thread panel for the given message. */
+  selectedThreadMessage = signal<ChatMessage | null>(null);
+
+  /** Opens the thread panel for the given message. */
+  openThread(message: ChatMessage): void {
+    this.selectedThreadMessage.set(message);
+  }
+
+  /** Closes the thread panel. */
+  closeThread(): void {
+    this.selectedThreadMessage.set(null);
+  }
+
 }

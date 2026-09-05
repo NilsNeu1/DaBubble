@@ -16,8 +16,11 @@
         </app-chat-header>
 
         @if (selectedChat(); as chat) {
-        <app-chat-panel [channelId]="chat.id" />
+        <app-chat-panel [channelId]="chat.id" (threadRequested)="openThread($event)" />
         }
     </section>
+    @if (selectedThreadMessage(); as threadMessage) {
+    <app-thread-panel [parentMessage]="threadMessage" (closeRequested)="closeThread()"></app-thread-panel>
+    }
     <app-user-profile-dialog #userProfileDialog />
 </main>
