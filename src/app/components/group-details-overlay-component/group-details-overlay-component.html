@@ -45,14 +45,36 @@
         <div class="btn-container"><button (click)="leaveChat()">Channel verlassen</button></div>
     </article>
 
-    <article class="add-user-overlay-container" [ngClass]="addUserOverlay ? '' : 'dnone'">
-        <div class="add-user-overlay" >
-            <div class="borderAddUser-container"><div class="borderAddUser"></div></div>
+    <article class="add-user-overlay-container" [ngClass]="addUserOverlay() ? '' : 'dnone'">
+        <div class="add-user-overlay">
+            <div class="borderAddUser-container">
+                <div class="borderAddUser"></div>
+            </div>
             <div class="add-user-header">
                 <h2>Leute hinzufügen</h2><img class="x-img" (click)="closeAddUserOverlay()" src="assets/close.png">
             </div>
-            <input placeholder="Name des Benutzers" id="add-user-input">
-            <div class="button-container"><button>Hinzufügen</button></div>
+
+            <div class="add-user-dropdown">
+                <div class="drop-down-dropdown">
+                    <div class="input-container-dropdown">
+                        <div *ngFor="let member of members" class="selectUser"><img class="user-icon"
+                                [src]="member.avatarUrl" alt="User"><span>{{ member.name }}</span><img
+                                (click)="removeUserFromChannel(member)" class="close-icon" src="assets/close.png"
+                                alt="Remove"></div>
+                        <input id="SelctUser" type="text" placeholder="Name eingeben" autocomplete="off"
+                            [(ngModel)]="selectedUser" (ngModelChange)="selectedUser = $event; filterUsers()">
+                    </div>
+                    <div class="drop-down-container"
+                        [class.dnone]="selectedUser.trim() === '' || dropDownUsers.length === 0">
+                        <div *ngFor="let user of dropDownUsers" (click)="selectUser(user)" class="drop-down-item"><img
+                                [src]="user.avatarUrl" alt="User"><span>{{ user.name }}</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="button-container"><button (click)="addUserToChannel()"
+                    [disabled]="members.length === 0 || isAddingMembers">
+                    Hinzufügen
+                </button></div>
         </div>
     </article>
 </section>

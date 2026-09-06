@@ -82,7 +82,7 @@
                                 [class.own-reaction]="hasReacted(reaction)" [title]="reactionTooltip(reaction)"
                                 (click)="toggleReaction(message, reaction.icon)">
                                 <span class="msg-reaction-icon">{{ reaction.icon }}</span>
-                                <span class="msg-reaction-count">{{ reaction.reactedBy.length }}</span>
+                                <span class="msg-reaction-count">{{ reaction.reactedBy?.length ?? 0 }}</span><!-- muss zruck auf {{ reaction.reactedBy.length }} gesetzt werden-->
                             </div>
                         </div>
                     </div>

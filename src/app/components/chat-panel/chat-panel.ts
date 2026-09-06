@@ -1,6 +1,8 @@
-import { Component, signal, ElementRef, HostListener, ViewChild, 
-  Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges, 
-  Input, output } from '@angular/core';
+import {
+  Component, signal, ElementRef, HostListener, ViewChild,
+  Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges,
+  Input, output
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
@@ -99,7 +101,7 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
     this.chatMessages.stopListening();
   }
 
-    ngOnChanges(changes: SimpleChanges): void { 
+  ngOnChanges(changes: SimpleChanges): void {
     if (changes['channelId'] && !changes['channelId'].firstChange) {
       this.chatMessages.stopListening();
       this.chatMessages.loadMessages(this.channelId);
@@ -142,10 +144,18 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   }
 
   hasReacted(reaction: Reaction): boolean {
+    /* MUSS SPÄTER ENTFERNT WERDEN ODER ÜBERARBEITET */
+    if (!reaction.reactedBy) {
+      return false;
+    }
     return reaction.reactedBy.some((u) => u.uid === this.currentUser?.uid);
   }
 
   reactionTooltip(reaction: Reaction): string {
+     /* MUSS SPÄTER ENTFERNT WERDEN ODER ÜBERARBEITET */
+    if (!reaction.reactedBy) {
+      return '';
+    }
     return reaction.reactedBy
       .map((u) => (u.uid === this.currentUser?.uid ? 'Du' : u.name))
       .join(', ');
@@ -336,32 +346,32 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   // ----------------- Edit Message -----------------
 
   editingMessageId = signal<string | null>(null);
-editText = signal<string>('');
+  editText = signal<string>('');
 
-isEditingMessage(messageId: string): boolean {
-  return this.editingMessageId() === messageId;
-}
-
-// temp. later is used in the hover button
-startEditMessage(message: ChatMessage): void {
-  this.editingMessageId.set(message.id);
-  this.editText.set(message.text);
-}
-
-cancelEditMessage(): void {
-  this.editingMessageId.set(null);
-  this.editText.set('');
-}
-
-async saveEditMessage(message: ChatMessage): Promise<void> {
-  const newText = this.editText().trim();
-  if (!newText || newText === message.text) {
-    this.cancelEditMessage();
-    return;
+  isEditingMessage(messageId: string): boolean {
+    return this.editingMessageId() === messageId;
   }
-  await this.chatMessages.updateMessage(this.channelId, message.id, newText);
-  this.cancelEditMessage();
-}
+
+  // temp. later is used in the hover button
+  startEditMessage(message: ChatMessage): void {
+    this.editingMessageId.set(message.id);
+    this.editText.set(message.text);
+  }
+
+  cancelEditMessage(): void {
+    this.editingMessageId.set(null);
+    this.editText.set('');
+  }
+
+  async saveEditMessage(message: ChatMessage): Promise<void> {
+    const newText = this.editText().trim();
+    if (!newText || newText === message.text) {
+      this.cancelEditMessage();
+      return;
+    }
+    await this.chatMessages.updateMessage(this.channelId, message.id, newText);
+    this.cancelEditMessage();
+  }
 
 
 

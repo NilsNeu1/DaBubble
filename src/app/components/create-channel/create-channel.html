@@ -33,7 +33,11 @@
         <div class="flex-start margin-bottom input-container" (click)="selectMemberSource('existing')"
             [ngClass]="{'disableInput': topChannelName === 'Keine Channels gefunden'}"><input type="radio"
                 [checked]="isChecked === 'existing'">
-            <h2 class="flex-start">Alle Mitglieder von <p>{{topChannelName}}</p> hinzufügen</h2>
+            <h2>
+                Alle Mitglieder von
+                <span class="channel-source-name">{{ topChannelName }}</span>
+                hinzufügen
+            </h2>
         </div>
         <div class="flex-start input-container" (click)="selectMemberSource('custom')"><input type="radio"
                 [checked]="isChecked === 'custom'">
@@ -47,11 +51,11 @@
                             (click)="removeUserFromChannel(member)" class="close-icon" src="assets/close.png"
                             alt="Remove"></div>
                     <input id="SelctUser" type="text" placeholder="Name eingeben" autocomplete="off"
-                        [(ngModel)]="selectedUser" (keyup)="filterUsers()">
+                        [(ngModel)]="selectedUser" (ngModelChange)="selectedUser = $event; filterUsers()">
                 </div>
-                <div *ngFor="let user of dropDownUsers" class="drop-down-container" [class.dnone]="selectedUser === ''">
-                    <div (click)="selectUser(user)" class="drop-down-item"><img [src]="user.avatarUrl"
-                            alt="User"><span>{{ user.name }}</span></div>
+                <div class="drop-down-container" [class.dnone]="selectedUser.trim() === '' || dropDownUsers.length === 0">
+                    <div *ngFor="let user of dropDownUsers" (click)="selectUser(user)" class="drop-down-item"><img
+                            [src]="user.avatarUrl" alt="User"><span>{{ user.name }}</span></div>
                 </div>
             </div>
         </div>
@@ -60,13 +64,12 @@
     channelName === '' ||
     (isChecked === 'custom' && members.length === 0)
   ">
-            <button [disabled]="
-      channelName === '' ||
-      (isChecked === 'custom' && members.length === 0)
-    " (click)="checkInput()">
+            <button
+                [disabled]="channelName === '' ||(isChecked === 'custom' && members.length === 0) || isAddingMembers"
+                (click)="checkInput()">
                 Erstellen
             </button>
         </div>
     </article>
-     <div [ngClass]="isMobile && isAddMembersOpen ? 'section-mobile-add-members' : ''"></div>
+    <div [ngClass]="isMobile && isAddMembersOpen ? 'section-mobile-add-members' : ''"></div>
 </section>

@@ -70,7 +70,7 @@
         }
     </div>
 
-    <button class="channel-add-members-dropdown__submit-button" type="button" [disabled]="!hasSelectedMembers()" (click)="addUserToChannel()">
+    <button class="channel-add-members-dropdown__submit-button" type="button" [disabled]="!hasSelectedMembers() || isAddingMembers" (click)="addUserToChannel()">
         Hinzufügen
     </button>
 </section>

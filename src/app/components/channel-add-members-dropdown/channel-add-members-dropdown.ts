@@ -26,6 +26,7 @@ interface AddMemberSuggestion {
 })
 export class ChannelAddMembersDropdown {
   allUsers = inject(Auth).allUsers;
+  isAddingMembers = false;
 
   /** Receives the active channel name. */
   public readonly channelName = input.required<string>();
@@ -152,6 +153,7 @@ export class ChannelAddMembersDropdown {
 
   /** Adds the selected user to the channel. */
   async addUserToChannel() {
+    this.isAddingMembers = true;
     const channelId = this.channelId();
     const channelRef = doc(firestore, 'chats', channelId);
 
@@ -170,7 +172,8 @@ export class ChannelAddMembersDropdown {
       await this.addChannelToUser(channelId, this.selectedMembers()[i].uid);
     }
 
-    this.requestClose()
+    this.isAddingMembers = false;
+    this.requestClose();
   }
 
   /** Adds a channel to a user's channel memberships. */
