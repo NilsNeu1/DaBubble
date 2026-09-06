@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChatModel } from '../../core/chat.model';
 import { Auth } from '../../core/services/auth';
@@ -15,7 +15,7 @@ import {
   templateUrl: './group-details-overlay-component.html',
   styleUrl: './group-details-overlay-component.scss',
 })
-export class GroupDetailsOverlayComponent {
+export class GroupDetailsOverlayComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
   isOverlayOpen = false;
   isMobile = false;
@@ -29,6 +29,11 @@ export class GroupDetailsOverlayComponent {
   description: string = '';
   errorInput: 'channelName' | 'description' | null = null;;
   chatModel = inject(ChatModel);
+  addUserOverlay: boolean = false;
+
+   ngOnInit(): void {
+    this.onResize();
+  }
 
   /** Opens the selected channel details. */
   open(channelId: string): void {
@@ -140,6 +145,14 @@ export class GroupDetailsOverlayComponent {
 
   getUserStatus(uid: string): 'online' | 'offline' {
   return this.allUsers().find(user => user.uid === uid)?.status ?? 'offline';
+}
+
+closeAddUserOverlay(){
+this.addUserOverlay = false;
+}
+
+addMember(){
+this.addUserOverlay = true;
 }
 
 @HostListener('window:resize')

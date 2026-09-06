@@ -38,9 +38,21 @@
     : 'assets/Offline.png'" alt=""> </p>{{
                 member.name }}
             </div>
-            <div class="add-member-container"><img src="assets/person_add.png" alt="Add member">Person Hinzufügen</div>
+            <div class="add-member-container" (click)="addMember()"><img src="assets/person_add.png"
+                    alt="Add member">Person Hinzufügen</div>
         </div>
 
         <div class="btn-container"><button (click)="leaveChat()">Channel verlassen</button></div>
+    </article>
+
+    <article class="add-user-overlay-container" [ngClass]="addUserOverlay ? '' : 'dnone'">
+        <div class="add-user-overlay" >
+            <div class="borderAddUser-container"><div class="borderAddUser"></div></div>
+            <div class="add-user-header">
+                <h2>Leute hinzufügen</h2><img class="x-img" (click)="closeAddUserOverlay()" src="assets/close.png">
+            </div>
+            <input placeholder="Name des Benutzers" id="add-user-input">
+            <div class="button-container"><button>Hinzufügen</button></div>
+        </div>
     </article>
 </section>
