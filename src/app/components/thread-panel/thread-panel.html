@@ -104,7 +104,7 @@
 
                                 @if (reaction.reactedBy.length <= 2) { <div
                                     class="thread-message__reaction-tooltip-names">
-                                    @for (reactor of reaction.reactedBy; track reactor.id; let last = $last) {
+                                    @for (reactor of reaction.reactedBy; track reactor.uid; let last = $last) {
                                     <span>
                                         {{ reactor.isCurrentUser ? 'Du' : reactor.name }}{{ !last ? ' und\u00A0 ' : ''
                                         }}
@@ -114,7 +114,7 @@
                             } @else {
                             <div
                                 class="thread-message__reaction-tooltip-names thread-message__reaction-tooltip-names--stacked">
-                                @for (reactor of reaction.reactedBy.slice(0, 5); track reactor.id) {
+                                @for (reactor of reaction.reactedBy.slice(0, 5); track reactor.uid) {
                                 <span>
                                     {{ reactor.isCurrentUser ? 'Du' : reactor.name }}
                                 </span>
@@ -143,7 +143,7 @@
     </div>
 
     <div class="thread-input">
-        <div class="thread-input__editor" contenteditable="true" role="textbox" aria-multiline="true"
+        <div class="thread-input__editor" #replyEditor contenteditable="true" role="textbox" aria-multiline="true"
             data-placeholder="Antworten..." (input)="handleEditorInput($event)">
         </div>
 
@@ -156,7 +156,7 @@
                 </button>
             </div>
 
-            <button class="thread-input__send" type="button" aria-label="Antwort senden">
+            <button class="thread-input__send" type="button" aria-label="Antwort senden" (click)="sendReply()">
             </button>
         </div>
     </div>

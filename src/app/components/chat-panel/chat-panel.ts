@@ -23,23 +23,6 @@ interface MentionChannel {
 
 type MentionItem = MentionPerson | MentionChannel;
 
-// interface Reaction {
-//   icon: string;
-//   count: number;
-// }
-
-// interface Message {
-//   id: string;
-//   senderId: string;
-//   senderName: string;
-//   senderImageUrl: string;
-//   timestamp: string;
-//   text: string;
-//   hasThread: boolean;
-//   lastReply?: string;
-//   reactions: Reaction[];
-// }
-
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
@@ -382,6 +365,12 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
     this.threadRequested.emit(message);
   }
 
+  protected formatLastReplyTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }) + ' Uhr';
+}
 
 
 }

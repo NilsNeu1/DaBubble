@@ -9,18 +9,28 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThreadHeader } from '../thread-header/thread-header';
-import { ChatMessage } from '../../core/models/message.model';
+import { ChatMessage, Reaction, ReactionUser } from '../../core/models/message.model';
+import { ThreadRepliesService } from '../../core/services/thread-replies';
+import { ThreadReply } from '../../core/models/reply.model';
+import { Auth } from '../../core/services/auth';
+import { OnInit, OnDestroy } from '@angular/core';
+import { inject } from '@angular/core';
 
-interface ThreadReactionUser {
-    id: string;
-    name: string;
-    isCurrentUser?: boolean;
-}
+
+// interface ThreadReactionUser {
+//     id: string;
+//     name: string;
+//     isCurrentUser?: boolean;
+// }
 
 interface ThreadReaction {
     icon: string;
     reactedBy: ThreadReactionUser[];
 }
+interface ThreadReactionUser extends ReactionUser {
+    isCurrentUser: boolean;
+}
+
 
 interface ThreadMessage {
     id: string;
@@ -39,10 +49,13 @@ interface ThreadMessage {
     templateUrl: './thread-panel.html',
     styleUrl: './thread-panel.scss',
 })
-export class ThreadPanel implements AfterViewInit {
+export class ThreadPanel implements AfterViewInit, OnInit, OnDestroy {
 
     @ViewChild('threadMessages')
     private threadMessages?: ElementRef<HTMLDivElement>;
+
+    @ViewChild('replyEditor')
+    private replyEditor?: ElementRef<HTMLDivElement>;
 
     public readonly closeRequested = output<void>();
 
@@ -53,88 +66,46 @@ export class ThreadPanel implements AfterViewInit {
     private editMenuCloseTimeout?: ReturnType<typeof setTimeout>;
 
     @Input({ required: true }) parentMessage!: ChatMessage;
+    @Input({ required: true }) channelId!: string;
 
-    // TEMP-THREAD-PREVIEW: Provides the selected parent message until real message data is connected.
-    // protected readonly parentMessage: ThreadMessage = {
-    //     id: 'temp-thread-parent',
-    //     senderId: 'temp-user-erika',
-    //     senderName: 'Erika Mustermann',
-    //     senderImageUrl: '/assets/01.Charaters.png',
-    //     timestamp: '14:25 Uhr',
-    //     text: 'styling test',
-    //     reactions: [],
-    //     isOwnMessage: false,
-    // };
+    private readonly repliesService = inject(ThreadRepliesService);
+    private readonly authService = inject(Auth);
 
-    // TEMP-THREAD-PREVIEW: Provides replies until Firestore thread data is connected.
-    protected readonly replies: ThreadMessage[] = [
-        {
-            id: 'temp-thread-reply-sofia',
-            senderId: 'temp-user-sofia',
-            senderName: 'Sofia Müller',
-            senderImageUrl: '/assets/01.Charaters.png',
-            timestamp: '14:30 Uhr',
-            text: 'Ich habe die gleiche Frage. Ich habe gegoogelt und es scheint, dass die aktuelle Version Angular 13 ist.',
-            reactions: [
-                {
-                    icon: '🤓',
-                    reactedBy: [
-                        {
-                            id: 'temp-user-noah',
-                            name: 'Noah Braun',
-                        },
-                        {
-                            id: 'temp-user-current',
-                            name: 'Header Testuser',
-                            isCurrentUser: true,
-                        },
-                    ],
-                },
-            ],
-            isOwnMessage: false,
-        },
-        {
-            id: 'temp-thread-reply-current',
-            senderId: 'temp-user-current',
-            senderName: 'Header Testuser',
-            senderImageUrl: '/assets/default-user-avatar.png',
-            timestamp: '15:06 Uhr',
-            text: 'Ja das ist es Ja das ist es Ja das ist es Ja das ist es Ja das ist es Ja das ist es Ja das ist es Ja das ist es Ja das ist es.',
-            reactions: [
-                {
-                    icon: '👍',
-                    reactedBy: [
-                        {
-                            id: 'temp-user-sofia',
-                            name: 'Sofia Müller',
-                        },
-                        {
-                            id: 'temp-user-erika',
-                            name: 'Erika Mustermann',
-                        },
-                        {
-                            id: 'temp-user-noah',
-                            name: 'Noah Braun',
-                        },
-                        {
-                            id: 'temp-user-nils',
-                            name: 'Nils Neumann',
-                        },
-                        {
-                            id: 'temp-user-current',
-                            name: 'Header Testuser',
-                            isCurrentUser: true,
-                        },
-                        {
-                            id: 'temp-user-fernando',
-                            name: 'Fernando Cun Ramírez',
-                        },
-                    ],
-                },
-            ],
-            isOwnMessage: true,
-        },
-    ];
+
+    /** Enriches raw reactions with per-user "isCurrentUser" flags for the template. */
+    private mapReactions(reactions: Reaction[], currentUserId: string | undefined): ThreadReaction[] {
+        return reactions.map((reaction) => ({
+            icon: reaction.icon,
+            reactedBy: reaction.reactedBy.map((user) => ({
+                ...user,
+                isCurrentUser: user.uid === currentUserId,
+            })),
+        }));
+    }
+
+    /** Formats a Unix-Timestamp (ms) as a localized time string. */
+    private formatTimestamp(timestamp: number): string {
+        return new Date(timestamp).toLocaleTimeString('de-DE', {
+            hour: '2-digit',
+            minute: '2-digit',
+        }) + ' Uhr';
+    }
+
+    // Swapped for implementation of the replies getter below, which enriches the raw replies with additional data for the template.
+    protected get replies(): ThreadMessage[] {
+        const currentUserId = this.authService.currentUser()?.uid;
+
+        return this.repliesService.replies().map((reply) => ({
+            id: reply.id,
+            senderId: reply.senderId,
+            senderName: reply.senderName,
+            senderImageUrl: reply.senderImageUrl,
+            timestamp: this.formatTimestamp(reply.timestamp),
+            text: reply.text,
+            reactions: this.mapReactions(reply.reactions, currentUserId),
+            isOwnMessage: reply.senderId === currentUserId,
+        }));
+    }
 
     /** Removes empty contenteditable markup so the placeholder becomes visible again. */
     protected handleEditorInput(event: Event): void {
@@ -192,5 +163,41 @@ export class ThreadPanel implements AfterViewInit {
     /** Requests the selected user's profile. */
     protected requestUserProfile(userId: string): void {
         this.userProfileRequested.emit(userId);
+    }
+
+    /** Sends the reply currently entered in the contenteditable editor. */
+    protected async sendReply(): Promise<void> {
+        const editor = this.replyEditor?.nativeElement;
+        const replyText = editor?.textContent?.trim();
+
+        if (!replyText) {
+            return;
+        }
+
+        const currentUser = this.authService.currentUser();
+        if (!currentUser) {
+            return;
+        }
+
+        await this.repliesService.sendReply(this.channelId, this.parentMessage.id, {
+            senderId: currentUser.uid,
+            senderName: currentUser.name,
+            senderImageUrl: currentUser.avatarUrl,
+            text: replyText,
+        });
+
+        if (editor) {
+            editor.innerHTML = '';
+        }
+
+        requestAnimationFrame(() => this.scrollToBottom());
+    }
+
+    public ngOnInit(): void {
+        this.repliesService.loadReplies(this.channelId, this.parentMessage.id);
+    }
+
+    public ngOnDestroy(): void {
+        this.repliesService.stopListening();
     }
 }

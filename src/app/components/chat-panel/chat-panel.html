@@ -59,11 +59,13 @@
                     </div>
 
                     <div class="msg-interactions">
-                        @if (message.hasThread) {
+                        @if (message.hasThread && message.lastReplyTimestamp) {
                         <div class="msg-threads" role="button" tabindex="0" (click)="openThread(message)"
                             (keydown.enter)="openThread(message)">
                             <span class="msg-thread-count">Thread</span>
-                            <span class="msg-last-reply">{{ message.lastReply }}</span>
+                            <span class="msg-last-reply">
+                                Letzte Antwort: {{ formatLastReplyTime(message.lastReplyTimestamp) }}
+                            </span>
                         </div>
                         }
                         <div class="msg-reaction">
@@ -82,7 +84,8 @@
                                 [class.own-reaction]="hasReacted(reaction)" [title]="reactionTooltip(reaction)"
                                 (click)="toggleReaction(message, reaction.icon)">
                                 <span class="msg-reaction-icon">{{ reaction.icon }}</span>
-                                <span class="msg-reaction-count">{{ reaction.reactedBy?.length ?? 0 }}</span><!-- muss zruck auf {{ reaction.reactedBy.length }} gesetzt werden-->
+                                <span class="msg-reaction-count">{{ reaction.reactedBy?.length ?? 0
+                                    }}</span><!-- muss zruck auf {{ reaction.reactedBy.length }} gesetzt werden-->
                             </div>
                         </div>
                     </div>

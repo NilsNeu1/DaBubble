@@ -16,6 +16,7 @@ export interface ChatMessage {
   timestamp: number;
   text: string;
   hasThread: boolean;
-  lastReply?: string;
+  // lastReply?: string;
+  lastReplyTimestamp?: number;
   reactions: Reaction[];
 }
