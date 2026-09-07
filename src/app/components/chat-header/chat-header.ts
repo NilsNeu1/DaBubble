@@ -183,6 +183,26 @@ export class ChatHeader {
     this.userProfileRequested.emit(userId);
   }
 
+  /** Closes open channel dropdowns when clicking outside of them. */
+  @HostListener('document:click', ['$event'])
+  protected closeChannelDropdownsOnOutsideClick(event: MouseEvent): void {
+    if (!this.isMembersDropdownOpen() && !this.isAddMembersDropdownOpen()) return;
+
+    const target = event.target;
+    if (!(target instanceof Element) || this.isChannelDropdownClick(target)) return;
+
+    this.isMembersDropdownOpen.set(false);
+    this.isAddMembersDropdownOpen.set(false);
+  }
+
+  /** Checks whether the click occurred inside a channel dropdown or its trigger. */
+  private isChannelDropdownClick(target: Element): boolean {
+    return !!target.closest(
+      'app-channel-members-dropdown, app-channel-add-members-dropdown, ' +
+      '.chat-header__members-button, .chat-header__add-member-button'
+    );
+  }
+  
   /** Updates the new message placeholder on viewport changes. */
   @HostListener('window:resize')
   protected updateNewMessagePlaceholder(): void {
