@@ -7,5 +7,6 @@ export const environment = {
     storageBucket: 'dabubble-6b16b.firebasestorage.app',
     messagingSenderId: '1032154079786',
     appId: '1:1032154079786:web:8d294744ff1d60988e1953',
+    databaseURL: 'https://dabubble-6b16b-default-rtdb.europe-west1.firebasedatabase.app',
   },
 };

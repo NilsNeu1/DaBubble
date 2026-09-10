@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal, untracked } from '@angular/core';
 import {
   User as FirebaseUser,
   GoogleAuthProvider,
@@ -28,6 +28,8 @@ import { AppUser, AVAILABLE_AVATARS, DEFAULT_AVATAR } from '../models/user.model
 import { mapAuthError } from './auth-error';
 import { ChatModel } from '../chat.model';
 import { ChatMessagesService } from './chat-messages';
+import { PresenceService } from './presence';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -35,6 +37,8 @@ import { ChatMessagesService } from './chat-messages';
 export class Auth {
   private readonly chatModel = inject(ChatModel);
   private readonly chatMessages = inject(ChatMessagesService);
+  private readonly presence = inject(PresenceService);
+  private readonly router = inject(Router);
 
   readonly currentUser = signal<AppUser | null>(null);
   readonly allUsers = signal<AppUser[]>([]);
@@ -47,9 +51,11 @@ export class Auth {
   constructor() {
     let resolveReady!: () => void;
     this.ready = new Promise((resolve) => (resolveReady = resolve));
+    this.listenToPresenceStatusChanges();
 
     onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       if (!firebaseUser) {
+        await this.presence.stopPresence();
         this.unsubscribeCurrentUser?.();
         this.unsubscribeCurrentUser = undefined;
         this.unsubscribeAllUsers?.();
@@ -57,6 +63,9 @@ export class Auth {
         this.chatModel.stopListening();
         this.currentUser.set(null);
         this.allUsers.set([]);
+        if (this.router.url.startsWith('/messenger')) {
+          await this.router.navigateByUrl('/login');
+        }
         this.authReady.set(true);
         resolveReady();
         return;
@@ -65,6 +74,7 @@ export class Auth {
       this.currentUser.set(profile);
       this.listenToCurrentUser(firebaseUser.uid);
       this.listenToAllUsers();
+      await this.presence.startPresence(firebaseUser.uid);
       this.authReady.set(true);
       resolveReady();
     });
@@ -80,7 +90,6 @@ export class Auth {
         name,
         email,
         avatarUrl: DEFAULT_AVATAR,
-        status: 'online',
         isGuest: false,
         createdAt: Date.now(),
       });
@@ -114,7 +123,6 @@ export class Auth {
           name: credential.user.displayName ?? 'Unbenannt',
           email: credential.user.email ?? '',
           avatarUrl: DEFAULT_AVATAR,
-          status: 'online',
           isGuest: false,
           createdAt: Date.now(),
         });
@@ -124,7 +132,9 @@ export class Auth {
       }
 
       const profile = existing.data() as AppUser;
-      this.currentUser.set(profile);
+      this.currentUser.set(
+        this.withPresenceStatus(profile, this.presence.getOnlineUserIds())
+      );
       await this.cleanupStaleAnonymousUser(previousUser);
       return !AVAILABLE_AVATARS.includes(profile.avatarUrl);
     } catch (error) {
@@ -179,6 +189,7 @@ export class Auth {
 
   async logout(): Promise<void> {
     const user = firebaseAuth.currentUser;
+    await this.presence.stopPresence();
     if (user?.isAnonymous) {
       try {
         await this.chatMessages.deleteMessagesBySender(user.uid);
@@ -189,9 +200,6 @@ export class Auth {
       await deleteUser(user);
       return;
     }
-    if (user) {
-      await setDoc(doc(firestore, 'users', user.uid), { status: 'offline' }, { merge: true });
-    }
     await signOut(firebaseAuth);
   }
 
@@ -199,26 +207,34 @@ export class Auth {
     const ref = doc(firestore, 'users', firebaseUser.uid);
     const snapshot = await getDoc(ref);
     if (snapshot.exists()) {
-      const profile = { ...(snapshot.data() as AppUser), status: 'online' as const };
-      await setDoc(ref, { status: 'online' }, { merge: true });
-      return profile;
+      return this.withPresenceStatus(
+        {
+          ...(snapshot.data() as AppUser),
+          uid: firebaseUser.uid,
+        },
+        this.presence.getOnlineUserIds()
+      );
     }
-    const fallback: AppUser = {
+    const fallback: Omit<AppUser, 'status'> = {
       uid: firebaseUser.uid,
       name: firebaseUser.isAnonymous ? 'Gast' : firebaseUser.displayName ?? 'Unbenannt',
       email: firebaseUser.email ?? '',
       avatarUrl: firebaseUser.isAnonymous ? DEFAULT_AVATAR : firebaseUser.photoURL ?? DEFAULT_AVATAR,
-      status: 'online',
       isGuest: firebaseUser.isAnonymous,
       createdAt: Date.now(),
     };
     await this.saveProfile(fallback);
-    return fallback;
+    return this.withPresenceStatus(
+      fallback,
+      this.presence.getOnlineUserIds()
+    );
   }
 
-  private async saveProfile(user: AppUser): Promise<void> {
+  private async saveProfile(user: Omit<AppUser, 'status'>): Promise<void> {
     await setDoc(doc(firestore, 'users', user.uid), user);
-    this.currentUser.set(user);
+    this.currentUser.set(
+      this.withPresenceStatus(user, this.presence.getOnlineUserIds())
+    );
   }
 
   /** Removes a leftover anonymous guest account left behind by a new sign-in. */
@@ -241,16 +257,54 @@ export class Auth {
     }
   }
 
+  /** Keeps loaded user statuses synchronized with Realtime Database presence. */
+  private listenToPresenceStatusChanges(): void {
+    effect(() => {
+      const onlineUserIds = this.presence.getOnlineUserIds();
+      untracked(() => {
+        this.applyPresenceStatuses(onlineUserIds);
+      });
+    });
+  }
+
+  /** Applies the current presence state to all loaded user models. */
+  private applyPresenceStatuses(onlineUserIds: ReadonlySet<string>): void {
+    const currentUser = this.currentUser();
+    if (currentUser) {
+      this.currentUser.set(this.withPresenceStatus(currentUser, onlineUserIds));
+    }
+    this.allUsers.set(
+      this.allUsers().map((user) => this.withPresenceStatus(user, onlineUserIds))
+    );
+  }
+
+  /** Returns a user with the status derived from Realtime Database presence. */
+  private withPresenceStatus(
+    user: Omit<AppUser, 'status'>,
+    onlineUserIds: ReadonlySet<string>
+  ): AppUser {
+    return {
+      ...user,
+      status: onlineUserIds.has(user.uid) ? 'online' : 'offline',
+    };
+  }
+
   listenToAllUsers(): void {
     this.unsubscribeAllUsers?.();
 
     this.unsubscribeAllUsers = onSnapshot(
       collection(firestore, 'users'),
       (snapshot) => {
-        const users: AppUser[] = snapshot.docs.map((userDoc) => ({
-          ...(userDoc.data() as AppUser),
-          uid: userDoc.id,
-        }));
+        const onlineUserIds = this.presence.getOnlineUserIds();
+        const users: AppUser[] = snapshot.docs.map((userDoc) =>
+          this.withPresenceStatus(
+            {
+              ...(userDoc.data() as AppUser),
+              uid: userDoc.id,
+            },
+            onlineUserIds
+          )
+        );
 
         this.allUsers.set(users);
       },);
@@ -267,10 +321,13 @@ export class Auth {
           return;
         }
 
-        const user: AppUser = {
-          ...(snapshot.data() as AppUser),
-          uid: snapshot.id,
-        };
+        const user = this.withPresenceStatus(
+          {
+            ...(snapshot.data() as AppUser),
+            uid: snapshot.id,
+          },
+          this.presence.getOnlineUserIds()
+        );
 
         this.currentUser.set(user);
       },
