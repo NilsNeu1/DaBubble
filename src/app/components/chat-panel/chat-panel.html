@@ -29,8 +29,7 @@
                                 type="button" title="Add Reaction">
                                 x
                                 <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-options')"
-                                    [emojis]="quickReactions"
-                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]=" 'up'"
+                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]="'up'"
                                     (emojiSelected)="toggleReaction(message, $event)"></app-emoji-picker>
                             </div>
                             <div class="interaction-btn" (click)="openThread(message)" type="button" title="Answer">x
@@ -73,11 +72,10 @@
                             <div class="instant-reaction-btn" (click)="toggleReactionPicker(message.id + '-instant')"
                                 title="Reagieren">
                                 <img src="/assets/add_reaction.png" alt="">
-
                                 <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-instant')"
-                                    [emojis]="quickReactions"
                                     [align]="isOwnMessage(message.senderId) ? 'right' : 'left'"
-                                    (emojiSelected)="toggleReaction(message, $event)"></app-emoji-picker>
+                                    (emojiSelected)="toggleReaction(message, $event)"
+                                    (click)="$event.stopPropagation()"></app-emoji-picker>
                             </div>
 
                             <div class="msg-reaction-item" *ngFor="let reaction of message.reactions"
@@ -120,13 +118,7 @@
                         <div #emoteBtn class="emote-btn" role="img" tabindex="0" (click)="toggleEmotePicker()"></div>
 
                         @if (showEmotePicker()) {
-                        <div #emotePicker class="emote-picker">
-                            @for (emoji of emojis; track emoji) {
-                            <button class="emote-picker-item" (click)="insertEmote(emoji)">
-                                {{ emoji }}
-                            </button>
-                            }
-                        </div>
+                        <app-emoji-picker (emojiSelected)="insertEmote($event)"></app-emoji-picker>
                         }
                     </div>
 

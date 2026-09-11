@@ -8,6 +8,7 @@ import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
 import { ChatMessage, Reaction } from './../../core/models/message.model';
 import { Auth } from './../../core/services/auth';
+import 'emoji-picker-element';
 
 interface MentionPerson {
   type: 'person';
@@ -48,10 +49,6 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   isEmpty = signal<boolean>(true);
   private savedRange: Range | null = null;
 
-  readonly emojis: string[] = [
-    '😀', '😂', '😍', '🤔', '😅', '😢', '😡', '👍',
-    '👎', '🙏', '🎉', '🔥', '❤️', '👀', '🚀', '✅'
-  ];
 
   readonly channels: MentionChannel[] = [
     { type: 'channel', name: 'Entwicklerteam', imageUrl: '/assets/Workspace_logo.png' },
@@ -93,7 +90,6 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   }
 
   // ---------------- Chat-features -----------------
-  readonly quickReactions: string[] = ['👍', '❤️', '😂', '🎉', '👀', '✅'];
 
   activeReactionPickerId = signal<string | null>(null);
 
