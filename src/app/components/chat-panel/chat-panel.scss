@@ -79,6 +79,7 @@ section {
 }
 
 .chat-input-container {
+    position: relative;
     box-sizing: border-box;
     flex: 0 0 auto;
     border: 2px solid #ADB0D9;
@@ -319,6 +320,7 @@ section {
 
 .message-editor {
     display: block;
+    position: relative;
     color: black;
     padding: 0;
     outline: none;
@@ -337,6 +339,9 @@ section {
 
     &.is-empty::before {
         content: attr(data-placeholder);
+        position: absolute;
+        top: 0;
+        left: 0;
         color: #686868;
         pointer-events: none;
         transition: color 0.2s ease;
@@ -633,4 +638,89 @@ section {
   .msg-reaction {
     flex-direction: row-reverse;
   }
+}
+
+.mention-search-results {
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 350px;
+    max-width: calc(100% - 40px);
+    max-height: calc(100dvh - 180px);
+    padding: 12px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid #adb0d9;
+    border-radius: 20px 20px 20px 0;
+    background-color: #ffffff;
+}
+
+.mention-search-result {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-height: 58px;
+    padding: 4px 12px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 35px;
+    color: #000000;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 400;
+    text-align: left;
+    background-color: transparent;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #eceefe;
+    }
+
+    &:active {
+        color: #535af1;
+        background-color: #eceefe;
+    }
+}
+
+.mention-search-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+}
+
+.mention-search-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mention-search-status {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.mention-search-channel-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.mention-search-label {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.mention-search-result.is-selected {
+    background-color: #eceefe;
 }

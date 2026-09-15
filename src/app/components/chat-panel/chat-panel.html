@@ -109,10 +109,41 @@
         <div class="chat-input-container">
             <article #messageInput class="message-editor" contenteditable="true" role="textbox" aria-multiline="true"
                 data-placeholder="Nachricht an #Entwicklerteam" [class.is-empty]="isEmpty()" (input)="onInput()"
-                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()" (keydown.enter)="onEnterKey($event)">
+                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()" (keydown)="onEditorKeydown($event)"
+                (blur)="closeTypedMentionSearch()">
             </article>
 
             <div class="chat-input-actions">
+                @if (typedMentionSearch() && typedMentionItems().length > 0) {
+                <div class="mention-search-results" role="listbox" aria-label="Mention-Vorschläge">
+                    @for (
+                    item of typedMentionItems();
+                    track item.type === 'person' ? item.uid : item.channelId;
+                    let index = $index
+                    ) {
+                    <button class="mention-search-result" type="button" role="option"
+                        [class.is-selected]="index === typedMentionIndex()"
+                        [attr.aria-selected]="index === typedMentionIndex()" (mousedown)="$event.preventDefault()"
+                        (click)="insertTypedMention(item)">
+                        @if (item.type === 'person') {
+                        <span class="mention-search-avatar-wrapper">
+                            <img class="mention-search-avatar" [src]="item.imageUrl" [alt]="item.name" />
+                            <img class="mention-search-status"
+                                [src]="item.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'" alt="" />
+                        </span>
+                        } @else {
+                        <span class="mention-search-channel-icon" aria-hidden="true">
+                            #
+                        </span>
+                        }
+
+                        <span class="mention-search-label">
+                            {{ item.name }}
+                        </span>
+                    </button>
+                    }
+                </div>
+                }
                 <div class="input-features">
                     <div class="emote-btn-wrapper">
                         <div #emoteBtn class="emote-btn" role="img" tabindex="0" (click)="toggleEmotePicker()"></div>

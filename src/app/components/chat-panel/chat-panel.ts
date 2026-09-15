@@ -1,7 +1,7 @@
 import {
   Component, signal, ElementRef, HostListener, ViewChild,
   Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges,
-  Input, output
+  Input, output, computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
@@ -9,20 +9,13 @@ import { ChatMessagesService } from './../../core/services/chat-messages';
 import { ChatMessage, Reaction } from './../../core/models/message.model';
 import { Auth } from './../../core/services/auth';
 import 'emoji-picker-element';
-
-interface MentionPerson {
-  type: 'person';
-  name: string;
-  imageUrl: string;
-}
-
-interface MentionChannel {
-  type: 'channel';
-  name: string;
-  imageUrl: string;
-}
-
-type MentionItem = MentionPerson | MentionChannel;
+import { ChatModel } from './../../core/chat.model';
+import {
+  createMentionChannels, createMentionPeople, filterMentionChannels,
+  filterMentionPeople, getMentionSearch, getTextBeforeCursor,
+  MentionChannel, MentionItem, MentionPerson, MentionSearch,
+  getMentionReplacementRange
+} from './mention';
 
 @Component({
   selector: 'app-chat-panel',
@@ -35,6 +28,7 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   private renderer = inject(Renderer2);
   private chatMessages = inject(ChatMessagesService);
   private auth = inject(Auth);
+  private chatModel = inject(ChatModel);
 
   @Input({ required: true }) channelId!: string;
   @ViewChild('messageInput') messageInput!: ElementRef<HTMLElement>;
@@ -47,20 +41,26 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   showEmotePicker = signal<boolean>(false);
   showMentionPicker = signal<boolean>(false);
   isEmpty = signal<boolean>(true);
+  typedMentionSearch = signal<MentionSearch | null>(null);
+  typedMentionIndex = signal<number>(0);
+
+  readonly typedMentionItems = computed<MentionItem[]>(() => {
+    const search = this.typedMentionSearch();
+    if (!search) return [];
+    return search.trigger === '@'
+      ? filterMentionPeople(this.people, search.query)
+      : filterMentionChannels(this.channels, search.query);
+  });
+
   private savedRange: Range | null = null;
 
+  get channels(): MentionChannel[] {
+    return createMentionChannels(this.chatModel.channels());
+  }
 
-  readonly channels: MentionChannel[] = [
-    { type: 'channel', name: 'Entwicklerteam', imageUrl: '/assets/Workspace_logo.png' },
-    { type: 'channel', name: 'Allgemein', imageUrl: '/assets/Workspace_logo.png' }
-  ];
-
-  readonly people: MentionPerson[] = [
-    { type: 'person', name: 'Dominik R', imageUrl: '/assets/02.Charaters.png' },
-    { type: 'person', name: 'Fernando CR', imageUrl: '/assets/02.Charaters.png' },
-    { type: 'person', name: 'Riccardo S', imageUrl: '/assets/02.Charaters.png' },
-    { type: 'person', name: 'Nils N', imageUrl: '/assets/02.Charaters.png' }
-  ];
+  get people(): MentionPerson[] {
+    return createMentionPeople(this.auth.allUsers());
+  }
 
   // ---------------- Chat-Listener -----------------
 
@@ -131,7 +131,7 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   }
 
   reactionTooltip(reaction: Reaction): string {
-     /* MUSS SPÄTER ENTFERNT WERDEN ODER ÜBERARBEITET */
+    /* MUSS SPÄTER ENTFERNT WERDEN ODER ÜBERARBEITET */
     if (!reaction.reactedBy) {
       return '';
     }
@@ -156,6 +156,61 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
 
   onInput(): void {
     this.updateEmptyState();
+    this.saveCursorPosition();
+    this.updateTypedMentionSearch();
+  }
+
+  /** Updates the active mention search from the current cursor position. */
+  private updateTypedMentionSearch(): void {
+    const textBeforeCursor = getTextBeforeCursor(
+      this.messageInput.nativeElement
+    );
+    const search = getMentionSearch(textBeforeCursor);
+    this.typedMentionSearch.set(search);
+    this.typedMentionIndex.set(0);
+    if (search) {
+      this.showEmotePicker.set(false);
+      this.showMentionPicker.set(false);
+    }
+  }
+
+  /** Handles keyboard navigation for typed mention suggestions. */
+  onEditorKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && event.shiftKey) return;
+    if (event.key === 'Escape') return this.closeTypedMentionSearch();
+    const items = this.typedMentionItems();
+    if (!this.typedMentionSearch() || items.length === 0) {
+      if (event.key === 'Enter') this.onEnterKey(event);
+      return;
+    }
+    if (event.key === 'ArrowDown') this.moveMentionSelection(event, 1);
+    if (event.key === 'ArrowUp') this.moveMentionSelection(event, -1);
+    if (event.key === 'Enter') this.confirmMentionSelection(event);
+  }
+
+  /** Moves the selected mention suggestion in the given direction. */
+  private moveMentionSelection(
+    event: KeyboardEvent,
+    direction: number
+  ): void {
+    event.preventDefault();
+    const count = this.typedMentionItems().length;
+    this.typedMentionIndex.update(
+      (index) => (index + direction + count) % count
+    );
+  }
+
+  /** Inserts the currently selected mention suggestion. */
+  private confirmMentionSelection(event: KeyboardEvent): void {
+    event.preventDefault();
+    const item = this.typedMentionItems()[this.typedMentionIndex()];
+    if (item) this.insertTypedMention(item);
+  }
+
+  /** Closes the typed mention suggestions. */
+  closeTypedMentionSearch(): void {
+    this.typedMentionSearch.set(null);
+    this.typedMentionIndex.set(0);
   }
 
   saveCursorPosition(): void {
@@ -245,6 +300,21 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
     this.updateEmptyState();
   }
 
+  /** Replaces the typed mention search with the existing mention pill. */
+  insertTypedMention(item: MentionItem): void {
+    const search = this.typedMentionSearch();
+    if (!search || !this.savedRange) return;
+    const replacementRange = getMentionReplacementRange(
+      this.messageInput.nativeElement,
+      this.savedRange,
+      search
+    );
+    if (!replacementRange) return;
+    this.savedRange = replacementRange;
+    this.typedMentionSearch.set(null);
+    this.insertMention(item);
+  }
+
   private updateEmptyState(): void {
     const editor = this.messageInput.nativeElement;
     this.isEmpty.set(
@@ -280,6 +350,7 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
     });
 
     this.messageInput.nativeElement.textContent = '';
+    this.closeTypedMentionSearch();
     this.updateEmptyState();
   }
 
@@ -362,11 +433,11 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   }
 
   protected formatLastReplyTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('de-DE', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }) + ' Uhr';
-}
+    return new Date(timestamp).toLocaleTimeString('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' Uhr';
+  }
 
 
 }
