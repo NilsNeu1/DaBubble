@@ -143,17 +143,80 @@
     </div>
 
     <div class="thread-input">
-        <div class="thread-input__editor" #replyEditor contenteditable="true" role="textbox" aria-multiline="true"
-            data-placeholder="Antworten..." (input)="handleEditorInput($event)">
+        <div class="thread-input__editor" #replyEditor (focus)="updateTypedMentionSearch()"
+            (click)="updateTypedMentionSearch()" (blur)="closeTypedMentionSearch()" contenteditable="true"
+            role="textbox" aria-multiline="true" data-placeholder="Antworten..." (input)="handleEditorInput($event)"
+            (keydown)="onReplyEditorKeydown($event)">
         </div>
+
+        @if (typedMentionSearch() && typedMentionItems().length > 0) {
+        <div class="mention-search-results" role="listbox" aria-label="Mention-Vorschläge">
+            @for (
+            item of typedMentionItems();
+            track item.type === 'person' ? item.uid : item.channelId;
+            let index = $index
+            ) {
+            <button class="mention-search-result" type="button" role="option"
+                [class.is-selected]="index === typedMentionIndex()" [attr.aria-selected]="index === typedMentionIndex()"
+                (mousedown)="$event.preventDefault()" (click)="insertTypedMention(item)">
+                @if (item.type === 'person') {
+                <span class="mention-search-avatar-wrapper">
+                    <img class="mention-search-avatar" [src]="item.imageUrl" [alt]="item.name" />
+                    <img class="mention-search-status"
+                        [src]="item.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'" alt="" />
+                </span>
+                } @else {
+                <span class="mention-search-channel-icon" aria-hidden="true">
+                    #
+                </span>
+                }
+
+                <span class="mention-search-label">
+                    {{ item.name }}
+                </span>
+            </button>
+            }
+        </div>
+        }
 
         <div class="thread-input__actions">
             <div class="thread-input__features">
                 <button class="thread-input__emoji" type="button" aria-label="Emoji hinzufügen">
                 </button>
 
-                <button class="thread-input__mention" type="button" aria-label="Person erwähnen">
-                </button>
+                <div #threadMentionWrapper class="thread-mention-wrapper">
+                    <button class="thread-input__mention" type="button" aria-label="Person oder Channel erwähnen"
+                        [attr.aria-expanded]="showMentionPicker()" (mousedown)="saveMentionButtonCursor()"
+                        (click)="toggleMentionPicker()"></button>
+
+                    @if (showMentionPicker()) {
+                    <div class="mention-picker">
+                        <div class="mention-picker-section">
+                            <span class="mention-picker-label">Channels</span>
+
+                            @for (channel of mentionChannels; track channel.channelId) {
+                            <button class="mention-picker-item" type="button" (mousedown)="$event.preventDefault()"
+                                (click)="insertPickerMention(channel)">
+                                <img class="mention-picker-avatar" [src]="channel.imageUrl" [alt]="channel.name" />
+                                <span>{{ channel.name }}</span>
+                            </button>
+                            }
+                        </div>
+
+                        <div class="mention-picker-section">
+                            <span class="mention-picker-label">Personen</span>
+
+                            @for (person of mentionPeople; track person.uid) {
+                            <button class="mention-picker-item" type="button" (mousedown)="$event.preventDefault()"
+                                (click)="insertPickerMention(person)">
+                                <img class="mention-picker-avatar" [src]="person.imageUrl" [alt]="person.name" />
+                                <span>{{ person.name }}</span>
+                            </button>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
             </div>
 
             <button class="thread-input__send" type="button" aria-label="Antwort senden" (click)="sendReply()">

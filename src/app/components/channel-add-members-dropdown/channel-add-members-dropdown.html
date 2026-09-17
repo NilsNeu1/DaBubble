@@ -40,18 +40,21 @@
                     placeholder="Name eingeben" aria-label="Mitglied suchen" autocomplete="off" spellcheck="false"
                     role="combobox" aria-autocomplete="list" aria-controls="add-member-search-results"
                     [attr.aria-expanded]="isSuggestionListOpen()" [value]="searchTerm()"
-                    (input)="updateSearchTerm($event)" (keydown)="handleSearchKeydown($event)" />
+                    (input)="updateSearchTerm($event)" (keydown)="handleSearchKeydown($event)"
+                    (focus)="isMemberSearchFocused.set(true)" (blur)="isMemberSearchFocused.set(false)" />
             </div>
         </div>
 
         @if (isSuggestionListOpen()) {
         <!-- TEMP: Displays users that can be added to the active channel. -->
-        <div id="add-member-search-results" class="channel-add-members-dropdown__search-results" role="listbox"
-            aria-label="Mitgliedervorschläge">
+        <div #memberSearchResults id="add-member-search-results" class="channel-add-members-dropdown__search-results"
+            role="listbox" aria-label="Mitgliedervorschläge">
 
-            @for (suggestion of filteredSuggestions(); track suggestion.uid) {
+            @for (suggestion of filteredSuggestions(); track suggestion.uid; let index = $index) {
             <button class="channel-add-members-dropdown__search-result" type="button" role="option"
-                aria-selected="false" (click)="selectMember(suggestion)">
+                [class.is-selected]="index === selectedSuggestionIndex()"
+                [attr.aria-selected]="index === selectedSuggestionIndex()" (mousedown)="$event.preventDefault()"
+                (click)="selectMember(suggestion)">
 
                 <span class="channel-add-members-dropdown__avatar-wrapper">
                     <img class="channel-add-members-dropdown__avatar" [src]="suggestion.avatarUrl" alt="" />
@@ -70,7 +73,8 @@
         }
     </div>
 
-    <button class="channel-add-members-dropdown__submit-button" type="button" [disabled]="!hasSelectedMembers() || isAddingMembers" (click)="addUserToChannel()">
+    <button class="channel-add-members-dropdown__submit-button" type="button"
+        [disabled]="!hasSelectedMembers() || isAddingMembers" (click)="addUserToChannel()">
         Hinzufügen
     </button>
 </section>

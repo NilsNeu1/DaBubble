@@ -41,6 +41,10 @@ export class Header {
   @ViewChild('profileDialogComponent')
   private profileDialogComponent!: ProfileDialog;
 
+  /** References the desktop workspace search results. */
+  @ViewChild('desktopSearchResults')
+  private desktopSearchResults?: ElementRef<HTMLDivElement>;
+
   /** Defines where the header is displayed. */
   public readonly mode = input<'workspace' | 'legal'>('workspace');
 
@@ -76,6 +80,9 @@ export class Header {
 
   /** Tracks whether the profile should open after closing the user menu. */
   private readonly shouldOpenProfile = signal(false);
+
+  /** Tracks the selected workspace search result for keyboard navigation. */
+  protected readonly selectedWorkspaceSearchIndex = signal(0);
 
   /** Provides the current workspace search value. */
   protected readonly workspaceSearchTerm = this.headerSearch.searchTerm;
@@ -165,11 +172,44 @@ export class Header {
   protected updateWorkspaceSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.headerSearch.updateTerm(input.value);
+    this.selectedWorkspaceSearchIndex.set(0);
   }
 
   /** Clears the shared workspace search value. */
   protected clearWorkspaceSearch(): void {
     this.headerSearch.clearTerm();
+    this.selectedWorkspaceSearchIndex.set(0);
+  }
+
+  /** Handles keyboard navigation in the workspace search. */
+  protected onWorkspaceSearchKeydown(event: KeyboardEvent): void {
+    const suggestions = this.workspaceSearchSuggestions();
+    if (!this.isSearchSuggestionListOpen() || !suggestions.length || event.isComposing) return;
+    if (event.key === 'ArrowDown') return this.moveWorkspaceSearchSelection(event, 1);
+    if (event.key === 'ArrowUp') return this.moveWorkspaceSearchSelection(event, -1);
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const result = suggestions[this.selectedWorkspaceSearchIndex()] ?? suggestions[0];
+    this.selectWorkspaceSearchResult(result);
+  }
+
+  /** Moves the selected workspace search result. */
+  private moveWorkspaceSearchSelection(event: KeyboardEvent, direction: number): void {
+    event.preventDefault();
+    const count = this.workspaceSearchSuggestions().length;
+    this.selectedWorkspaceSearchIndex.update(
+      (index) => (index + direction + count) % count
+    );
+    this.scrollSelectedWorkspaceResult();
+  }
+
+  /** Keeps the selected desktop search result visible. */
+  private scrollSelectedWorkspaceResult(): void {
+    const results = this.desktopSearchResults?.nativeElement;
+    const index = this.selectedWorkspaceSearchIndex();
+    results
+      ?.querySelectorAll('.app-header__search-result')
+    [index]?.scrollIntoView({ block: 'nearest' });
   }
 
   /** Opens the user menu as a modal dialog. */

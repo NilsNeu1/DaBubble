@@ -7,6 +7,8 @@ import {
   input,
   output,
   signal,
+  ElementRef,
+  ViewChild,
 } from '@angular/core';
 import {
   ChannelMembersDropdown
@@ -101,6 +103,12 @@ export class ChatHeader {
   /** Stores the current new message search value. */
   protected readonly newMessageSearchTerm = signal('');
 
+  /** Tracks the selected new message suggestion for keyboard navigation. */
+  protected readonly selectedNewMessageIndex = signal(0);
+
+  /** Tracks whether the new message search has focus. */
+  protected readonly isNewMessageSearchFocused = signal(false);
+
   /** Stores the selected suggestion for a new message. */
   protected readonly selectedNewMessageSuggestion = signal<NewMessageSearchSuggestion | null>(null);
 
@@ -113,6 +121,10 @@ export class ChatHeader {
   /** Stores the responsive placeholder for the new message search. */
   protected newMessagePlaceholder = this.getNewMessagePlaceholder();
 
+  /** References the new message search results. */
+  @ViewChild('newMessageSearchResults')
+  private newMessageSearchResults?: ElementRef<HTMLDivElement>;
+
   /** Returns matching new message suggestions. */
   protected readonly newMessageSearchSuggestions = computed(() => {
     if (this.selectedNewMessageSuggestion()) return [];
@@ -122,7 +134,8 @@ export class ChatHeader {
 
   /** Indicates whether new message suggestions are available. */
   protected readonly isNewMessageSuggestionListOpen = computed(
-    () => this.newMessageSearchSuggestions().length > 0
+    () => this.isNewMessageSearchFocused()
+      && this.newMessageSearchSuggestions().length > 0
   );
 
   /** Provides the currently selected chat with up-to-date user data. */
@@ -202,7 +215,7 @@ export class ChatHeader {
       '.chat-header__members-button, .chat-header__add-member-button'
     );
   }
-  
+
   /** Updates the new message placeholder on viewport changes. */
   @HostListener('window:resize')
   protected updateNewMessagePlaceholder(): void {
@@ -214,6 +227,37 @@ export class ChatHeader {
     const input = event.target as HTMLInputElement;
     this.selectedNewMessageSuggestion.set(null);
     this.newMessageSearchTerm.set(input.value);
+    this.selectedNewMessageIndex.set(0);
+  }
+
+  /** Handles keyboard navigation for new message suggestions. */
+  protected onNewMessageSearchKeydown(event: KeyboardEvent): void {
+    if (event.isComposing || !this.isNewMessageSuggestionListOpen()) return;
+    if (event.key === 'ArrowDown') return this.moveNewMessageSelection(event, 1);
+    if (event.key === 'ArrowUp') return this.moveNewMessageSelection(event, -1);
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const suggestion = this.newMessageSearchSuggestions()[this.selectedNewMessageIndex()];
+    if (suggestion) this.selectNewMessageRecipient(suggestion);
+  }
+
+  /** Moves the selected new message suggestion. */
+  private moveNewMessageSelection(event: KeyboardEvent, direction: number): void {
+    event.preventDefault();
+    const count = this.newMessageSearchSuggestions().length;
+    this.selectedNewMessageIndex.update(
+      (index) => (index + direction + count) % count
+    );
+    this.scrollSelectedNewMessageResult();
+  }
+
+  /** Keeps the selected new message suggestion visible. */
+  private scrollSelectedNewMessageResult(): void {
+    const results = this.newMessageSearchResults?.nativeElement;
+    const index = this.selectedNewMessageIndex();
+    results
+      ?.querySelectorAll('.chat-header__new-message-result')
+    [index]?.scrollIntoView({ block: 'nearest' });
   }
 
   /** Selects a recipient for the new message. */

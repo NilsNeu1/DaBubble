@@ -32,7 +32,9 @@
             background-color: #ffffff;
 
             .app-header__search-result {
-                &:hover {
+
+                &:hover,
+                &.is-selected {
                     background-color: #eceefe;
                 }
 
@@ -74,6 +76,10 @@
             .app-header__search-result-avatar-wrapper {
                 margin-top: 2px;
             }
+        }
+
+        &.is-selected {
+            background-color: #eceefe;
         }
 
         &-avatar-wrapper {

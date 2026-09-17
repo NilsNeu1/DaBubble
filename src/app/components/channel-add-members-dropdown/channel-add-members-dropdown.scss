@@ -244,7 +244,8 @@
         background-color: transparent;
         cursor: pointer;
 
-        &:hover {
+        &:hover,
+        &.is-selected {
             background-color: #eceefe;
         }
 

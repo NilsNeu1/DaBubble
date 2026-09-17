@@ -12,7 +12,7 @@
                 name="desktopWorkspaceSearch" placeholder="Devspace durchsuchen" autocomplete="off" spellcheck="false"
                 role="combobox" aria-autocomplete="list" [attr.aria-expanded]="isSearchSuggestionListOpen()"
                 aria-controls="desktop-search-results" [value]="workspaceSearchTerm()"
-                (input)="updateWorkspaceSearch($event)" />
+                (input)="updateWorkspaceSearch($event)" (keydown)="onWorkspaceSearchKeydown($event)" />
 
             <span class="app-header__search-button" aria-hidden="true">
                 <img src="assets/search.png" alt="" />
@@ -20,13 +20,17 @@
 
             @if (isSearchSuggestionListOpen()) {
 
-            <div id="desktop-search-results" class="app-header__search-results app-header__search-results--desktop"
-                role="listbox" aria-label="Suchergebnisse">
+            <div #desktopSearchResults id="desktop-search-results"
+                class="app-header__search-results app-header__search-results--desktop" role="listbox"
+                aria-label="Suchergebnisse">
                 @for (
                 suggestion of workspaceSearchSuggestions();
-                track suggestion.id
+                track suggestion.id;
+                let index = $index
                 ) {
-                <button class="app-header__search-result" type="button" role="option" aria-selected="false"
+                <button class="app-header__search-result" type="button" role="option"
+                    [class.is-selected]="index === selectedWorkspaceSearchIndex()"
+                    [attr.aria-selected]="index === selectedWorkspaceSearchIndex()"
                     (click)="selectWorkspaceSearchResult(suggestion)">
                     @if (suggestion.type === 'message') {
                     @if (suggestion.avatarUrl) {

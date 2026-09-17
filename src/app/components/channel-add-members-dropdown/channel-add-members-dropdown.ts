@@ -4,7 +4,9 @@ import {
   input,
   output,
   signal,
-  inject
+  inject,
+  ElementRef,
+  ViewChild,
 } from '@angular/core';
 import { Auth } from '../../core/services/auth';
 import { firestore } from '../../core/firebase.config';
@@ -61,6 +63,12 @@ export class ChannelAddMembersDropdown {
   /** Stores the current add-member search value. */
   protected readonly searchTerm = signal('');
 
+  /** Tracks the selected member suggestion for keyboard navigation. */
+  protected readonly selectedSuggestionIndex = signal(0);
+
+  /** Tracks whether the add-member search has focus. */
+  protected readonly isMemberSearchFocused = signal(false);
+
   /** Stores the currently selected channel members. */
   protected readonly selectedMembers = signal<AddMemberSuggestion[]>([]);
 
@@ -80,7 +88,8 @@ export class ChannelAddMembersDropdown {
 
   /** Indicates whether search suggestions are available. */
   protected readonly isSuggestionListOpen = computed(
-    () => this.filteredSuggestions().length > 0
+    () => this.isMemberSearchFocused()
+      && this.filteredSuggestions().length > 0
   );
 
   /** Emits when the add-member dropdown should close. */
@@ -93,10 +102,15 @@ export class ChannelAddMembersDropdown {
     this.searchTerm.set('');
   }
 
+  /** References the add-member search results for keyboard navigation. */
+  @ViewChild('memberSearchResults')
+  private memberSearchResults?: ElementRef<HTMLDivElement>;
+
   /** Updates the add-member search value. */
   protected updateSearchTerm(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
+    this.selectedSuggestionIndex.set(0);
   }
 
   /** Filters temporary users by the entered name. */
@@ -129,6 +143,7 @@ export class ChannelAddMembersDropdown {
 
     this.selectedMembers.update((members) => [...members, member]);
     this.searchTerm.set('');
+    this.selectedSuggestionIndex.set(0);
   }
 
   /** Removes a member from the current selection. */
@@ -138,12 +153,46 @@ export class ChannelAddMembersDropdown {
     );
   }
 
-  /** Removes the latest member when backspace is pressed on an empty search. */
+  /** Handles keyboard navigation and removal of selected members. */
   protected handleSearchKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Backspace' || this.searchTerm()) return;
+    if (event.isComposing) return;
+    if (event.key === 'Backspace' && !this.searchTerm()) {
+      const lastMember = this.selectedMembers().at(-1);
+      if (lastMember) this.removeSelectedMember(lastMember.uid);
+      return;
+    }
+    if (!this.isSuggestionListOpen()) return;
+    if (event.key === 'ArrowDown') this.moveSuggestionSelection(event, 1);
+    if (event.key === 'ArrowUp') this.moveSuggestionSelection(event, -1);
+    if (event.key === 'Enter') this.confirmSuggestionSelection(event);
+  }
 
-    const lastMember = this.selectedMembers().at(-1);
-    if (lastMember) this.removeSelectedMember(lastMember.uid);
+  /** Moves the selected member suggestion in the given direction. */
+  private moveSuggestionSelection(event: KeyboardEvent, direction: number): void {
+    const count = this.filteredSuggestions().length;
+    if (!count) return;
+    event.preventDefault();
+    this.selectedSuggestionIndex.update(
+      (index) => (index + direction + count) % count
+    );
+    this.scrollSelectedSuggestion();
+  }
+
+  /** Adds the currently selected member to the selection. */
+  private confirmSuggestionSelection(event: KeyboardEvent): void {
+    const member = this.filteredSuggestions()[this.selectedSuggestionIndex()];
+    if (!member) return;
+    event.preventDefault();
+    this.selectMember(member);
+  }
+
+  /** Keeps the selected member suggestion visible. */
+  private scrollSelectedSuggestion(): void {
+    const results = this.memberSearchResults?.nativeElement;
+    const index = this.selectedSuggestionIndex();
+    results
+      ?.querySelectorAll('.channel-add-members-dropdown__search-result')
+    [index]?.scrollIntoView({ block: 'nearest' });
   }
 
   /** Checks whether a member is already selected. */

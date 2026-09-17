@@ -38,18 +38,22 @@
                 [placeholder]="newMessagePlaceholder" aria-label="Empfänger für neue Nachricht" autocomplete="off"
                 spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="new-message-search-results"
                 [attr.aria-expanded]="isNewMessageSuggestionListOpen()" [value]="newMessageSearchTerm()"
-                (input)="updateNewMessageSearch($event)" />
+                (input)="updateNewMessageSearch($event)" (keydown)="onNewMessageSearchKeydown($event)"
+                (focus)="isNewMessageSearchFocused.set(true)" (blur)="isNewMessageSearchFocused.set(false)" />
             }
         </div>
 
         @if (isNewMessageSuggestionListOpen()) {
-        <div id="new-message-search-results" class="chat-header__new-message-results" role="listbox"
-            aria-label="Empfängervorschläge">
+        <div #newMessageSearchResults id="new-message-search-results" class="chat-header__new-message-results"
+            role="listbox" aria-label="Empfängervorschläge">
             @for (
             suggestion of newMessageSearchSuggestions();
-            track suggestion.id
+            track suggestion.id;
+            let index = $index
             ) {
-            <button class="chat-header__new-message-result" type="button" role="option" aria-selected="false"
+            <button class="chat-header__new-message-result" (mousedown)="$event.preventDefault()" type="button"
+                role="option" [class.is-selected]="index === selectedNewMessageIndex()"
+                [attr.aria-selected]="index === selectedNewMessageIndex()"
                 (click)="selectNewMessageRecipient(suggestion)">
                 @if (
                 suggestion.type === 'user' &&
