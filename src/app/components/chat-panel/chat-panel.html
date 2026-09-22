@@ -27,19 +27,49 @@
                                 title="Like">👍</div>
                             <div class="interaction-btn" (click)="toggleReactionPicker(message.id + '-options')"
                                 type="button" title="Add Reaction">
-                                x
+                                <img class="interactoin-btn" src="/assets/add_reaction.svg" alt="add reaction">
                                 <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-options')"
                                     [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]="'up'"
                                     (emojiSelected)="toggleReaction(message, $event)"></app-emoji-picker>
                             </div>
-                            <div class="interaction-btn" (click)="openThread(message)" type="button" title="Answer">x
+                            <div class="interaction-btn" (click)="openThread(message)" type="button" title="Answer">
+                                <img class="interactoin-btn" src="/assets/comment.svg" alt="add reaction">
                             </div>
 
                             <div class="interaction-btn" *ngIf="isOwnMessage(message.senderId)"
-                                (click)="startEditMessage(message)" type="button" title="Bearbeiten">✏️</div>
+                                (click)="toggleMessageMenu(message.id)" type="button" title="Mehr Optionen">
+                                <img class="interactoin-btn" src="/assets/options.svg" alt="Mehr Optionen">
+
+                                <div class="msg-options-menu" *ngIf="isMessageMenuOpen(message.id)"
+                                    (click)="$event.stopPropagation()">
+                                    <button class="msg-options-item" type="button"
+                                        (click)="startEditMessage(message); closeMessageMenu()">
+                                        Nachricht bearbeiten
+                                    </button>
+
+                                    <div class="msg-options-divider"></div>
+
+                                    <button class="msg-options-item msg-options-item--danger" type="button"
+                                        (click)="requestDeleteMessage(message.id)">
+                                        Nachricht löschen
+                                    </button>
+
+                                    <div class="msg-options-confirm" *ngIf="isDeleteConfirmOpen(message.id)">
+                                        <span class="msg-options-confirm-text">Nachricht wirklich löschen?</span>
+                                        <div class="msg-options-confirm-actions">
+                                            <button class="msg-options-confirm-btn" type="button"
+                                                (click)="cancelDeleteMessage()">
+                                                Abbrechen
+                                            </button>
+                                            <button class="msg-options-confirm-btn msg-options-confirm-btn--danger"
+                                                type="button" (click)="deleteMessage(message)">
+                                                Löschen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-
                     </div>
 
                     <div class="msg-text" *ngIf="!isEditingMessage(message.id)">

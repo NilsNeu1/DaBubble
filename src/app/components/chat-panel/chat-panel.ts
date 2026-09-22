@@ -91,6 +91,9 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
 
   // ---------------- Chat-features -----------------
 
+
+activeMessageMenuId = signal<string | null>(null);
+pendingDeleteMessageId = signal<string | null>(null);
   activeReactionPickerId = signal<string | null>(null);
 
   trackByMessageId(index: number, message: ChatMessage): string {
@@ -139,6 +142,40 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
       .map((u) => (u.uid === this.currentUser?.uid ? 'Du' : u.name))
       .join(', ');
   }
+
+  
+
+  toggleMessageMenu(messageId: string): void {
+  const isSameMenu = this.activeMessageMenuId() === messageId;
+  this.activeMessageMenuId.set(isSameMenu ? null : messageId);
+  this.pendingDeleteMessageId.set(null);
+}
+
+isMessageMenuOpen(messageId: string): boolean {
+  return this.activeMessageMenuId() === messageId;
+}
+
+closeMessageMenu(): void {
+  this.activeMessageMenuId.set(null);
+  this.pendingDeleteMessageId.set(null);
+}
+
+requestDeleteMessage(messageId: string): void {
+  this.pendingDeleteMessageId.set(messageId);
+}
+
+cancelDeleteMessage(): void {
+  this.pendingDeleteMessageId.set(null);
+}
+
+isDeleteConfirmOpen(messageId: string): boolean {
+  return this.pendingDeleteMessageId() === messageId;
+}
+
+async deleteMessage(message: ChatMessage): Promise<void> {
+  await this.chatMessages.deleteMessage(this.channelId, message.id);
+  this.closeMessageMenu();
+}
 
   // ------------------ Emote-/Mention-Picker --------------
 

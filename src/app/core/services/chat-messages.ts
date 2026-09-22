@@ -60,6 +60,11 @@ export class ChatMessagesService {
   await updateDoc(messageRef, { text: newText });
 }
 
+async deleteMessage(channelId: string, messageId: string): Promise<void> {
+  const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
+  await deleteDoc(messageRef);
+}
+
 
   /**
    * Adds the given user's reaction if they haven't reacted with this icon yet, otherwise removes it (un-react).
@@ -128,3 +133,6 @@ export class ChatMessagesService {
   }
 
 }
+
+//------------------ delet messages -----------------
+
