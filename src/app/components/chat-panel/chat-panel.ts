@@ -92,8 +92,8 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   // ---------------- Chat-features -----------------
 
 
-activeMessageMenuId = signal<string | null>(null);
-pendingDeleteMessageId = signal<string | null>(null);
+  activeMessageMenuId = signal<string | null>(null);
+  pendingDeleteMessageId = signal<string | null>(null);
   activeReactionPickerId = signal<string | null>(null);
 
   trackByMessageId(index: number, message: ChatMessage): string {
@@ -143,39 +143,39 @@ pendingDeleteMessageId = signal<string | null>(null);
       .join(', ');
   }
 
-  
+
 
   toggleMessageMenu(messageId: string): void {
-  const isSameMenu = this.activeMessageMenuId() === messageId;
-  this.activeMessageMenuId.set(isSameMenu ? null : messageId);
-  this.pendingDeleteMessageId.set(null);
-}
+    const isSameMenu = this.activeMessageMenuId() === messageId;
+    this.activeMessageMenuId.set(isSameMenu ? null : messageId);
+    this.pendingDeleteMessageId.set(null);
+  }
 
-isMessageMenuOpen(messageId: string): boolean {
-  return this.activeMessageMenuId() === messageId;
-}
+  isMessageMenuOpen(messageId: string): boolean {
+    return this.activeMessageMenuId() === messageId;
+  }
 
-closeMessageMenu(): void {
-  this.activeMessageMenuId.set(null);
-  this.pendingDeleteMessageId.set(null);
-}
+  closeMessageMenu(): void {
+    this.activeMessageMenuId.set(null);
+    this.pendingDeleteMessageId.set(null);
+  }
 
-requestDeleteMessage(messageId: string): void {
-  this.pendingDeleteMessageId.set(messageId);
-}
+  requestDeleteMessage(messageId: string): void {
+    this.pendingDeleteMessageId.set(messageId);
+  }
 
-cancelDeleteMessage(): void {
-  this.pendingDeleteMessageId.set(null);
-}
+  cancelDeleteMessage(): void {
+    this.pendingDeleteMessageId.set(null);
+  }
 
-isDeleteConfirmOpen(messageId: string): boolean {
-  return this.pendingDeleteMessageId() === messageId;
-}
+  isDeleteConfirmOpen(messageId: string): boolean {
+    return this.pendingDeleteMessageId() === messageId;
+  }
 
-async deleteMessage(message: ChatMessage): Promise<void> {
-  await this.chatMessages.deleteMessage(this.channelId, message.id);
-  this.closeMessageMenu();
-}
+  async deleteMessage(message: ChatMessage): Promise<void> {
+    await this.chatMessages.deleteMessage(this.channelId, message.id);
+    this.closeMessageMenu();
+  }
 
   // ------------------ Emote-/Mention-Picker --------------
 
@@ -429,21 +429,29 @@ async deleteMessage(message: ChatMessage): Promise<void> {
 
   }
 
+  onMessageHover(messageId: string): void {
+    const openMenuId = this.activeMessageMenuId();
+    if (openMenuId !== null && openMenuId !== messageId) {
+      this.closeMessageMenu();
+    }
+  }
+
 
   // ----------------- Edit Message -----------------
 
   editingMessageId = signal<string | null>(null);
   editText = signal<string>('');
+  readonly showEditEmotePicker = signal(false);
 
   isEditingMessage(messageId: string): boolean {
     return this.editingMessageId() === messageId;
   }
 
-  // temp. later is used in the hover button
-  startEditMessage(message: ChatMessage): void {
+startEditMessage(message: ChatMessage): void {
     this.editingMessageId.set(message.id);
     this.editText.set(message.text);
-  }
+    this.showEditEmotePicker.set(false);
+}
 
   cancelEditMessage(): void {
     this.editingMessageId.set(null);
@@ -459,6 +467,20 @@ async deleteMessage(message: ChatMessage): Promise<void> {
     await this.chatMessages.updateMessage(this.channelId, message.id, newText);
     this.cancelEditMessage();
   }
+
+  onEditInput(event: Event): void {
+    const editTextareaElement = event.target as HTMLTextAreaElement;
+    this.editText.set(editTextareaElement.value);
+  }
+
+  
+
+addEmojiToEdit(emoji: string): void {
+    this.editText.update(currentText => currentText + emoji);
+    this.showEditEmotePicker.set(false);
+}
+
+  
 
 
 

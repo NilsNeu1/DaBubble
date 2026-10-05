@@ -8,7 +8,8 @@
             </div>
 
             <div class="msg-container" *ngFor="let message of messages; trackBy: trackByMessageId"
-                [class.own-message]="isOwnMessage(message.senderId)">
+                [class.own-message]="isOwnMessage(message.senderId)" [class.menu-active]="isMessageMenuOpen(message.id)"
+                (mouseenter)="onMessageHover(message.id)">
                 <div class="autor-img">
                     <img [src]="message.senderImageUrl" alt="">
                 </div>
@@ -77,13 +78,27 @@
                     </div>
 
                     <div class="msg-edit-box" *ngIf="isEditingMessage(message.id)">
-                        <textarea class="msg-edit-textarea" [value]="editText()"
-                            (input)="editText.set($any($event.target).value)"></textarea>
-                        <div class="msg-edit-actions">
-                            <button class="msg-edit-cancel" type="button"
-                                (click)="cancelEditMessage()">Abbrechen</button>
-                            <button class="msg-edit-save" type="button"
-                                (click)="saveEditMessage(message)">Speichern</button>
+                        <textarea class="msg-edit-textarea" rows="2" [value]="editText()"
+                            (input)="onEditInput($event)"></textarea>
+
+                        <div class="msg-edit-footer">
+                            <div class="input-features">
+                                <div class="emote-btn-wrapper">
+                                    <div class="emote-btn" role="img" tabindex="0"
+                                        (click)="showEditEmotePicker.set(!showEditEmotePicker())"></div>
+
+                                    @if (showEditEmotePicker()) {
+                                    <app-emoji-picker (emojiSelected)="addEmojiToEdit($event)"></app-emoji-picker>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="msg-edit-actions">
+                                <button class="msg-edit-cancel" type="button"
+                                    (click)="cancelEditMessage()">Abbrechen</button>
+                                <button class="msg-edit-save" type="button"
+                                    (click)="saveEditMessage(message)">Speichern</button>
+                            </div>
                         </div>
                     </div>
 
