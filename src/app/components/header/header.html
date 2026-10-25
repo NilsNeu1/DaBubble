@@ -12,7 +12,8 @@
                 name="desktopWorkspaceSearch" placeholder="Devspace durchsuchen" autocomplete="off" spellcheck="false"
                 role="combobox" aria-autocomplete="list" [attr.aria-expanded]="isSearchSuggestionListOpen()"
                 aria-controls="desktop-search-results" [value]="workspaceSearchTerm()"
-                (input)="updateWorkspaceSearch($event)" (keydown)="onWorkspaceSearchKeydown($event)" />
+                (focus)="openWorkspaceSearchSuggestions()" (input)="updateWorkspaceSearch($event)"
+                (keydown)="onWorkspaceSearchKeydown($event)" />
 
             <span class="app-header__search-button" aria-hidden="true">
                 <img src="assets/search.png" alt="" />
@@ -185,7 +186,7 @@
                     name="mobileWorkspaceSearch" placeholder="Gehe zu..." autocomplete="off" spellcheck="false"
                     role="combobox" aria-autocomplete="list" [attr.aria-expanded]="isSearchSuggestionListOpen()"
                     aria-controls="mobile-search-results" [value]="workspaceSearchTerm()"
-                    (input)="updateWorkspaceSearch($event)" />
+                    (focus)="openWorkspaceSearchSuggestions()" (input)="updateWorkspaceSearch($event)" />
 
                 <span class="app-header__search-button" aria-hidden="true">
                     <img src="assets/search.png" alt="" />

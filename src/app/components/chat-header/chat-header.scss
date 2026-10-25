@@ -4,7 +4,7 @@
 :host {
     display: block;
     min-width: 0;
-    margin: 0 16px;
+    margin: 0;
 }
 
 .chat-header {
@@ -36,6 +36,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        max-width: 100%;
         min-width: 0;
         padding: 8px 12px;
         border-radius: 30px;
@@ -50,9 +51,11 @@
 
     &__channel-name {
         min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-size: 24px;
         font-weight: 700;
-        overflow-wrap: anywhere;
     }
 
     &__dropdown-icon {
@@ -161,6 +164,7 @@
         display: flex;
         align-items: center;
         gap: 14px;
+        max-width: 100%;
         min-width: 0;
         padding: 6px 12px;
         border-radius: 35px;
@@ -197,9 +201,11 @@
 
     &__direct-name {
         min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-size: 24px;
         font-weight: 700;
-        overflow-wrap: anywhere;
     }
 }
 

@@ -1,0 +1,315 @@
+.mention-search-results {
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 350px;
+    max-width: calc(100% - 40px);
+    max-height: calc(100dvh - 180px);
+    padding: 12px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid #adb0d9;
+    border-radius: 20px 20px 20px 0;
+    background-color: #ffffff;
+}
+
+.mention-search-result {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-height: 58px;
+    padding: 4px 12px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 35px;
+    color: #000000;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 400;
+    text-align: left;
+    background-color: transparent;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #eceefe;
+    }
+
+    &:active {
+        color: #535af1;
+        background-color: #eceefe;
+    }
+}
+
+.mention-search-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+}
+
+.mention-search-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mention-search-status {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.mention-search-channel-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.mention-search-label {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.mention-search-result.is-selected {
+    background-color: #eceefe;
+}
+
+.msg-options-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: -120px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    padding: 10px 14px;
+    border-radius: 0 30px 30px 30px;
+    background-color: #ffffff;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.msg-options-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 30px;
+    background-color: transparent;
+    color: #000000;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        background-color: #eceefe;
+        color: #535af1;
+        outline: none;
+    }
+
+    &--danger {
+        color: #e53935;
+
+        &:hover,
+        &:focus-visible {
+            background-color: #ffebee;
+            color: #b71c1c;
+        }
+    }
+}
+
+.msg-options-divider {
+    height: 1px;
+    margin: 4px 8px;
+    background-color: var(--color-border, #e0e0f0);
+}
+
+.msg-options-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 16px;
+}
+
+.msg-options-confirm-text {
+    color: var(--color-text-secondary, #555);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.msg-options-confirm-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+}
+
+.msg-options-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 18px;
+    background-color: #eceefe;
+    color: #000000;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        background-color: #d5d9f9;
+        outline: none;
+    }
+
+    &--danger {
+        background-color: #e53935;
+        color: #ffffff;
+
+        &:hover,
+        &:focus-visible {
+            background-color: #b71c1c;
+            color: #ffffff;
+        }
+    }
+}
+
+.new-message-recipient-info {
+    align-self: center;
+    margin: auto 24px 24px;
+    padding: 12px 18px;
+    border: 1px solid #d32f2f;
+    border-radius: 12px;
+    background-color: #fff5f5;
+    color: #d32f2f;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+@media (min-width: 1241px) and (max-width: 1320px) {
+    :host(.chat-panel--thread-open) {
+        .msg-edit-box {
+            min-width: 0;
+        }
+
+        .msg-edit-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .msg-edit-cancel,
+        .msg-edit-save {
+            box-sizing: border-box;
+            width: 100%;
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    .chat-messages {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .msg-container {
+        padding: 8px 6px;
+    }
+
+    .autor-img {
+        margin-right: 8px;
+
+        img {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    .msg-container.own-message .autor-img {
+        margin-left: 8px;
+    }
+
+    .msg-content {
+        gap: 6px;
+    }
+
+    .msg-text {
+        padding: 10px 12px;
+    }
+
+    .msg-interactions {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .msg-threads {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .msg-reaction {
+        flex-wrap: wrap;
+    }
+
+    .chat-input-container {
+        margin: 8px 12px 0px;
+    }
+
+    .message-editor {
+        margin: 10px 12px;
+        width: calc(100% - 24px);
+        max-width: calc(100% - 24px);
+    }
+
+    .chat-input-actions {
+        padding: 0 8px 8px;
+    }
+}
+
+@media (min-width: 320px) and (max-width: 440px) {
+    .msg-edit-box {
+        min-width: 0;
+    }
+
+    .msg-edit-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .msg-edit-cancel,
+    .msg-edit-save {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .msg-options-menu {
+        right: -80px;
+    }
+}

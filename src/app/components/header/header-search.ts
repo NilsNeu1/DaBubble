@@ -12,6 +12,7 @@ import {
 import { firestore } from '../../core/firebase.config';
 import { AppUser } from '../../core/models/user.model';
 import { Auth } from '../../core/services/auth';
+import { getDirectMessageId } from '../../core/chat.model';
 
 /** Defines the supported workspace search result categories. */
 export type WorkspaceSearchResultType = 'user' | 'channel' | 'message';
@@ -28,6 +29,7 @@ export interface WorkspaceSearchResult {
     timestamp?: string;
     channelId?: string;
     messageId?: string;
+    directMessageUserId?: string;
 }
 
 /** Stores normalized message data used by the workspace search. */
@@ -84,16 +86,31 @@ export class HeaderSearch {
         this.searchTerm.set('');
     }
 
-    /** Creates listeners for every channel the current user can access. */
+    /** Creates listeners for all searchable channels and direct messages. */
     private createSearchListeners(): Unsubscribe[] {
         const channelIds = Object.keys(
             this.authService.currentUser()?.channelMemberships ?? {}
         );
+        const directMessageIds = this.getDirectMessageIds();
         this.resetSearchCache();
-        return channelIds.flatMap((channelId) => [
-            this.listenToSearchableChannel(channelId),
-            this.listenToSearchableMessages(channelId),
-        ]);
+        return [
+            ...channelIds.flatMap((channelId) => [
+                this.listenToSearchableChannel(channelId),
+                this.listenToSearchableMessages(channelId),
+            ]),
+            ...directMessageIds.map((chatId) =>
+                this.listenToSearchableMessages(chatId)
+            ),
+        ];
+    }
+
+    /** Returns all direct-message chat ids of the current user. */
+    private getDirectMessageIds(): string[] {
+        const currentUserId = this.authService.currentUser()?.uid;
+        if (!currentUserId) return [];
+        return this.authService.allUsers().map((user) =>
+            getDirectMessageId(currentUserId, user.uid)
+        );
     }
 
     /** Clears cached channel and message search data. */
@@ -285,6 +302,8 @@ export class HeaderSearch {
 
     /** Maps a stored message to the result format used by the header. */
     private toMessageSearchResult(message: SearchableMessage): WorkspaceSearchResult {
+        const directMessageUserId =
+            this.getDirectMessagePartner(message.channelId)?.uid;
         return {
             id: `${message.channelId}:${message.id}`,
             type: 'message',
@@ -295,6 +314,7 @@ export class HeaderSearch {
             avatarUrl: this.getSenderAvatar(message),
             channelId: message.channelId,
             messageId: message.id,
+            directMessageUserId,
         };
     }
 
@@ -320,10 +340,22 @@ export class HeaderSearch {
         )?.label ?? '';
     }
 
-    /** Returns the displayed channel context for one message result. */
-    private getMessageContextLabel(channelId: string): string {
-        const channelLabel = this.getChannelLabel(channelId);
-        return channelLabel ? `# ${channelLabel}` : '';
+    /** Returns the displayed context for one message result. */
+    private getMessageContextLabel(chatId: string): string {
+        const channelLabel = this.getChannelLabel(chatId);
+        if (channelLabel) return `# ${channelLabel}`;
+        return this.getDirectMessagePartner(chatId)?.name ?? '';
+    }
+
+    /** Finds the other user belonging to one direct-message chat. */
+    private getDirectMessagePartner(chatId: string): AppUser | undefined {
+        const currentUserId = this.authService.currentUser()?.uid;
+        if (!currentUserId) return undefined;
+        return this.authService.allUsers().find(
+            (user) =>
+                getDirectMessageId(currentUserId, user.uid) === chatId &&
+                user.uid !== currentUserId
+        );
     }
 
     /** Formats a stored message timestamp for the search result. */

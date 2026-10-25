@@ -1,502 +1,394 @@
 import {
-  Component, signal, ElementRef, HostListener, ViewChild,
+  Component, signal, effect, ElementRef, HostListener, ViewChild,
   Renderer2, inject, OnInit, OnDestroy, OnChanges, SimpleChanges,
-  Input, output, computed
+  Input, output
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EmojiPicker } from '../emoji-picker/emoji-picker';
 import { ChatMessagesService } from './../../core/services/chat-messages';
 import { ChatMessage, Reaction } from './../../core/models/message.model';
 import { Auth } from './../../core/services/auth';
-import 'emoji-picker-element';
 import { ChatModel } from './../../core/chat.model';
+import 'emoji-picker-element';
 import {
-  createMentionChannels, createMentionPeople, filterMentionChannels,
-  filterMentionPeople, getMentionSearch, getTextBeforeCursor,
-  MentionChannel, MentionItem, MentionPerson, MentionSearch,
-  getMentionReplacementRange
+  createMentionChannels, createMentionPeople, MentionChannel,
+  MentionItem, MentionPerson
 } from './mention';
+import { ChatMessageMenu } from './helpers/chat-message-menu';
+import { ChatMessageScroll } from './helpers/chat-message-scroll';
+import { ChatMessageEdit } from './helpers/chat-message-edit';
+import { ChatMessageReactions } from './helpers/chat-message-reactions';
+import { ChatMessageInput } from './helpers/chat-message-input';
+import { ChatMessageMentions } from './helpers/chat-message-mentions';
+import { ChatMessageEmojiPicker } from './helpers/chat-message-emoji-picker';
+import {
+  isOutsideEmojiPicker, isOutsideMentionPicker,
+  isOutsideMessageEditor, isOutsideMessageMenu
+} from './helpers/chat-message-outside-click';
 
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
   imports: [CommonModule, EmojiPicker],
   templateUrl: './chat-panel.html',
-  styleUrl: './chat-panel.scss',
+  styleUrl: './chat-panel.scss'
 })
 export class ChatPanel implements OnInit, OnDestroy, OnChanges {
-  private renderer = inject(Renderer2);
-  private chatMessages = inject(ChatMessagesService);
-  private auth = inject(Auth);
-  private chatModel = inject(ChatModel);
+  private readonly renderer = inject(Renderer2);
+  private readonly chatMessages = inject(ChatMessagesService);
+  private readonly auth = inject(Auth);
+  private readonly chatModel = inject(ChatModel);
+  private readonly requestedMessageId = signal<string | null>(null);
 
-  @Input({ required: true }) channelId!: string;
+  @Input() channelId = '';
+  @Input() composeMode = false;
+  @Input() conversationType: 'channel' | 'direct-message' = 'channel';
+  @Input() conversationLabel = '';
+  @Input() set scrollToMessageId(messageId: string | null) { this.requestedMessageId.set(messageId); }
   @ViewChild('messageInput') messageInput!: ElementRef<HTMLElement>;
   @ViewChild('emotePicker') emotePicker!: ElementRef<HTMLDivElement>;
-  @ViewChild('emoteBtn') emoteBtn!: ElementRef<HTMLDivElement>;
   @ViewChild('mentionPicker') mentionPicker!: ElementRef<HTMLDivElement>;
   @ViewChild('mentionBtn') mentionBtn!: ElementRef<HTMLDivElement>;
+  @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
 
-  message = signal<string>('');
-  showEmotePicker = signal<boolean>(false);
-  showMentionPicker = signal<boolean>(false);
-  isEmpty = signal<boolean>(true);
-  typedMentionSearch = signal<MentionSearch | null>(null);
-  typedMentionIndex = signal<number>(0);
+  readonly messageSent = output<void>();
+  readonly userProfileRequested = output<string>();
+  readonly messageScrollHandled = output<void>();
+  readonly threadRequested = output<ChatMessage>();
+  readonly showMentionPicker = signal(false);
 
-  readonly typedMentionItems = computed<MentionItem[]>(() => {
-    const search = this.typedMentionSearch();
-    if (!search) return [];
-    return search.trigger === '@'
-      ? filterMentionPeople(this.people, search.query)
-      : filterMentionChannels(this.channels, search.query);
-  });
+  private readonly messageMenu = new ChatMessageMenu();
+  private readonly messageEdit = new ChatMessageEdit(this.chatMessages);
+  private readonly messageReactions = new ChatMessageReactions(this.chatMessages);
+  private readonly messageEmojiPicker = new ChatMessageEmojiPicker(() => this.showMentionPicker.set(false));
+  private readonly messageInputEditor = new ChatMessageInput(this.renderer, () => this.messageInput.nativeElement);
+  private readonly typedMentions = new ChatMessageMentions(
+    () => this.messageInput.nativeElement,
+    () => this.people,
+    () => this.channels
+  );
+  private readonly messageScroll = new ChatMessageScroll(
+    () => this.messagesContainer?.nativeElement,
+    () => this.messageScrollHandled.emit()
+  );
 
-  private savedRange: Range | null = null;
+  readonly showEmotePicker = this.messageEmojiPicker.isOpen;
+  readonly isEmpty = this.messageInputEditor.isEmpty;
+  readonly typedMentionSearch = this.typedMentions.search;
+  readonly typedMentionIndex = this.typedMentions.selectedIndex;
+  readonly typedMentionItems = this.typedMentions.items;
+  readonly activeMessageMenuId = this.messageMenu.activeId;
+  readonly pendingDeleteMessageId = this.messageMenu.pendingDeleteId;
+  readonly editingMessageId = this.messageEdit.editingId;
+  readonly editText = this.messageEdit.text;
+  protected readonly maxVisibleReactions = this.messageReactions.visibleLimit;
+  protected readonly expandedReactionIds = this.messageReactions.expandedMessageIds;
+  private readonly emojiPickerTarget = this.messageEmojiPicker.target;
+  private readonly emojiReactionMessageId = this.messageEmojiPicker.reactionMessageId;
 
-  get channels(): MentionChannel[] {
-    return createMentionChannels(this.chatModel.channels());
+  /** Watches message changes and updates the scroll position. */
+  constructor() {
+    effect(() => this.messageScroll.handle(this.chatMessages.messages(), this.requestedMessageId(), this.channelId));
   }
 
-  get people(): MentionPerson[] {
-    return createMentionPeople(this.auth.allUsers());
-  }
-
-  // ---------------- Chat-Listener -----------------
-
-  get messages(): ChatMessage[] {
-    return this.chatMessages.messages();
-  }
-
-  async ngOnInit(): Promise<void> {
+  /** Loads messages when a conversation is initially opened. */
+  ngOnInit(): void {
+    if (this.composeMode || !this.channelId) return;
     this.chatMessages.loadMessages(this.channelId);
-    console.log('init');
   }
 
-  private get currentUser() {
-    return this.auth.currentUser();
+  /** Reloads messages when the active conversation changes. */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.composeMode || !this.channelId) return;
+    if (!changes['channelId'] || changes['channelId'].firstChange) return;
+    this.chatMessages.stopListening();
+    this.chatMessages.loadMessages(this.channelId);
+    this.clearInputAfterConversationChange();
   }
 
+  /** Cleans up message listeners and pending UI timers. */
   ngOnDestroy(): void {
+    this.cancelMessageMenuClose();
+    this.messageEmojiPicker.destroy();
     this.chatMessages.stopListening();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['channelId'] && !changes['channelId'].firstChange) {
-      this.chatMessages.stopListening();
-      this.chatMessages.loadMessages(this.channelId);
-      console.log('changes');
-    }
+  /** Returns the placeholder for the active conversation. */
+  protected get messagePlaceholder(): string {
+    return this.conversationType === 'channel'
+      ? `Nachricht an #${this.conversationLabel}` : `Nachricht an ${this.conversationLabel}`;
   }
 
-  // ---------------- Chat-features -----------------
+  /** Returns available mention channels. */
+  get channels(): MentionChannel[] { return createMentionChannels(this.chatModel.channels()); }
 
+  /** Returns available mention users. */
+  get people(): MentionPerson[] { return createMentionPeople(this.auth.allUsers()); }
 
-  activeMessageMenuId = signal<string | null>(null);
-  pendingDeleteMessageId = signal<string | null>(null);
-  activeReactionPickerId = signal<string | null>(null);
+  /** Returns messages of the active conversation. */
+  get messages(): ChatMessage[] { return this.chatMessages.messages(); }
 
-  trackByMessageId(index: number, message: ChatMessage): string {
-    return message.id;
+  /** Returns the authenticated user. */
+  private get currentUser() { return this.auth.currentUser(); }
+
+  /** Focuses the main message input. */
+  public focusMessageInput(): void { this.messageInput?.nativeElement.focus(); }
+
+  /** Returns the message identifier for tracking. */
+  trackByMessageId(index: number, message: ChatMessage): string { return message.id; }
+
+  /** Checks whether the current user sent a message. */
+  isOwnMessage(senderId: string): boolean { return senderId === this.currentUser?.uid; }
+
+  /** Requests the selected user's profile. */
+  protected requestUserProfile(userId: string): void { this.userProfileRequested.emit(userId); }
+
+  /** Opens the requested message thread. */
+  openThread(message: ChatMessage): void { this.threadRequested.emit(message); }
+
+  /** Formats the time of the newest thread reply. */
+  protected formatLastReplyTime(timestamp: number): string {
+    return new Date(timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
   }
 
-  isOwnMessage(senderId: string): boolean {
-    return senderId === this.currentUser?.uid;
-  }
+  /** Toggles the message options menu. */
+  toggleMessageMenu(messageId: string): void { this.messageMenu.toggle(messageId); }
 
-  toggleReactionPicker(pickerId: string): void {
-    this.activeReactionPickerId.update(current => current === pickerId ? null : pickerId);
-  }
+  /** Checks whether the message options menu is open. */
+  isMessageMenuOpen(messageId: string): boolean { return this.messageMenu.isOpen(messageId); }
 
-  isReactionPickerOpen(pickerId: string): boolean {
-    return this.activeReactionPickerId() === pickerId;
-  }
+  /** Closes the message options menu. */
+  closeMessageMenu(): void { this.messageMenu.close(); }
 
-  async toggleReaction(message: ChatMessage, icon: string): Promise<void> {
-    const user = this.currentUser;
-    if (!user) return;
+  /** Schedules the message options menu to close. */
+  scheduleMessageMenuClose(): void { this.messageMenu.scheduleClose(); }
 
-    await this.chatMessages.toggleReaction(
-      this.channelId,
-      message.id,
-      icon,
-      { uid: user.uid, name: user.name }
-    );
-    this.activeReactionPickerId.set(null);
-  }
+  /** Cancels the scheduled message menu close. */
+  cancelMessageMenuClose(): void { this.messageMenu.cancelClose(); }
 
-  hasReacted(reaction: Reaction): boolean {
-    /* MUSS SPÄTER ENTFERNT WERDEN ODER ÜBERARBEITET */
-    if (!reaction.reactedBy) {
-      return false;
-    }
-    return reaction.reactedBy.some((u) => u.uid === this.currentUser?.uid);
-  }
+  /** Opens the delete confirmation for a message. */
+  requestDeleteMessage(messageId: string): void { this.messageMenu.requestDelete(messageId); }
 
-  reactionTooltip(reaction: Reaction): string {
-    /* MUSS SPÄTER ENTFERNT WERDEN ODER ÜBERARBEITET */
-    if (!reaction.reactedBy) {
-      return '';
-    }
-    return reaction.reactedBy
-      .map((u) => (u.uid === this.currentUser?.uid ? 'Du' : u.name))
-      .join(', ');
-  }
+  /** Cancels the message delete confirmation. */
+  cancelDeleteMessage(): void { this.messageMenu.cancelDelete(); }
 
+  /** Checks whether a delete confirmation is open. */
+  isDeleteConfirmOpen(messageId: string): boolean { return this.messageMenu.isDeleteOpen(messageId); }
 
-
-  toggleMessageMenu(messageId: string): void {
-    const isSameMenu = this.activeMessageMenuId() === messageId;
-    this.activeMessageMenuId.set(isSameMenu ? null : messageId);
-    this.pendingDeleteMessageId.set(null);
-  }
-
-  isMessageMenuOpen(messageId: string): boolean {
-    return this.activeMessageMenuId() === messageId;
-  }
-
-  closeMessageMenu(): void {
-    this.activeMessageMenuId.set(null);
-    this.pendingDeleteMessageId.set(null);
-  }
-
-  requestDeleteMessage(messageId: string): void {
-    this.pendingDeleteMessageId.set(messageId);
-  }
-
-  cancelDeleteMessage(): void {
-    this.pendingDeleteMessageId.set(null);
-  }
-
-  isDeleteConfirmOpen(messageId: string): boolean {
-    return this.pendingDeleteMessageId() === messageId;
-  }
-
+  /** Deletes the selected message and closes its menu. */
   async deleteMessage(message: ChatMessage): Promise<void> {
     await this.chatMessages.deleteMessage(this.channelId, message.id);
     this.closeMessageMenu();
   }
 
-  // ------------------ Emote-/Mention-Picker --------------
+  /** Closes an open message menu when hovering over another message. */
+  onMessageHover(messageId: string): void { this.messageMenu.closeForOtherMessage(messageId); }
 
-  toggleEmotePicker(): void {
-    this.saveCursorPosition();
-    this.showEmotePicker.update(open => !open);
-    this.showMentionPicker.set(false);
+  /** Toggles the shared emoji picker for a reaction. */
+  toggleReactionPicker(messageId: string): void { this.switchEmojiPickerTarget('reaction', messageId); }
+
+  /** Toggles a message reaction for the current user. */
+  async toggleReaction(message: ChatMessage, icon: string): Promise<void> {
+    const user = this.currentUser;
+    if (!user) return;
+    await this.messageReactions.toggle(this.channelId, message, icon, { uid: user.uid, name: user.name });
+    this.showEmotePicker.set(false);
+    this.emojiReactionMessageId.set(null);
   }
 
+  /** Checks whether the current user added a reaction. */
+  hasReacted(reaction: Reaction): boolean {
+    return this.messageReactions.hasReacted(reaction, this.currentUser?.uid);
+  }
+
+  /** Returns the names of users who added a reaction. */
+  reactionTooltip(reaction: Reaction): string {
+    return this.messageReactions.tooltip(reaction, this.currentUser?.uid);
+  }
+
+  /** Updates the visible reaction limit after resizing. */
+  @HostListener('window:resize')
+  protected updateReactionLimit(): void { this.messageReactions.updateVisibleLimit(); }
+
+  /** Returns the currently visible reactions for a message. */
+  protected visibleReactions(message: ChatMessage): Reaction[] { return this.messageReactions.visible(message); }
+
+  /** Expands or collapses additional reactions. */
+  protected toggleReactionOverflow(messageId: string): void { this.messageReactions.toggleExpanded(messageId); }
+
+  /** Toggles the emoji picker for the message input. */
+  toggleEmotePicker(): void {
+    this.saveCursorPosition();
+    this.switchEmojiPickerTarget('input');
+  }
+
+  /** Toggles the emoji picker for an edited message. */
+  toggleEditEmotePicker(): void { this.switchEmojiPickerTarget('edit'); }
+
+  /** Switches the shared emoji picker to another target. */
+  private switchEmojiPickerTarget(target: 'input' | 'reaction' | 'edit', messageId: string | null = null): void {
+    this.messageEmojiPicker.switch(target, messageId);
+  }
+
+  /** Handles the selected emoji for the active picker target. */
+  async handleEmojiSelected(emoji: string): Promise<void> {
+    if (this.emojiPickerTarget() === 'reaction') {
+      await this.applySelectedReaction(emoji);
+      return;
+    }
+    if (this.emojiPickerTarget() === 'edit') {
+      this.addEmojiToEdit(emoji);
+      return;
+    }
+    this.insertEmote(emoji);
+  }
+
+  /** Applies the selected emoji as a message reaction. */
+  private async applySelectedReaction(emoji: string): Promise<void> {
+    const messageId = this.emojiReactionMessageId();
+    const message = this.messages.find((currentMessage) => currentMessage.id === messageId);
+    if (!message) return;
+    await this.toggleReaction(message, emoji);
+  }
+
+  /** Toggles the mention picker for the message input. */
   toggleMentionPicker(): void {
     this.saveCursorPosition();
-    this.showMentionPicker.update(open => !open);
+    this.showMentionPicker.update((open) => !open);
     this.showEmotePicker.set(false);
   }
 
+  /** Updates the editor state and its mention suggestions. */
   onInput(): void {
     this.updateEmptyState();
     this.saveCursorPosition();
-    this.updateTypedMentionSearch();
-  }
-
-  /** Updates the active mention search from the current cursor position. */
-  private updateTypedMentionSearch(): void {
-    const textBeforeCursor = getTextBeforeCursor(
-      this.messageInput.nativeElement
-    );
-    const search = getMentionSearch(textBeforeCursor);
-    this.typedMentionSearch.set(search);
-    this.typedMentionIndex.set(0);
-    if (search) {
+    if (this.typedMentions.updateSearch()) {
       this.showEmotePicker.set(false);
       this.showMentionPicker.set(false);
     }
   }
 
-  /** Handles keyboard navigation for typed mention suggestions. */
+  /** Handles keyboard input and typed mention navigation. */
   onEditorKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && event.shiftKey) return;
-    if (event.key === 'Escape') return this.closeTypedMentionSearch();
-    const items = this.typedMentionItems();
-    if (!this.typedMentionSearch() || items.length === 0) {
-      if (event.key === 'Enter') this.onEnterKey(event);
-      return;
-    }
-    if (event.key === 'ArrowDown') this.moveMentionSelection(event, 1);
-    if (event.key === 'ArrowUp') this.moveMentionSelection(event, -1);
-    if (event.key === 'Enter') this.confirmMentionSelection(event);
-  }
-
-  /** Moves the selected mention suggestion in the given direction. */
-  private moveMentionSelection(
-    event: KeyboardEvent,
-    direction: number
-  ): void {
-    event.preventDefault();
-    const count = this.typedMentionItems().length;
-    this.typedMentionIndex.update(
-      (index) => (index + direction + count) % count
-    );
-  }
-
-  /** Inserts the currently selected mention suggestion. */
-  private confirmMentionSelection(event: KeyboardEvent): void {
-    event.preventDefault();
-    const item = this.typedMentionItems()[this.typedMentionIndex()];
-    if (item) this.insertTypedMention(item);
+    this.typedMentions.handleKeydown(event, (item) => this.insertTypedMention(item), () => this.onEnterKey(event));
   }
 
   /** Closes the typed mention suggestions. */
-  closeTypedMentionSearch(): void {
-    this.typedMentionSearch.set(null);
-    this.typedMentionIndex.set(0);
-  }
+  closeTypedMentionSearch(): void { this.typedMentions.close(); }
 
-  saveCursorPosition(): void {
-    const selection = document.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return;
-    }
+  /** Saves the cursor position in the message editor. */
+  saveCursorPosition(): void { this.messageInputEditor.saveCursorPosition(); }
 
-    const range = selection.getRangeAt(0);
-    const editor = this.messageInput.nativeElement;
-
-    if (editor.contains(range.commonAncestorContainer)) {
-      this.savedRange = range.cloneRange();
-    }
-  }
-
-  private restoreCursorPosition(): Range {
-    const editor = this.messageInput.nativeElement;
-    editor.focus();
-
-    const selection = document.getSelection();
-    if (!selection) {
-      throw new Error('Selection API not available');
-    }
-
-    if (this.savedRange) {
-      selection.removeAllRanges();
-      selection.addRange(this.savedRange);
-      return this.savedRange;
-    }
-
-    const range = document.createRange();
-    range.selectNodeContents(editor);
-    range.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    return range;
-  }
-
+  /** Inserts an emoji into the message editor. */
   insertEmote(emoji: string): void {
-    const range = this.restoreCursorPosition();
-    range.deleteContents();
-
-    const textNode = this.renderer.createText(emoji);
-    range.insertNode(textNode);
-
-    range.setStartAfter(textNode);
-    range.setEndAfter(textNode);
-    document.getSelection()?.removeAllRanges();
-    document.getSelection()?.addRange(range);
-
-    this.savedRange = range.cloneRange();
+    this.messageInputEditor.insertEmoji(emoji);
     this.showEmotePicker.set(false);
-    this.updateEmptyState();
   }
 
+  /** Inserts a selected person or channel mention. */
   insertMention(item: MentionItem): void {
-    const range = this.restoreCursorPosition();
-    range.deleteContents();
-
-    const prefix = item.type === 'channel' ? '#' : '@';
-
-    const pill = this.renderer.createElement('span') as HTMLSpanElement;
-    this.renderer.addClass(pill, 'mention-pill');
-    this.renderer.setAttribute(pill, 'contenteditable', 'false');
-    this.renderer.setAttribute(pill, 'data-type', item.type);
-    this.renderer.setAttribute(pill, 'data-name', item.name);
-
-    const pillText = this.renderer.createText(`${prefix}${item.name}`);
-    this.renderer.appendChild(pill, pillText);
-
-    range.insertNode(pill);
-
-    // space after pill so you can continue writung
-    const spaceNode = this.renderer.createText('\u00A0');
-    range.setStartAfter(pill);
-    range.collapse(true);
-    range.insertNode(spaceNode);
-
-    range.setStartAfter(spaceNode);
-    range.setEndAfter(spaceNode);
-    document.getSelection()?.removeAllRanges();
-    document.getSelection()?.addRange(range);
-
-    this.savedRange = range.cloneRange();
+    this.messageInputEditor.insertMention(item);
     this.showMentionPicker.set(false);
-    this.updateEmptyState();
   }
 
-  /** Replaces the typed mention search with the existing mention pill. */
+  /** Replaces a typed mention query with the selected mention. */
   insertTypedMention(item: MentionItem): void {
     const search = this.typedMentionSearch();
-    if (!search || !this.savedRange) return;
-    const replacementRange = getMentionReplacementRange(
-      this.messageInput.nativeElement,
-      this.savedRange,
-      search
-    );
-    if (!replacementRange) return;
-    this.savedRange = replacementRange;
-    this.typedMentionSearch.set(null);
+    if (!search || !this.messageInputEditor.prepareTypedMention(search)) return;
+    this.closeTypedMentionSearch();
     this.insertMention(item);
   }
 
-  private updateEmptyState(): void {
-    const editor = this.messageInput.nativeElement;
-    this.isEmpty.set(
-      editor.textContent?.trim().length === 0 &&
-      editor.querySelectorAll('.mention-pill').length === 0
-    );
+  /** Refreshes the empty state of the message input. */
+  private updateEmptyState(): void { this.messageInputEditor.updateEmptyState(); }
+
+  /** Returns the message input as plain text. */
+  getPlainTextValue(): string { return this.messageInputEditor.getPlainTextValue(); }
+
+  /** Clears the editor after switching conversations. */
+  private clearInputAfterConversationChange(): void {
+    if (!this.messageInput) return;
+    this.messageInputEditor.clearForConversationChange();
+    this.closeTypedMentionSearch();
   }
 
-  // --------------- prep for backend submission ---------------
-  getPlainTextValue(): string {
-    const editor = this.messageInput.nativeElement;
-    let result = '';
-
-    editor.childNodes.forEach(node => {
-      result += node.textContent ?? '';
-    });
-
-    return result.trim();
-  }
-
+  /** Sends the current message to the selected conversation. */
   async sendMessage(): Promise<void> {
     const text = this.getPlainTextValue();
-    if (!text) return;
-
+    if (!text || !this.channelId) return;
     const user = this.currentUser;
     if (!user) return;
-
     await this.chatMessages.sendMessage(this.channelId, {
-      senderId: user.uid,
-      senderName: user.name,
-      senderImageUrl: user.avatarUrl,
-      text,
+      senderId: user.uid, senderName: user.name, senderImageUrl: user.avatarUrl, text
     });
+    this.clearSentMessageInput();
+    this.messageSent.emit();
+  }
 
+  /** Clears the editor after a message is sent. */
+  private clearSentMessageInput(): void {
     this.messageInput.nativeElement.textContent = '';
     this.closeTypedMentionSearch();
     this.updateEmptyState();
   }
 
+  /** Sends the message when Enter is pressed without Shift. */
   onEnterKey(event: Event): void {
-    if (!(event instanceof KeyboardEvent)) return;
-    if (event.shiftKey) return;
+    if (!(event instanceof KeyboardEvent) || event.shiftKey) return;
     event.preventDefault();
     this.sendMessage();
   }
 
+  /** Checks whether the selected message is being edited. */
+  isEditingMessage(messageId: string): boolean { return this.messageEdit.isEditing(messageId); }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Node;
-
-    if (this.showEmotePicker()) {
-      const clickedInsideEmotePicker = this.emotePicker?.nativeElement.contains(target);
-      const clickedOnEmoteBtn = this.emoteBtn?.nativeElement.contains(target);
-      if (!clickedInsideEmotePicker && !clickedOnEmoteBtn) {
-        this.showEmotePicker.set(false);
-      }
-    }
-
-    if (this.showMentionPicker()) {
-      const clickedInsideMentionPicker = this.mentionPicker?.nativeElement.contains(target);
-      const clickedOnMentionBtn = this.mentionBtn?.nativeElement.contains(target);
-      if (!clickedInsideMentionPicker && !clickedOnMentionBtn) {
-        this.showMentionPicker.set(false);
-      }
-    }
-
-    if (this.activeReactionPickerId()) {
-      const clickedElement = event.target as Element;
-      const clickedInsideReactionPicker = clickedElement.closest('.instant-reaction-btn , .interaction-btn');
-      if (!clickedInsideReactionPicker) {
-        this.activeReactionPickerId.set(null);
-      }
-    }
-
+  /** Starts editing the selected message. */
+  startEditMessage(message: ChatMessage): void {
+    this.messageEdit.start(message);
+    this.showEmotePicker.set(false);
   }
 
-  onMessageHover(messageId: string): void {
-    const openMenuId = this.activeMessageMenuId();
-    if (openMenuId !== null && openMenuId !== messageId) {
-      this.closeMessageMenu();
-    }
-  }
-
-
-  // ----------------- Edit Message -----------------
-
-  editingMessageId = signal<string | null>(null);
-  editText = signal<string>('');
-  readonly showEditEmotePicker = signal(false);
-
-  isEditingMessage(messageId: string): boolean {
-    return this.editingMessageId() === messageId;
-  }
-
-startEditMessage(message: ChatMessage): void {
-    this.editingMessageId.set(message.id);
-    this.editText.set(message.text);
-    this.showEditEmotePicker.set(false);
-}
-
+  /** Cancels the current edit and its emoji picker. */
   cancelEditMessage(): void {
-    this.editingMessageId.set(null);
-    this.editText.set('');
+    this.messageEdit.cancel();
+    if (this.emojiPickerTarget() === 'edit') this.showEmotePicker.set(false);
   }
 
-  async saveEditMessage(message: ChatMessage): Promise<void> {
-    const newText = this.editText().trim();
-    if (!newText || newText === message.text) {
-      this.cancelEditMessage();
-      return;
-    }
-    await this.chatMessages.updateMessage(this.channelId, message.id, newText);
+  /** Cancels the currently active message edit. */
+  public cancelActiveMessageEdit(): void {
+    if (!this.editingMessageId()) return;
     this.cancelEditMessage();
   }
 
+  /** Saves an edited message and closes its emoji picker. */
+  async saveEditMessage(message: ChatMessage): Promise<void> {
+    await this.messageEdit.save(this.channelId, message);
+    if (this.emojiPickerTarget() === 'edit') this.showEmotePicker.set(false);
+  }
+
+  /** Updates the text of the message being edited. */
   onEditInput(event: Event): void {
-    const editTextareaElement = event.target as HTMLTextAreaElement;
-    this.editText.set(editTextareaElement.value);
+    const textarea = event.target as HTMLTextAreaElement;
+    this.messageEdit.setText(textarea.value);
   }
 
-  
-
-addEmojiToEdit(emoji: string): void {
-    this.editText.update(currentText => currentText + emoji);
-    this.showEditEmotePicker.set(false);
-}
-
-  
-
-
-
-  // ---------------- Thread -----------------
-  readonly threadRequested = output<ChatMessage>();
-
-  openThread(message: ChatMessage): void {
-    this.threadRequested.emit(message);
+  /** Adds an emoji to the currently edited message. */
+  addEmojiToEdit(emoji: string): void {
+    this.messageEdit.addEmoji(emoji);
+    this.showEmotePicker.set(false);
   }
 
-  protected formatLastReplyTime(timestamp: number): string {
-    return new Date(timestamp).toLocaleTimeString('de-DE', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }) + ' Uhr';
+  /** Handles outside clicks for pickers, editors and message menus. */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const emojiPicker = this.emotePicker?.nativeElement;
+    if (this.showEmotePicker() && isOutsideEmojiPicker(event, emojiPicker)) this.showEmotePicker.set(false);
+    if (this.showMentionPicker() && isOutsideMentionPicker(
+      event, this.mentionPicker?.nativeElement, this.mentionBtn?.nativeElement
+    )) this.showMentionPicker.set(false);
+    if (this.editingMessageId() && isOutsideMessageEditor(
+      event, this.emojiPickerTarget() === 'edit', emojiPicker
+    )) this.cancelEditMessage();
+    if (this.activeMessageMenuId() && isOutsideMessageMenu(event)) this.closeMessageMenu();
   }
-
-
 }

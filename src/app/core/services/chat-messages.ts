@@ -13,7 +13,7 @@ import {
   where,
   Unsubscribe,
 }
-from 'firebase/firestore';
+  from 'firebase/firestore';
 import { firestore } from '../firebase.config';
 import { getDirectMessageId } from '../chat.model';
 import { ChatMessage, Reaction, ReactionUser } from '../models/message.model';
@@ -47,23 +47,24 @@ export class ChatMessagesService {
       ...message,
       timestamp: Date.now(),
       hasThread: false,
+      replyCount: 0,
       reactions: [],
     });
   }
 
   async updateMessage(
-  channelId: string,
-  messageId: string,
-  newText: string
-): Promise<void> {
-  const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
-  await updateDoc(messageRef, { text: newText });
-}
+    channelId: string,
+    messageId: string,
+    newText: string
+  ): Promise<void> {
+    const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
+    await updateDoc(messageRef, { text: newText });
+  }
 
-async deleteMessage(channelId: string, messageId: string): Promise<void> {
-  const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
-  await deleteDoc(messageRef);
-}
+  async deleteMessage(channelId: string, messageId: string): Promise<void> {
+    const messageRef = doc(firestore, 'chats', channelId, 'messages', messageId);
+    await deleteDoc(messageRef);
+  }
 
 
   /**

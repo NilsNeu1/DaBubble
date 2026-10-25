@@ -1,6 +1,9 @@
 import {
   Component,
+  computed,
+  effect,
   ElementRef,
+  HostListener,
   inject,
   input,
   output,
@@ -67,6 +70,7 @@ export class Header {
   public readonly messageRequested = output<{
     channelId: string;
     messageId: string;
+    directMessageUserId?: string;
   }>();
 
   /** Defines the breakpoint for the mobile user menu. */
@@ -81,6 +85,9 @@ export class Header {
   /** Tracks whether the profile should open after closing the user menu. */
   private readonly shouldOpenProfile = signal(false);
 
+  /** Tracks whether the workspace search suggestions may be shown. */
+  private readonly isWorkspaceSearchOpen = signal(false);
+
   /** Tracks the selected workspace search result for keyboard navigation. */
   protected readonly selectedWorkspaceSearchIndex = signal(0);
 
@@ -92,8 +99,11 @@ export class Header {
     this.headerSearch.suggestions;
 
   /** Indicates whether search suggestions are available. */
-  protected readonly isSearchSuggestionListOpen =
-    this.headerSearch.hasSuggestions;
+  protected readonly isSearchSuggestionListOpen = computed(
+    () =>
+      this.isWorkspaceSearchOpen() &&
+      this.workspaceSearchSuggestions().length > 0
+  );
 
   /** Indicates whether the mobile search view is active. */
   protected readonly isMobileSearchActive =
@@ -116,6 +126,7 @@ export class Header {
   ): void {
     this.emitWorkspaceSearchResult(result);
     this.clearWorkspaceSearch();
+    this.isWorkspaceSearchOpen.set(false);
   }
 
   /** Emits the matching event for one workspace search result. */
@@ -158,6 +169,7 @@ export class Header {
     this.messageRequested.emit({
       channelId: result.channelId,
       messageId: result.messageId,
+      directMessageUserId: result.directMessageUserId,
     });
   }
 
@@ -171,8 +183,24 @@ export class Header {
   /** Updates the shared workspace search value. */
   protected updateWorkspaceSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.headerSearch.updateTerm(input.value);
-    this.selectedWorkspaceSearchIndex.set(0);
+    this.workspaceSearchTerm.set(input.value);
+    this.isWorkspaceSearchOpen.set(true);
+  }
+
+  /** Reopens the workspace search suggestions when the search receives focus. */
+  protected openWorkspaceSearchSuggestions(): void {
+    this.isWorkspaceSearchOpen.set(true);
+  }
+
+  /** Closes workspace search suggestions after clicking outside the search. */
+  @HostListener('document:click', ['$event'])
+  protected closeWorkspaceSearchSuggestions(event: MouseEvent): void {
+    const target = event.target;
+
+    if (!(target instanceof Element)) return;
+    if (target.closest('.app-header__search')) return;
+
+    this.isWorkspaceSearchOpen.set(false);
   }
 
   /** Clears the shared workspace search value. */

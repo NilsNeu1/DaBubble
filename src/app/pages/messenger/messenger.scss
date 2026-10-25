@@ -5,10 +5,10 @@
 }
 
 .messenger-page {
-    box-sizing: border-box;
-    padding: 0 40px 20px 20px;
     display: flex;
-    gap: 4px;
+    gap: 20px;
+    box-sizing: border-box;
+    padding: 0px 0px 0px 20px;
 }
 
 .close-workspace-menu {
@@ -22,7 +22,8 @@
 
 .close-workspace-menu.dnone {
     flex-basis: 0;
-    width: 0px;
+    width: 0;
+    margin-right: -20px;
 }
 
 .chat-container {
@@ -48,7 +49,15 @@ app-chat-panel {
 
 @media (max-width: 1024px) {
     :host {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        min-height: 0;
         background-color: #ffffff;
+    }
+
+    app-header {
+        flex-shrink: 0;
     }
 
     .close-workspace-menu {
@@ -64,7 +73,18 @@ app-chat-panel {
         display: none;
     }
 
+    .messenger-page {
+        padding: 0px 10px 0px 10px;
+        display: block;
+        min-height: 0;
+    }
+
     .messenger-page--mobile-chat {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        min-height: 0;
+
         .close-workspace-menu {
             max-width: none;
             width: 100%;
@@ -74,11 +94,53 @@ app-chat-panel {
 
         .chat-container {
             display: flex;
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        app-chat-header {
+            flex-shrink: 0;
+        }
+
+        app-chat-panel {
+            flex: 1 1 0;
+            min-height: 0;
         }
     }
 
-    .messenger-page {
-        padding: 0 10px 20px 10px;
-        display: block;
+    .messenger-page>app-thread-panel {
+        display: none;
+    }
+
+    .messenger-page--mobile-chat.messenger-page--mobile-thread {
+        .chat-container {
+            display: none;
+        }
+
+        >app-thread-panel {
+            display: block;
+            flex: 1 1 0;
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            height: auto;
+            max-height: none;
+        }
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1240px) {
+    .messenger-page--thread-open {
+        .chat-container {
+            display: none;
+        }
+
+        >app-thread-panel {
+            flex: 1 1 0;
+            width: 100%;
+            min-width: 0;
+            max-width: none;
+        }
     }
 }

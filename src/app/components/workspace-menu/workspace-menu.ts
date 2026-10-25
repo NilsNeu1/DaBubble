@@ -18,11 +18,11 @@ export class WorkspaceMenu {
   hoverDirectMessage: boolean = false;
   isWorkspaceMenuOpen: boolean = true;
   hoverWorkspaceMenu: boolean = false;
-  selectedChannel: string | null = null;
-  selectedUser: string | null = null;
 
   @Output() workspaceMenuOpenChanged = new EventEmitter<boolean>();
   @Input() isOpen = false;
+  @Input() activeConversationId: string | null = null;
+  @Input() activeConversationType: 'channel' | 'direct-message' | null = null;
   @Output() newDirectMessage = new EventEmitter<boolean>();
   @Output() outputSelectedChannel = new EventEmitter<{
     channelName: string;
@@ -99,18 +99,6 @@ export class WorkspaceMenu {
     } else {
       return 'assets/arrow_drop_down-right.png';
     }
-  }
-
-  /** Marks a channel as selected and clears the selected direct-message user. */
-  openChannel(channelName: string) {
-    this.selectedChannel = channelName;
-    this.selectedUser = null;
-  }
-
-  /** Marks a direct-message user as selected and clears the selected channel. */
-  openDirectMessage(userName: string) {
-    this.selectedUser = userName;
-    this.selectedChannel = null;
   }
 
   /** Requests opening the new direct-message view. */

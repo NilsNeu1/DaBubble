@@ -1,8 +1,7 @@
 :host {
   position: absolute;
   bottom: calc(100% + 8px);
-  bottom: auto;
-  top: calc(100% + 8px);
+  top: auto;
   left: 0;
   display: flex;
   gap: 4px;
@@ -11,12 +10,12 @@
   border-radius: 24px;
   padding: 6px 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  z-index: 10;
+  z-index: 1000;
 }
 
-:host(.align-right) {
-  left: auto;
-  right: 0;
+:host(.direction-down) {
+  top: calc(100% + 8px);
+  bottom: auto;
 }
 
 emoji-picker {
@@ -45,5 +44,77 @@ emoji-picker {
   &:hover {
     background: var(--color-bubble, #eeeefc);
     transform: scale(1.15);
+  }
+}
+
+:host(.thread-input-emoji-picker) {
+  left: calc(var(--thread-input-side-margin, 20px) * -1);
+  right: auto;
+  width: calc(100% + var(--thread-input-side-margin, 20px) + var(--thread-input-side-margin, 20px));
+  min-width: 0;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+:host(.chat-input-emoji-picker) {
+  left: 12px;
+  right: auto;
+  width: calc(100% - 24px);
+  min-width: 0;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+:host(.thread-input-emoji-picker) emoji-picker,
+:host(.chat-input-emoji-picker) emoji-picker {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  --num-columns: 6;
+  --emoji-padding: 0.25rem;
+  --category-emoji-size: 1.125rem;
+}
+
+:host(.thread-reaction-emoji-picker) {
+  left: 50%;
+  right: auto;
+  width: min(352px, calc(100% - 24px));
+  max-width: 352px;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+}
+
+:host(.thread-reaction-emoji-picker) emoji-picker {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  --num-columns: 6;
+  --emoji-padding: 0.25rem;
+  --category-emoji-size: 1.125rem;
+}
+
+:host(.thread-edit-emoji-picker) {
+  left: 0;
+  right: auto;
+  width: min(352px, calc(100dvw - 24px));
+  max-width: 352px;
+  box-sizing: border-box;
+}
+
+:host(.thread-edit-emoji-picker) emoji-picker {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-height: 740px) {
+  :host(.chat-input-emoji-picker) {
+    padding: 4px 6px;
+  }
+
+  :host(.chat-input-emoji-picker) emoji-picker {
+    height: clamp(200px, 50dvh, 370px);
   }
 }

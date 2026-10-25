@@ -34,7 +34,7 @@
                 </button>
             </div>
             } @else {
-            <input class="chat-header__new-message-input" type="search" name="newMessageSearch"
+            <input class="chat-header__new-message-input" #newMessageInput type="search" name="newMessageSearch"
                 [placeholder]="newMessagePlaceholder" aria-label="Empfänger für neue Nachricht" autocomplete="off"
                 spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="new-message-search-results"
                 [attr.aria-expanded]="isNewMessageSuggestionListOpen()" [value]="newMessageSearchTerm()"

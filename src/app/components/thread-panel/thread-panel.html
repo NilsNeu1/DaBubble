@@ -1,64 +1,26 @@
-<section class="thread-panel">
-    <app-thread-header conversationType="channel" conversationLabel="Entwicklerteam"
+<section class="thread-panel" [class.thread-panel--emoji-open]="showEmojiPicker()">
+    <app-thread-header [conversationType]="conversationType" [conversationLabel]="conversationLabel"
         (closeRequested)="closeRequested.emit()">
     </app-thread-header>
 
     <div class="thread-messages" #threadMessages>
-        <article class="thread-message">
+        <article class="thread-message" [class.thread-message--own]="isOwnParentMessage()">
             <div class="thread-message__hover-actions">
                 <button class="thread-message__hover-action thread-message__hover-action--reaction" type="button"
-                    aria-label="Reaktion hinzufügen">
+                    aria-label="Reaktion hinzufügen" (click)="toggleParentReactionPicker()">
                 </button>
-            </div>
-            <div class="thread-message__avatar" role="button" tabindex="0"
-                (click)="requestUserProfile(parentMessage.senderId)"
-                (keydown.enter)="requestUserProfile(parentMessage.senderId)">
-                <img [src]="parentMessage.senderImageUrl" [alt]="parentMessage.senderName" />
-            </div>
-
-            <div class="thread-message__content">
-                <div class="thread-message__info">
-                    <span class="thread-message__name" role="button" tabindex="0"
-                        (click)="requestUserProfile(parentMessage.senderId)"
-                        (keydown.enter)="requestUserProfile(parentMessage.senderId)">
-                        {{ parentMessage.senderName }}
-                    </span>
-
-                    <span class="thread-message__timestamp">
-                        {{ parentMessage.timestamp | date:'HH:mm' }} Uhr
-                    </span>
-                </div>
-
-                <div class="thread-message__bubble">
-                    <p>{{ parentMessage.text }}</p>
-                </div>
-            </div>
-        </article>
-
-        <div class="thread-reply-divider">
-            <span>2 Antworten</span>
-            <div class="thread-reply-divider__line"></div>
-        </div>
-
-        @for (reply of replies; track reply.id) {
-        <article class="thread-message" [class.thread-message--own]="reply.isOwnMessage">
-            <div class="thread-message__hover-actions">
-                <button class="thread-message__hover-action thread-message__hover-action--reaction" type="button"
-                    aria-label="Reaktion hinzufügen">
-                </button>
-
-                @if (reply.isOwnMessage) {
+                @if (isOwnParentMessage()) {
                 <div class="thread-message__edit-menu-wrapper" (mouseenter)="cancelEditMenuClose()"
                     (mouseleave)="scheduleEditMenuClose()">
                     <button class="thread-message__hover-action thread-message__hover-action--edit" type="button"
-                        aria-label="Nachrichtenoptionen" [attr.aria-expanded]="openEditMenuId() === reply.id"
-                        (click)="toggleEditMenu(reply.id)">
+                        aria-label="Nachrichtenoptionen"
+                        [attr.aria-expanded]="openEditMenuId() === 'parent:' + liveParentMessage.id"
+                        (click)="toggleEditMenu('parent:' + liveParentMessage.id)">
                     </button>
-
-                    @if (openEditMenuId() === reply.id) {
+                    @if (openEditMenuId() === 'parent:' + liveParentMessage.id) {
                     <div class="thread-message__edit-menu" (mouseenter)="cancelEditMenuClose()"
-                        (mouseleave)="closeEditMenu()">
-                        <button type="button">
+                        (mouseleave)="scheduleEditMenuClose()">
+                        <button type="button" (click)="startEditParentMessage()">
                             Nachricht bearbeiten
                         </button>
                     </div>
@@ -66,33 +28,60 @@
                 </div>
                 }
             </div>
-            <div class="thread-message__avatar" role="button" tabindex="0" (click)="requestUserProfile(reply.senderId)"
-                (keydown.enter)="requestUserProfile(reply.senderId)">
-                <img [src]="reply.senderImageUrl" [alt]="reply.senderName" />
+
+            <div class="thread-message__avatar" role="button" tabindex="0"
+                (click)="requestUserProfile(liveParentMessage.senderId)"
+                (keydown.enter)="requestUserProfile(liveParentMessage.senderId)">
+
+                <img [src]="liveParentMessage.senderImageUrl" [alt]="liveParentMessage.senderName" />
             </div>
 
             <div class="thread-message__content">
                 <div class="thread-message__info">
                     <span class="thread-message__name" role="button" tabindex="0"
-                        (click)="requestUserProfile(reply.senderId)"
-                        (keydown.enter)="requestUserProfile(reply.senderId)">
-                        {{ reply.senderName }}
+                        (click)="requestUserProfile(liveParentMessage.senderId)"
+                        (keydown.enter)="requestUserProfile(liveParentMessage.senderId)">
+
+                        {{ liveParentMessage.senderName }}
                     </span>
 
                     <span class="thread-message__timestamp">
-                        {{ reply.timestamp }}
+                        {{ liveParentMessage.timestamp | date:'HH:mm' }} Uhr
                     </span>
                 </div>
 
+                @if (!isEditingParentMessage()) {
                 <div class="thread-message__bubble">
-                    <p>{{ reply.text }}</p>
+                    <p>{{ liveParentMessage.text }}</p>
                 </div>
+                } @else {
+                <div class="thread-message__edit-box">
+                    <textarea class="thread-message__edit-textarea" rows="2" [value]="editReplyText()"
+                        (input)="onEditReplyInput($event)"></textarea>
+                    <div class="thread-message__edit-footer">
+                        <div class="thread-message__edit-emoji-wrapper">
+                            <button class="thread-message__edit-emoji" type="button" aria-label="Emoji hinzufügen"
+                                [attr.aria-expanded]="showEmojiPicker()" (click)="toggleEditReplyEmojiPicker()">
+                            </button>
+                        </div>
+                        <div class="thread-message__edit-actions">
+                            <button class="thread-message__edit-cancel" type="button" (click)="cancelEditReply()">
+                                Abbrechen
+                            </button>
+                            <button class="thread-message__edit-save" type="button" (click)="saveEditParentMessage()">
+                                Speichern
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                }
 
                 <div class="thread-message__reactions">
                     <div class="thread-message__reaction-list">
-                        @for (reaction of reply.reactions; track reaction.icon) {
+                        @for (reaction of parentReactions.slice(0, 7); track reaction.icon) {
                         <button class="thread-message__reaction" type="button"
-                            [attr.aria-label]="'Reaktion ' + reaction.icon + ', ' + reaction.reactedBy.length">
+                            [attr.aria-label]="'Reaktion ' + reaction.icon + ', ' + reaction.reactedBy.length"
+                            (click)="toggleParentReaction(reaction.icon)">
 
                             <span>{{ reaction.icon }}</span>
                             <span>{{ reaction.reactedBy.length }}</span>
@@ -104,17 +93,27 @@
 
                                 @if (reaction.reactedBy.length <= 2) { <div
                                     class="thread-message__reaction-tooltip-names">
-                                    @for (reactor of reaction.reactedBy; track reactor.uid; let last = $last) {
+                                    @for (
+                                    reactor of reaction.reactedBy;
+                                    track reactor.uid;
+                                    let last = $last
+                                    )
+                                    {
                                     <span>
-                                        {{ reactor.isCurrentUser ? 'Du' : reactor.name }}{{ !last ? ' und\u00A0 ' : ''
+                                        {{
+                                        reactor.isCurrentUser ? 'Du' : reactor.name }}{{ !last ? ' und\u00A0 ' : ''
                                         }}
                                     </span>
                                     }
                             </div>
                             } @else {
-                            <div
-                                class="thread-message__reaction-tooltip-names thread-message__reaction-tooltip-names--stacked">
-                                @for (reactor of reaction.reactedBy.slice(0, 5); track reactor.uid) {
+                            <div class="thread-message__reaction-tooltip-names
+                                   thread-message__reaction-tooltip-names--stacked">
+
+                                @for (
+                                reactor of reaction.reactedBy.slice(0, 5);
+                                track reactor.uid
+                                ) {
                                 <span>
                                     {{ reactor.isCurrentUser ? 'Du' : reactor.name }}
                                 </span>
@@ -132,25 +131,207 @@
                     </div>
                     </button>
                     }
+                    @if (parentReactions.length > 7) {
+                    <span class="thread-message__reaction-more">
+                        + {{ parentReactions.length - 7 }} weitere
+                    </span>
+                    }
                 </div>
 
-                <button class="thread-message__add-reaction" type="button" aria-label="Reaktion hinzufügen">
+                <button class="thread-message__add-reaction" type="button" aria-label="Reaktion hinzufügen"
+                    (click)="toggleParentReactionPicker()">
                 </button>
             </div>
     </div>
+    </article>
+
+    <div class="thread-reply-divider">
+        <span>
+            {{ replies.length }} {{ replies.length === 1 ? 'Antwort' : 'Antworten' }}
+        </span>
+        <div class="thread-reply-divider__line"></div>
+    </div>
+
+    @for (reply of replies; track reply.id; let isLast = $last) {
+    <article class="thread-message" [class.thread-message--own]="reply.isOwnMessage">
+
+        <div class="thread-message__hover-actions">
+            <button class="thread-message__hover-action thread-message__hover-action--reaction" type="button"
+                aria-label="Reaktion hinzufügen" (click)="toggleReplyReactionPicker(reply.id)">
+            </button>
+
+            @if (reply.isOwnMessage) {
+            <div class="thread-message__edit-menu-wrapper" (mouseenter)="cancelEditMenuClose()"
+                (mouseleave)="scheduleEditMenuClose()">
+
+                <button class="thread-message__hover-action thread-message__hover-action--edit" type="button"
+                    aria-label="Nachrichtenoptionen" [attr.aria-expanded]="openEditMenuId() === reply.id"
+                    (click)="toggleEditMenu(reply.id)">
+                </button>
+
+                @if (openEditMenuId() === reply.id) {
+                <div class="thread-message__edit-menu" (mouseenter)="cancelEditMenuClose()"
+                    (mouseleave)="scheduleEditMenuClose()">
+
+                    <button type="button" (click)="startEditReply(reply)">
+                        Nachricht bearbeiten
+                    </button>
+
+                    <div class="thread-message__edit-menu-divider"></div>
+
+                    <button class="thread-message__edit-menu-delete" type="button"
+                        (click)="requestDeleteReply(reply.id)">
+                        Nachricht löschen
+                    </button>
+
+                    @if (isDeleteReplyConfirmOpen(reply.id)) {
+                    <div class="thread-message__delete-confirm">
+                        <span>Nachricht wirklich löschen?</span>
+
+                        <div class="thread-message__delete-confirm-actions">
+                            <button type="button" (click)="cancelDeleteReply()">
+                                Abbrechen
+                            </button>
+
+                            <button class="thread-message__delete-confirm-button" type="button"
+                                (click)="deleteReply(reply.id)">
+                                Löschen
+                            </button>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+
+        <div class="thread-message__avatar" role="button" tabindex="0" (click)="requestUserProfile(reply.senderId)"
+            (keydown.enter)="requestUserProfile(reply.senderId)">
+            <img [src]="reply.senderImageUrl" [alt]="reply.senderName" />
+        </div>
+
+        <div class="thread-message__content">
+            <div class="thread-message__info">
+                <span class="thread-message__name" role="button" tabindex="0"
+                    (click)="requestUserProfile(reply.senderId)" (keydown.enter)="requestUserProfile(reply.senderId)">
+                    {{ reply.senderName }}
+                </span>
+
+                <span class="thread-message__timestamp">
+                    {{ reply.timestamp }}
+                </span>
+            </div>
+
+            @if (!isEditingReply(reply.id)) {
+            <div class="thread-message__bubble">
+                <p>{{ reply.text }}</p>
+            </div>
+            } @else {
+            <div class="thread-message__edit-box">
+                <textarea class="thread-message__edit-textarea" rows="2" [value]="editReplyText()"
+                    (input)="onEditReplyInput($event)">
+                    </textarea>
+
+                <div class="thread-message__edit-footer">
+                    <div class="thread-message__edit-emoji-wrapper">
+                        <button class="thread-message__edit-emoji" type="button" aria-label="Emoji hinzufügen"
+                            [attr.aria-expanded]="showEmojiPicker()" (click)="toggleEditReplyEmojiPicker()">
+                        </button>
+                    </div>
+
+                    <div class="thread-message__edit-actions">
+                        <button class="thread-message__edit-cancel" type="button" (click)="cancelEditReply()">
+                            Abbrechen
+                        </button>
+
+                        <button class="thread-message__edit-save" type="button" (click)="saveEditReply(reply)">
+                            Speichern
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <div class="thread-message__reactions">
+                <div class="thread-message__reaction-list">
+                    @for (reaction of reply.reactions.slice(0, 7); track reaction.icon) {
+                    <button class="thread-message__reaction" type="button"
+                        [attr.aria-label]="'Reaktion ' + reaction.icon + ', ' + reaction.reactedBy.length"
+                        (click)="toggleReplyReaction(reply.id, reaction.icon)">
+
+                        <span>{{ reaction.icon }}</span>
+                        <span>{{ reaction.reactedBy.length }}</span>
+
+                        <div class="thread-message__reaction-tooltip">
+                            <span class="thread-message__reaction-tooltip-icon">
+                                {{ reaction.icon }}
+                            </span>
+
+                            @if (reaction.reactedBy.length <= 2) { <div class="thread-message__reaction-tooltip-names">
+                                @for (
+                                reactor of reaction.reactedBy;
+                                track reactor.uid;
+                                let last = $last
+                                ) {
+                                <span>
+                                    {{ reactor.isCurrentUser ? 'Du' : reactor.name }}{{ !last ? ' und\u00A0 ' : ''
+                                    }}
+                                </span>
+                                }
+                        </div>
+                        } @else {
+                        <div class="thread-message__reaction-tooltip-names
+                                           thread-message__reaction-tooltip-names--stacked">
+
+                            @for (
+                            reactor of reaction.reactedBy.slice(0, 5);
+                            track reactor.uid
+                            ) {
+                            <span>
+                                {{ reactor.isCurrentUser ? 'Du' : reactor.name }}
+                            </span>
+                            }
+
+                            @if (reaction.reactedBy.length > 5) {
+                            <span>...</span>
+                            }
+                        </div>
+                        }
+
+                        <span class="thread-message__reaction-tooltip-text">
+                            hat reagiert
+                        </span>
+                </div>
+                </button>
+                }
+                @if (reply.reactions.length > 7) {
+                <span class="thread-message__reaction-more">
+                    + {{ reply.reactions.length - 7 }} weitere
+                </span>
+                }
+            </div>
+
+            <button class="thread-message__add-reaction" type="button" aria-label="Reaktion hinzufügen"
+                (click)="toggleReplyReactionPicker(reply.id)">
+            </button>
+
+        </div>
+        </div>
     </article>
     }
     </div>
 
     <div class="thread-input">
-        <div class="thread-input__editor" #replyEditor (focus)="updateTypedMentionSearch()"
-            (click)="updateTypedMentionSearch()" (blur)="closeTypedMentionSearch()" contenteditable="true"
-            role="textbox" aria-multiline="true" data-placeholder="Antworten..." (input)="handleEditorInput($event)"
+        <div class="thread-input__editor" #replyEditor contenteditable="true" role="textbox" aria-multiline="true"
+            data-placeholder="Antworten..." (focus)="updateTypedMentionSearch()" (click)="updateTypedMentionSearch()"
+            (blur)="closeTypedMentionSearch()" (input)="handleEditorInput($event)"
             (keydown)="onReplyEditorKeydown($event)">
         </div>
 
         @if (typedMentionSearch() && typedMentionItems().length > 0) {
         <div class="mention-search-results" role="listbox" aria-label="Mention-Vorschläge">
+
             @for (
             item of typedMentionItems();
             track item.type === 'person' ? item.uid : item.channelId;
@@ -159,11 +340,14 @@
             <button class="mention-search-result" type="button" role="option"
                 [class.is-selected]="index === typedMentionIndex()" [attr.aria-selected]="index === typedMentionIndex()"
                 (mousedown)="$event.preventDefault()" (click)="insertTypedMention(item)">
+
                 @if (item.type === 'person') {
                 <span class="mention-search-avatar-wrapper">
                     <img class="mention-search-avatar" [src]="item.imageUrl" [alt]="item.name" />
-                    <img class="mention-search-status"
-                        [src]="item.status === 'online' ? 'assets/Online.png' : 'assets/Offline.png'" alt="" />
+
+                    <img class="mention-search-status" [src]="item.status === 'online'
+                            ? 'assets/Online.png'
+                            : 'assets/Offline.png'" alt="" />
                 </span>
                 } @else {
                 <span class="mention-search-channel-icon" aria-hidden="true">
@@ -179,37 +363,57 @@
         </div>
         }
 
+        @if (showEmojiPicker()) {
+        <app-emoji-picker class="thread-input-emoji-picker" [direction]="'up'"
+            (emojiSelected)="handleEmojiSelected($event)">
+        </app-emoji-picker>
+        }
+
         <div class="thread-input__actions">
             <div class="thread-input__features">
-                <button class="thread-input__emoji" type="button" aria-label="Emoji hinzufügen">
-                </button>
+                <div class="thread-emoji-wrapper">
+                    <button class="thread-input__emoji" type="button" aria-label="Emoji hinzufügen"
+                        [attr.aria-expanded]="showEmojiPicker()" (mousedown)="saveEmojiButtonCursor()"
+                        (click)="toggleEmojiPicker()">
+                    </button>
+                </div>
 
                 <div #threadMentionWrapper class="thread-mention-wrapper">
+
                     <button class="thread-input__mention" type="button" aria-label="Person oder Channel erwähnen"
                         [attr.aria-expanded]="showMentionPicker()" (mousedown)="saveMentionButtonCursor()"
-                        (click)="toggleMentionPicker()"></button>
+                        (click)="toggleMentionPicker()">
+                    </button>
 
                     @if (showMentionPicker()) {
                     <div class="mention-picker">
                         <div class="mention-picker-section">
-                            <span class="mention-picker-label">Channels</span>
+                            <span class="mention-picker-label">
+                                Channels
+                            </span>
 
                             @for (channel of mentionChannels; track channel.channelId) {
                             <button class="mention-picker-item" type="button" (mousedown)="$event.preventDefault()"
                                 (click)="insertPickerMention(channel)">
+
                                 <img class="mention-picker-avatar" [src]="channel.imageUrl" [alt]="channel.name" />
+
                                 <span>{{ channel.name }}</span>
                             </button>
                             }
                         </div>
 
                         <div class="mention-picker-section">
-                            <span class="mention-picker-label">Personen</span>
+                            <span class="mention-picker-label">
+                                Personen
+                            </span>
 
                             @for (person of mentionPeople; track person.uid) {
                             <button class="mention-picker-item" type="button" (mousedown)="$event.preventDefault()"
                                 (click)="insertPickerMention(person)">
+
                                 <img class="mention-picker-avatar" [src]="person.imageUrl" [alt]="person.name" />
+
                                 <span>{{ person.name }}</span>
                             </button>
                             }

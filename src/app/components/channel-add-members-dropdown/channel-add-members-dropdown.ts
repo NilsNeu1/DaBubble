@@ -1,3 +1,4 @@
+
 import {
   Component,
   computed,
@@ -201,28 +202,40 @@ export class ChannelAddMembersDropdown {
   }
 
   /** Adds the selected user to the channel. */
-  async addUserToChannel() {
+  async addUserToChannel(): Promise<void> {
     this.isAddingMembers = true;
     const channelId = this.channelId();
-    const channelRef = doc(firestore, 'chats', channelId);
+    await this.saveMembersToChannel(channelId);
+    await this.saveChannelMemberships(channelId);
+    this.isAddingMembers = false;
+    this.requestClose();
+  }
 
+  /** Saves each selected member to the channel in sequence. */
+  private async saveMembersToChannel(channelId: string): Promise<void> {
+    const channelRef = doc(firestore, 'chats', channelId);
     for (let i = 0; i < this.selectedMembers().length; i++) {
       await updateDoc(channelRef, {
-        members: arrayUnion({
-          avatarUrl: this.selectedMembers()[i].avatarUrl,
-          name: this.selectedMembers()[i].name,
-          role: 'member',
-          uid: this.selectedMembers()[i].uid,
-        }),
+        members: arrayUnion(this.toChannelMember(this.selectedMembers()[i])),
       });
     }
+  }
 
+  /** Converts a selected user to the existing Firestore member format. */
+  private toChannelMember(member: AddMemberSuggestion) {
+    return {
+      avatarUrl: member.avatarUrl,
+      name: member.name,
+      role: 'member',
+      uid: member.uid,
+    };
+  }
+
+  /** Adds the channel to each selected user's profile in sequence. */
+  private async saveChannelMemberships(channelId: string): Promise<void> {
     for (let i = 0; i < this.selectedMembers().length; i++) {
       await this.addChannelToUser(channelId, this.selectedMembers()[i].uid);
     }
-
-    this.isAddingMembers = false;
-    this.requestClose();
   }
 
   /** Adds a channel to a user's channel memberships. */
@@ -231,7 +244,6 @@ export class ChannelAddMembersDropdown {
       return;
     }
     const userRef = doc(firestore, 'users', userId);
-
     await updateDoc(userRef, {
       [`channelMemberships.${channelId}`]: {
         channelId: channelId,
@@ -239,6 +251,3 @@ export class ChannelAddMembersDropdown {
     });
   }
 }
-
-
-

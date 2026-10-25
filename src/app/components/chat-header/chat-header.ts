@@ -1,30 +1,14 @@
 import {
-  Component,
-  computed,
-  effect,
-  HostListener,
-  inject,
-  input,
-  output,
-  signal,
-  ElementRef,
-  ViewChild,
+  Component, computed, effect, ElementRef, HostListener,
+  inject, input, output, signal, ViewChild
 } from '@angular/core';
-import {
-  ChannelMembersDropdown
-} from '../channel-members-dropdown/channel-members-dropdown';
-import {
-  ChannelAddMembersDropdown,
-} from '../channel-add-members-dropdown/channel-add-members-dropdown';
-import {
-  ChatModel
-} from '../../core/chat.model';
-import type {
-  AppUser
-} from '../../core/models/user.model';
-import {
-  Auth
-} from '../../core/services/auth';
+import { ChannelMembersDropdown } from '../channel-members-dropdown/channel-members-dropdown';
+import { ChannelAddMembersDropdown } from '../channel-add-members-dropdown/channel-add-members-dropdown';
+import { ChatModel } from '../../core/chat.model';
+import { Auth } from '../../core/services/auth';
+import { ChatHeaderNewMessage } from './helpers/chat-header-new-message';
+import type { NewMessageRecipient, NewMessageSearchSuggestion } from './helpers/chat-header-new-message';
+export type { NewMessageRecipient } from './helpers/chat-header-new-message';
 
 type ChatHeaderStatus = 'online' | 'offline';
 type ChatHeaderPreviewType = 'channel' | 'direct-message' | 'new-message';
@@ -34,20 +18,6 @@ interface ChatHeaderMember {
   name: string;
   avatarUrl: string;
   status: ChatHeaderStatus;
-}
-
-interface NewMessageSearchSuggestion {
-  id: string;
-  type: 'user' | 'channel';
-  label: string;
-  email?: string;
-  avatarUrl?: string;
-  status?: ChatHeaderStatus;
-}
-
-export interface NewMessageRecipient {
-  id: string;
-  type: 'user' | 'channel';
 }
 
 interface ChannelHeaderData {
@@ -73,109 +43,72 @@ type ChatHeaderData = ChannelHeaderData | DirectMessageHeaderData;
   selector: 'app-chat-header',
   imports: [ChannelMembersDropdown, ChannelAddMembersDropdown],
   templateUrl: './chat-header.html',
-  styleUrl: './chat-header.scss',
+  styleUrl: './chat-header.scss'
 })
 export class ChatHeader {
   private readonly auth = inject(Auth);
   private readonly chatModel = inject(ChatModel);
 
-  /** Receives the currently active chat. */
-  public readonly chat = input<ChatHeaderData | null>(null);
+  readonly chat = input<ChatHeaderData | null>(null);
+  readonly previewType = input<ChatHeaderPreviewType>('channel');
+  readonly channelDetailsOpen = input(false);
+  readonly channelDetailsRequested = output<string>();
+  readonly membersRequested = output<string>();
+  readonly userProfileRequested = output<string>();
+  readonly newMessageRecipientSelected = output<NewMessageRecipient>();
+  readonly newMessageRecipientCleared = output<void>();
 
-  /** Selects the current chat header state. */
-  public readonly previewType = input<ChatHeaderPreviewType>('channel');
+  @ViewChild('newMessageSearchResults') private newMessageSearchResults?: ElementRef<HTMLDivElement>;
+  @ViewChild('newMessageInput') private newMessageInput?: ElementRef<HTMLInputElement>;
 
-  /** Receives whether the channel details are open. */
-  public readonly channelDetailsOpen = input(false);
-
-  /** Emits when channel details should open. */
-  public readonly channelDetailsRequested = output<string>();
-
-  /** Emits when the member overview should open. */
-  public readonly membersRequested = output<string>();
-
-  /** Emits when a user profile should open. */
-  public readonly userProfileRequested = output<string>();
-
-  /** Emits when a new message recipient is selected. */
-  public readonly newMessageRecipientSelected = output<NewMessageRecipient>();
-
-  /** Stores the current new message search value. */
-  protected readonly newMessageSearchTerm = signal('');
-
-  /** Tracks the selected new message suggestion for keyboard navigation. */
-  protected readonly selectedNewMessageIndex = signal(0);
-
-  /** Tracks whether the new message search has focus. */
-  protected readonly isNewMessageSearchFocused = signal(false);
-
-  /** Stores the selected suggestion for a new message. */
-  protected readonly selectedNewMessageSuggestion = signal<NewMessageSearchSuggestion | null>(null);
-
-  /** Stores whether the channel member dropdown is open. */
-  protected readonly isMembersDropdownOpen = signal(false);
-
-  /** Stores whether the add-member dropdown is open. */
-  protected readonly isAddMembersDropdownOpen = signal(false);
-
-  /** Stores the responsive placeholder for the new message search. */
-  protected newMessagePlaceholder = this.getNewMessagePlaceholder();
-
-  /** References the new message search results. */
-  @ViewChild('newMessageSearchResults')
-  private newMessageSearchResults?: ElementRef<HTMLDivElement>;
-
-  /** Returns matching new message suggestions. */
-  protected readonly newMessageSearchSuggestions = computed(() => {
-    if (this.selectedNewMessageSuggestion()) return [];
-    const term = this.newMessageSearchTerm().trim();
-    return term ? this.getNewMessageSearchSuggestions(term) : [];
-  });
-
-  /** Indicates whether new message suggestions are available. */
-  protected readonly isNewMessageSuggestionListOpen = computed(
-    () => this.isNewMessageSearchFocused()
-      && this.newMessageSearchSuggestions().length > 0
+  private readonly newMessage = new ChatHeaderNewMessage(
+    this.auth, this.chatModel, () => this.newMessageSearchResults?.nativeElement
   );
-
-  /** Provides the currently selected chat with up-to-date user data. */
+  protected readonly newMessageSearchTerm = this.newMessage.searchTerm;
+  protected readonly selectedNewMessageIndex = this.newMessage.selectedIndex;
+  protected readonly isNewMessageSearchFocused = this.newMessage.isFocused;
+  protected readonly selectedNewMessageSuggestion = this.newMessage.selectedSuggestion;
+  protected readonly newMessageSearchSuggestions = this.newMessage.suggestions;
+  protected readonly isNewMessageSuggestionListOpen = this.newMessage.isSuggestionListOpen;
+  protected newMessagePlaceholder = this.newMessage.getPlaceholder();
+  protected readonly isMembersDropdownOpen = signal(false);
+  protected readonly isAddMembersDropdownOpen = signal(false);
   protected readonly activeChat = computed(() => this.getActiveChat());
-
-  /** Resets the compose state when leaving the new message view. */
   private readonly resetNewMessageEffect = effect(() => {
-    if (this.previewType() === 'new-message') return;
-    this.resetNewMessageState();
+    if (this.previewType() !== 'new-message') this.newMessage.reset();
   });
 
-  /** Requests the active channel details. */
-  protected requestChannelDetails(): void {
-    const chat = this.activeChat();
-    if (!chat || chat.type !== 'channel') return;
-    this.channelDetailsRequested.emit(chat.id);
+  /** Focuses the new-message recipient search input. */
+  public focusNewMessageInput(): void {
+    this.newMessageInput?.nativeElement.focus();
   }
 
-  /** Opens the member overview of the active channel. */
-  protected requestMembers(): void {
+  /** Requests details for the active channel. */
+  protected requestChannelDetails(): void {
     const chat = this.activeChat();
-    if (!chat || chat.type !== 'channel') return;
+    if (chat?.type === 'channel') this.channelDetailsRequested.emit(chat.id);
+  }
+
+  /** Opens the active channel's member overview. */
+  protected requestMembers(): void {
+    if (this.activeChat()?.type !== 'channel') return;
     this.isAddMembersDropdownOpen.set(false);
     this.isMembersDropdownOpen.set(true);
   }
 
-  /** Opens the responsive add-member view. */
+  /** Opens the add-member dropdown or responsive member overview. */
   protected requestAddMember(): void {
-    const chat = this.activeChat();
-    if (!chat || chat.type !== 'channel') return;
+    if (this.activeChat()?.type !== 'channel') return;
     if (window.innerWidth <= 1024) return this.requestMembers();
     this.openAddMembersDropdown();
   }
 
-  /** Closes the channel member dropdown. */
+  /** Closes the channel member overview. */
   protected closeMembersDropdown(): void {
     this.isMembersDropdownOpen.set(false);
   }
 
-  /** Opens the selected member profile. */
+  /** Opens a member profile from the dropdown. */
   protected openMemberProfile(userId: string): void {
     this.closeMembersDropdown();
     this.requestUserProfile(userId);
@@ -186,227 +119,92 @@ export class ChatHeader {
     this.openAddMembersDropdown();
   }
 
-  /** Closes the add-member dropdown. */
+  /** Closes the channel add-member dropdown. */
   protected closeAddMembersDropdown(): void {
     this.isAddMembersDropdownOpen.set(false);
   }
 
-  /** Requests the selected user's profile. */
+  /** Requests a user's profile from the parent component. */
   protected requestUserProfile(userId: string): void {
     this.userProfileRequested.emit(userId);
   }
 
-  /** Closes open channel dropdowns when clicking outside of them. */
+  /** Closes channel dropdowns after a click outside their controls. */
   @HostListener('document:click', ['$event'])
   protected closeChannelDropdownsOnOutsideClick(event: MouseEvent): void {
     if (!this.isMembersDropdownOpen() && !this.isAddMembersDropdownOpen()) return;
-
     const target = event.target;
     if (!(target instanceof Element) || this.isChannelDropdownClick(target)) return;
-
     this.isMembersDropdownOpen.set(false);
     this.isAddMembersDropdownOpen.set(false);
   }
 
-  /** Checks whether the click occurred inside a channel dropdown or its trigger. */
+  /** Checks whether the click belongs to a channel dropdown or trigger. */
   private isChannelDropdownClick(target: Element): boolean {
-    return !!target.closest(
-      'app-channel-members-dropdown, app-channel-add-members-dropdown, ' +
-      '.chat-header__members-button, .chat-header__add-member-button'
-    );
+    return !!target.closest('app-channel-members-dropdown, app-channel-add-members-dropdown, ' +
+      '.chat-header__members-button, .chat-header__add-member-button');
   }
 
-  /** Updates the new message placeholder on viewport changes. */
+  /** Refreshes the responsive new-message placeholder. */
   @HostListener('window:resize')
   protected updateNewMessagePlaceholder(): void {
-    this.newMessagePlaceholder = this.getNewMessagePlaceholder();
+    this.newMessagePlaceholder = this.newMessage.getPlaceholder();
   }
 
-  /** Updates the new message search value. */
+  /** Updates the new-message recipient search value. */
   protected updateNewMessageSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.selectedNewMessageSuggestion.set(null);
-    this.newMessageSearchTerm.set(input.value);
-    this.selectedNewMessageIndex.set(0);
+    this.newMessage.updateSearch((event.target as HTMLInputElement).value);
   }
 
-  /** Handles keyboard navigation for new message suggestions. */
+  /** Handles keyboard navigation through recipient suggestions. */
   protected onNewMessageSearchKeydown(event: KeyboardEvent): void {
-    if (event.isComposing || !this.isNewMessageSuggestionListOpen()) return;
-    if (event.key === 'ArrowDown') return this.moveNewMessageSelection(event, 1);
-    if (event.key === 'ArrowUp') return this.moveNewMessageSelection(event, -1);
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    const suggestion = this.newMessageSearchSuggestions()[this.selectedNewMessageIndex()];
-    if (suggestion) this.selectNewMessageRecipient(suggestion);
+    this.newMessage.handleKeydown(event, (item) => this.selectNewMessageRecipient(item));
   }
 
-  /** Moves the selected new message suggestion. */
-  private moveNewMessageSelection(event: KeyboardEvent, direction: number): void {
-    event.preventDefault();
-    const count = this.newMessageSearchSuggestions().length;
-    this.selectedNewMessageIndex.update(
-      (index) => (index + direction + count) % count
-    );
-    this.scrollSelectedNewMessageResult();
+  /** Selects the recipient and notifies the messenger. */
+  protected selectNewMessageRecipient(suggestion: NewMessageSearchSuggestion): void {
+    this.newMessageRecipientSelected.emit(this.newMessage.selectRecipient(suggestion));
   }
 
-  /** Keeps the selected new message suggestion visible. */
-  private scrollSelectedNewMessageResult(): void {
-    const results = this.newMessageSearchResults?.nativeElement;
-    const index = this.selectedNewMessageIndex();
-    results
-      ?.querySelectorAll('.chat-header__new-message-result')
-    [index]?.scrollIntoView({ block: 'nearest' });
-  }
-
-  /** Selects a recipient for the new message. */
-  protected selectNewMessageRecipient(
-    suggestion: NewMessageSearchSuggestion
-  ): void {
-    const recipient = this.createNewMessageRecipient(suggestion);
-    this.selectedNewMessageSuggestion.set(suggestion);
-    this.newMessageSearchTerm.set('');
-    this.newMessageRecipientSelected.emit(recipient);
-  }
-
-  /** Opens only the add-member dropdown. */
+  /** Opens the add-member dropdown without the member overview. */
   private openAddMembersDropdown(): void {
     this.isMembersDropdownOpen.set(false);
     this.isAddMembersDropdownOpen.set(true);
   }
 
-  /** Clears the current new message compose state. */
-  private resetNewMessageState(): void {
-    this.newMessageSearchTerm.set('');
-    this.selectedNewMessageSuggestion.set(null);
-  }
-
-  /** Clears the selected new message recipient. */
+  /** Clears the selected new-message recipient. */
   protected clearNewMessageRecipient(): void {
-    this.selectedNewMessageSuggestion.set(null);
-    this.newMessageSearchTerm.set('');
+    this.newMessage.clearRecipient();
+    this.newMessageRecipientCleared.emit();
   }
 
-  /** Returns the responsive new message placeholder. */
-  private getNewMessagePlaceholder(): string {
-    return window.innerWidth <= 1024
-      ? 'An: #channel, oder @jemand'
-      : 'An: #channel, oder @jemand oder E-Mail Adresse';
-  }
-
-  /** Returns the currently selected chat with refreshed user data. */
+  /** Returns the active chat with refreshed member information. */
   private getActiveChat(): ChatHeaderData | null {
     const chat = this.chat();
     if (!chat) return null;
     return chat.type === 'direct-message'
-      ? this.getDirectMessageHeaderData(chat)
-      : this.getChannelHeaderData(chat);
+      ? this.getDirectMessageHeaderData(chat) : this.getChannelHeaderData(chat);
   }
 
-  /** Refreshes direct-message header data from the current user list. */
+  /** Refreshes a direct-message header from live user data. */
   private getDirectMessageHeaderData(chat: DirectMessageHeaderData): DirectMessageHeaderData {
     const user = this.auth.allUsers().find(({ uid }) => uid === chat.partnerId);
     if (!user) return chat;
     return {
-      ...chat,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-      status: user.status,
-      isCurrentUser: user.uid === this.auth.currentUser()?.uid,
+      ...chat, name: user.name, avatarUrl: user.avatarUrl, status: user.status,
+      isCurrentUser: user.uid === this.auth.currentUser()?.uid
     };
   }
 
-  /** Refreshes channel member data from the current user list. */
+  /** Refreshes channel member details from live user data. */
   private getChannelHeaderData(chat: ChannelHeaderData): ChannelHeaderData {
-    return {
-      ...chat,
-      members: chat.members.map((member) => this.getChannelMemberData(member)),
-    };
+    return { ...chat, members: chat.members.map((member) => this.getChannelMemberData(member)) };
   }
 
-  /** Refreshes one channel member from the current user list. */
+  /** Refreshes a member's name, avatar and presence state. */
   private getChannelMemberData(member: ChatHeaderMember): ChatHeaderMember {
     const user = this.auth.allUsers().find(({ uid }) => uid === member.uid);
     if (!user) return member;
-    return {
-      ...member,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-      status: user.status,
-    };
-  }
-
-  /** Creates the recipient payload for the parent component. */
-  private createNewMessageRecipient(
-    suggestion: NewMessageSearchSuggestion
-  ): NewMessageRecipient {
-    return {
-      id: suggestion.id,
-      type: suggestion.type,
-    };
-  }
-
-  /** Selects the correct suggestions for the entered value. */
-  private getNewMessageSearchSuggestions(term: string): NewMessageSearchSuggestion[] {
-    const prefix = term.charAt(0);
-    if (prefix === '#') return this.filterNewMessageChannels(term.slice(1));
-    if (prefix === '@') return this.filterNewMessageUsers(term.slice(1));
-
-    return this.filterNewMessageUsers(term);
-  }
-
-  /** Filters available users by name or email. */
-  private filterNewMessageUsers(query: string): NewMessageSearchSuggestion[] {
-    const normalizedQuery = query.trim().toLowerCase();
-    return this.auth
-      .allUsers()
-      .filter((user) => this.matchesNewMessageUser(user, normalizedQuery))
-      .map((user) => this.mapUserToSearchSuggestion(user));
-  }
-
-  /** Checks whether a user matches the current search query. */
-  private matchesNewMessageUser(user: AppUser, query: string): boolean {
-    return `${user.name} ${user.email}`.toLowerCase().includes(query);
-  }
-
-  /** Maps a user to a new-message search suggestion. */
-  private mapUserToSearchSuggestion(user: AppUser): NewMessageSearchSuggestion {
-    return {
-      id: user.uid,
-      type: 'user',
-      label: user.name,
-      email: user.email,
-      avatarUrl: user.avatarUrl,
-      status: user.status,
-    };
-  }
-
-  /** Filters available channels by name. */
-  private filterNewMessageChannels(query: string): NewMessageSearchSuggestion[] {
-    const normalizedQuery = query.trim().toLowerCase();
-    return this.chatModel
-      .channels()
-      .filter(({ channelName }) => this.matchesNewMessageChannel(channelName, normalizedQuery))
-      .map(({ channelId, channelName }) =>
-        this.mapChannelToSearchSuggestion(channelId, channelName)
-      );
-  }
-
-  /** Checks whether a channel matches the current search query. */
-  private matchesNewMessageChannel(channelName: string, query: string): boolean {
-    return channelName.toLowerCase().includes(query);
-  }
-
-  /** Maps a channel to a new-message search suggestion. */
-  private mapChannelToSearchSuggestion(
-    channelId: string,
-    channelName: string
-  ): NewMessageSearchSuggestion {
-    return {
-      id: channelId,
-      type: 'channel',
-      label: channelName,
-    };
+    return { ...member, name: user.name, avatarUrl: user.avatarUrl, status: user.status };
   }
 }

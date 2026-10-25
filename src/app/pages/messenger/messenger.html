@@ -2,26 +2,42 @@
     (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)"
     (channelRequested)="openChannelFromSearch($event)" (messageRequested)="openMessageFromSearch($event)" />
 <app-group-details-overlay-component #groupDetailsOverlayComponent (close)="closeChannelDetails()" />
-<main class="messenger-page" [class.messenger-page--mobile-chat]="isMobileChatOpen()">
+<main class="messenger-page" [class.messenger-page--mobile-chat]="isMobileChatOpen()"
+    [class.messenger-page--mobile-thread]="isMobileChatOpen() && !!selectedThreadMessage()"
+    [class.messenger-page--thread-open]="!!selectedThreadMessage()">
 
     <app-workspace-menu class="close-workspace-menu" (workspaceMenuOpenChanged)="isWorkspaceMenuOpen.set($event)"
         (outputSelectedChannel)="onOutputSelectedChannel($event)" (newDirectMessage)="openNewMessage()"
-        [ngClass]="{'dnone': !isWorkspaceMenuOpen()}">
+        [activeConversationId]="getActiveWorkspaceConversationId()"
+        [activeConversationType]="getActiveWorkspaceConversationType()" [ngClass]="{'dnone': !isWorkspaceMenuOpen()}">
     </app-workspace-menu>
     <section class="chat-container">
 
-        <app-chat-header [chat]="headerChat()" [previewType]="chatType()" [channelDetailsOpen]="isChannelDetailsOpen()"
+        <app-chat-header #chatHeader [chat]="headerChat()" [previewType]="chatType()"
+            [channelDetailsOpen]="isChannelDetailsOpen()" (newMessageRecipientSelected)="setNewMessageRecipient($event)"
+            (newMessageRecipientCleared)="clearNewMessageRecipient()"
             (channelDetailsRequested)="openChannelDetails($event, groupDetailsOverlayComponent)"
             (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)">
         </app-chat-header>
 
-        @if (selectedChat(); as chat) {
-        <app-chat-panel [channelId]="chat.id" (threadRequested)="openThread($event)" />
+        @if (chatType() === 'new-message') {
+        <app-chat-panel #chatPanel [composeMode]="true" [channelId]="newMessageTargetId()"
+            (messageSent)="openNewMessageRecipientChat()">
+        </app-chat-panel>
+        } @else if (selectedChat(); as chat) {
+        <app-chat-panel #chatPanel [class.chat-panel--thread-open]="!!selectedThreadMessage()"
+            (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)" [channelId]="chat.id"
+            [conversationType]="chat.type" [conversationLabel]="chat.name" [scrollToMessageId]="searchMessageId()"
+            (messageScrollHandled)="searchMessageId.set(null)" (threadRequested)="openThread($event)">
+        </app-chat-panel>
         }
     </section>
     @if (selectedThreadMessage(); as threadMessage) {
-    <app-thread-panel [parentMessage]="threadMessage" [channelId]="selectedChat()!.id"
-        (closeRequested)="closeThread()"></app-thread-panel>
+    <app-thread-panel #threadPanel [parentMessage]="threadMessage" [channelId]="selectedChat()!.id"
+        [conversationType]="selectedChat()!.type" [conversationLabel]="selectedChat()!.name"
+        (closeRequested)="closeThread()"
+        (userProfileRequested)="openUserProfile($event, headerComponent, userProfileDialog)">
+    </app-thread-panel>
     }
-    <app-user-profile-dialog #userProfileDialog />
+    <app-user-profile-dialog #userProfileDialog (messageRequested)="openDirectMessageFromProfile($event)" />
 </main>

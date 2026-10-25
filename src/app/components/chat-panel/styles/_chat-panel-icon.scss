@@ -1,0 +1,16 @@
+@mixin icon($url, $size: 24px, $inset: 6px) {
+    position: relative;
+    width: $size;
+    height: $size;
+    display: inline-block;
+    cursor: pointer;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: $inset;
+        background-color: currentColor;
+        mask: url($url) center / contain no-repeat;
+        -webkit-mask: url($url) center / contain no-repeat;
+    }
+}

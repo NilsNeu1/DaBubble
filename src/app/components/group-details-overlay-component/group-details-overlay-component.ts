@@ -1,11 +1,10 @@
-import { Component, Input, Output, EventEmitter, inject, HostListener, OnInit, signal } from '@angular/core';
+import { Component, EventEmitter, HostListener, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { arrayUnion, deleteField, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ChatModel } from '../../core/chat.model';
 import { Auth } from '../../core/services/auth';
-import { deleteField, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
-import { FormsModule } from '@angular/forms';
-import { arrayUnion } from 'firebase/firestore';
 
 /** Displays channel details and manages editing, member selection, and leaving a channel. */
 @Component({
@@ -25,16 +24,16 @@ export class GroupDetailsOverlayComponent implements OnInit {
   channelDetails = inject(ChatModel).activeChat;
   allUsers = inject(Auth).allUsers;
   currentUser = inject(Auth).currentUser;
-  editing: boolean = false;
+  editing = false;
   editingField: 'channelName' | 'description' | null = null;
-  channelName: string = '';
-  description: string = '';
-  errorInput: 'channelName' | 'description' | null = null;;
+  channelName = '';
+  description = '';
+  errorInput: 'channelName' | 'description' | null = null;
   chatModel = inject(ChatModel);
   addUserOverlay = signal(false);
   members: { uid: string; role: string; name: string; avatarUrl: string }[] = [];
   dropDownUsers: { name: string; avatarUrl: string; uid: string }[] = [];
-  selectedUser: string = '';
+  selectedUser = '';
   isAddingMembers = false;
 
   /** Initializes the layout flag from the current window width. */
@@ -42,23 +41,18 @@ export class GroupDetailsOverlayComponent implements OnInit {
     this.onResize();
   }
 
-  /** Checks if a user is already a member of the current channel. */
+  /** Checks whether a user already belongs to the current channel. */
   private isAlreadyChannelMember(userId: string): boolean {
-  return this.channelDetails()?.members.some(
-    member => member.uid === userId
-  ) ?? false;
-}
+    return this.channelDetails()?.members.some(member => member.uid === userId) ?? false;
+  }
 
-  /**
-   * Opens the details overlay for the selected channel.
-   * @param channelId ID used for subsequent channel updates.
-   */
+  /** Opens the details overlay for the specified channel. */
   open(channelId: string): void {
     this.channelId = channelId;
     this.isOverlayOpen = true;
   }
 
-  /** Closes both overlays, emits the close event, and resets editing and selected members. */
+  /** Closes overlays and resets editing and member selection. */
   closeOverlay(): void {
     this.isOverlayOpen = false;
     this.close.emit();
@@ -71,134 +65,96 @@ export class GroupDetailsOverlayComponent implements OnInit {
     this.members = [];
   }
 
-  /** Closes the overlay and starts removing the current user's channel membership. */
+  /** Closes the overlay and starts both channel membership removals. */
   leaveChat(): void {
     this.closeOverlay();
     this.removeFromChannelFirebase(this.channelId);
     this.removeChannelFromUser(this.channelId);
   }
 
-  /**
-   * Looks up the channel creator's display name.
-   * @param userId UID of the channel creator.
-   * @returns The user's name, or an empty string if no user matches.
-   */
+  /** Returns the current name of the channel creator. */
   getCreater(userId: string): string {
     return this.allUsers().find(user => user.uid === userId)?.name ?? '';
   }
 
-  /**
-   * Removes the current user from the channel's stored member list.
-   * @param channelId ID of the channel to update.
-   */
+  /** Removes the signed-in user from the channel member list in Firestore. */
   async removeFromChannelFirebase(channelId: string): Promise<void> {
     const channelRef = doc(firestore, 'chats', channelId);
     const channelSnap = await getDoc(channelRef);
-
     const members = channelSnap.data()?.['members'] ?? [];
-
-    const updatedMembers = members.filter(
-      (member: any) => member.uid !== this.currentUser()?.uid
-    );
-
-    await updateDoc(channelRef, {
-      members: updatedMembers
-    });
+    const updatedMembers = members.filter((member: any) => member.uid !== this.currentUser()?.uid);
+    await updateDoc(channelRef, { members: updatedMembers });
   }
 
-  /**
-   * Deletes a channel membership from the current user's document, if signed in.
-   * @param channelId ID of the membership to remove.
-   */
+  /** Removes a channel membership from the signed-in user's Firestore profile. */
   async removeChannelFromUser(channelId: string): Promise<void> {
     const userId = this.currentUser()?.uid;
-
-    if (!userId) {
-      return;
-    }
-
+    if (!userId) return;
     const userRef = doc(firestore, 'users', userId);
-
-    await updateDoc(userRef, {
-      [`channelMemberships.${channelId}`]: deleteField()
-    });
-
+    await updateDoc(userRef, { [`channelMemberships.${channelId}`]: deleteField() });
   }
 
-  /** Starts name editing or submits a nonempty name when already editing it. */
-  editChannelName() {
-    if (this.editing === true && this.editingField === 'channelName') {
-      if (this.channelName === '') {
-        this.triggerError('channelName')
-        return;
-      }
-      this.updateFirebase('channelName');
-      this.editing = false;
-      this.editingField = null;
+  /** Starts or finishes editing the channel name. */
+  editChannelName(): void {
+    if (this.editing && this.editingField === 'channelName') {
+      this.saveEditedField('channelName', this.channelName);
       return;
     }
-
-     this.channelName = this.channelDetails()?.channelName ?? '';
-    this.editing = true;
-    this.editingField = 'channelName';
+    this.channelName = this.channelDetails()?.channelName ?? '';
+    this.startEditing('channelName');
   }
 
-  /** Starts description editing or submits a nonempty description when already editing it. */
-  editDescription() {
-    if (this.editing === true && this.editingField === 'description') {
-      if (this.description === '') {
-        this.triggerError('description')
-        return;
-      }
-      this.updateFirebase('description');
-      this.editing = false;
-      this.editingField = null;
+  /** Starts or finishes editing the channel description. */
+  editDescription(): void {
+    if (this.editing && this.editingField === 'description') {
+      this.saveEditedField('description', this.description);
       return;
     }
-
     this.description = this.channelDetails()?.description ?? '';
-    this.editing = true;
-    this.editingField = 'description';
+    this.startEditing('description');
   }
 
-  /**
-   * Saves an edited channel field, clears its error, and reloads the user's channel list.
-   * @param field The channel field to update from the local form value.
-   */
+  /** Sets the currently edited field without changing the other field value. */
+  private startEditing(field: 'channelName' | 'description'): void {
+    this.editing = true;
+    this.editingField = field;
+  }
+
+  /** Validates and submits the selected field without awaiting its update. */
+  private saveEditedField(field: 'channelName' | 'description', value: string): void {
+    if (value === '') {
+      this.triggerError(field);
+      return;
+    }
+    this.updateFirebase(field);
+    this.editing = false;
+    this.editingField = null;
+  }
+
+  /** Saves a channel field and refreshes the signed-in user's channel list. */
   async updateFirebase(field: 'channelName' | 'description'): Promise<void> {
     const channelRef = doc(firestore, 'chats', this.channelId);
     if (field === 'channelName') {
-      await updateDoc(channelRef, {
-        channelName: this.channelName
-      });
+      await updateDoc(channelRef, { channelName: this.channelName });
     } else if (field === 'description') {
-      await updateDoc(channelRef, {
-        description: this.description
-      });
+      await updateDoc(channelRef, { description: this.description });
     }
     this.errorInput = null;
     await this.chatModel.getChannels(Object.keys(this.currentUser()?.channelMemberships ?? {}));
   }
 
-  /**
-   * Marks a channel field as invalid for the template's error styling.
-   * @param field The field with invalid input.
-   */
-  triggerError(field: 'channelName' | 'description') {
+  /** Marks an edited channel field as invalid. */
+  triggerError(field: 'channelName' | 'description'): void {
     this.errorInput = field;
   }
 
-  /**
-   * Looks up a member's current presence status.
-   * @param uid UID of the user to look up.
-   * @returns The user's status, defaulting to offline when unavailable.
-   */
+  /** Returns the user's current online or offline status. */
   getUserStatus(uid: string): 'online' | 'offline' {
     return this.allUsers().find(user => user.uid === uid)?.status ?? 'offline';
   }
 
-  /** Closes member selection and resets the selection, search, error, and saving flag. */
-  closeAddUserOverlay() {
+  /** Closes the member selector and clears its temporary state. */
+  closeAddUserOverlay(): void {
     this.addUserOverlay.set(false);
     this.members = [];
     this.dropDownUsers = [];
@@ -207,94 +163,75 @@ export class GroupDetailsOverlayComponent implements OnInit {
     this.isAddingMembers = false;
   }
 
-  /** Opens the overlay for selecting additional channel members. */
-  addMember() {
+  /** Opens the member selection overlay. */
+  addMember(): void {
     this.addUserOverlay.set(true);
   }
 
-  /**
-   * Removes a user from the local selection without changing stored channel members.
-   * @param member The selected member to remove by UID.
-   */
-  removeUserFromChannel(member: { uid: string; role: string; name: string; avatarUrl: string }) {
-    this.members = this.members.filter(m => m.uid !== member.uid);
+  /** Removes a user only from the unsaved local selection. */
+  removeUserFromChannel(member: { uid: string; role: string; name: string; avatarUrl: string }): void {
+    this.members = this.members.filter(selected => selected.uid !== member.uid);
   }
 
-  /** Filters users by name, excluding the current user and users already selected locally. */
-filterUsers() {
-  this.dropDownUsers = this.allUsers().filter(user =>
-    user.name.toLowerCase().includes(this.selectedUser.toLowerCase()) &&
-    user.uid !== this.currentUser()?.uid &&
-    !this.isAlreadyChannelMember(user.uid) &&
-    !this.members.some(member => member.uid === user.uid)
-  );
-}
+  /** Filters users who are not the current user, a member, or already selected. */
+  filterUsers(): void {
+    this.dropDownUsers = this.allUsers().filter(user =>
+      user.name.toLowerCase().includes(this.selectedUser.toLowerCase()) &&
+      user.uid !== this.currentUser()?.uid &&
+      !this.isAlreadyChannelMember(user.uid) &&
+      !this.members.some(member => member.uid === user.uid)
+    );
+  }
 
-  /**
-   * Clears the search and adds a user to the local selection unless already selected.
-   * @param user The user to add with the member role.
-   */
-  selectUser(user: { name: string; avatarUrl: string; uid: string }) {
+  /** Adds an unselected user to the local channel member selection. */
+  selectUser(user: { name: string; avatarUrl: string; uid: string }): void {
     this.selectedUser = '';
-    if (this.members.some(member => member.uid === user.uid)) { return }
+    if (this.members.some(member => member.uid === user.uid)) return;
     this.members.push({
-      uid: user.uid,
-      role: 'member',
-      name: user.name,
-      avatarUrl: user.avatarUrl,
+      uid: user.uid, role: 'member', name: user.name, avatarUrl: user.avatarUrl,
     });
   }
 
-  /** Saves selected channel members, updates their memberships, and closes selection on success. */
-  async addUserToChannel() {
+  /** Adds channel members and their user memberships in the original order. */
+  async addUserToChannel(): Promise<void> {
     this.isAddingMembers = true;
     const channelId = this.channelId;
-    const channelRef = doc(firestore, 'chats', channelId);
-
-    for (let i = 0; i < this.members.length; i++) {
-      await updateDoc(channelRef, {
-        members: arrayUnion({
-          avatarUrl: this.members[i].avatarUrl,
-          name: this.members[i].name,
-          role: 'member',
-          uid: this.members[i].uid,
-        }),
-      });
-    }
-
-    for (let i = 0; i < this.members.length; i++) {
-      await this.addChannelToUser(channelId, this.members[i].uid);
-    }
-
-    this.closeAddUserOverlay()
+    await this.saveSelectedMembersToChannel(channelId);
+    await this.saveChannelMemberships(channelId);
+    this.closeAddUserOverlay();
     this.isAddingMembers = false;
   }
 
-  /**
-   * Adds the channel to the specified user's membership map.
-   * @param channelId ID of the channel to add.
-   * @param userId UID of the user to update; empty IDs are ignored.
-   */
-  async addChannelToUser(channelId: string, userId: string): Promise<void> {
-    if (!userId) {
-      return;
+  /** Saves each selected member to the channel sequentially. */
+  private async saveSelectedMembersToChannel(channelId: string): Promise<void> {
+    const channelRef = doc(firestore, 'chats', channelId);
+    for (let i = 0; i < this.members.length; i++) {
+      await updateDoc(channelRef, {
+        members: arrayUnion({
+          avatarUrl: this.members[i].avatarUrl, name: this.members[i].name,
+          role: 'member', uid: this.members[i].uid,
+        })
+      });
     }
-    const userRef = doc(firestore, 'users', userId);
-
-    await updateDoc(userRef, {
-      [`channelMemberships.${channelId}`]: {
-        channelId: channelId,
-      },
-    });
   }
 
-  /** Updates the mobile layout flag when the window is resized. */
+  /** Saves each selected user's channel membership sequentially. */
+  private async saveChannelMemberships(channelId: string): Promise<void> {
+    for (let i = 0; i < this.members.length; i++) {
+      await this.addChannelToUser(channelId, this.members[i].uid);
+    }
+  }
+
+  /** Saves the new channel membership in the selected user's document. */
+  async addChannelToUser(channelId: string, userId: string): Promise<void> {
+    if (!userId) return;
+    const userRef = doc(firestore, 'users', userId);
+    await updateDoc(userRef, { [`channelMemberships.${channelId}`]: { channelId } });
+  }
+
+  /** Updates the mobile layout flag when the window width changes. */
   @HostListener('window:resize')
   onResize(): void {
-    if (window.innerWidth <= 1024) {
-      this.isMobile = true;
-    } else {
-      this.isMobile = false;
-    }
+    this.isMobile = window.innerWidth <= 1024;
   }
 }

@@ -2,22 +2,34 @@
 
     <div class="chat-container">
 
-        <div class="chat-messages">
+        <div class="chat-messages" #messagesContainer>
+            @if (!composeMode) {
             <div class="msg-divider">
                 <p>yesterday</p>
             </div>
+            }
+            @if (composeMode && !channelId && !isEmpty()) {
+            <div class="new-message-recipient-info" role="alert">
+                Bitte einen Empfänger auswählen.
+            </div>
+            }
 
-            <div class="msg-container" *ngFor="let message of messages; trackBy: trackByMessageId"
-                [class.own-message]="isOwnMessage(message.senderId)" [class.menu-active]="isMessageMenuOpen(message.id)"
-                (mouseenter)="onMessageHover(message.id)">
-                <div class="autor-img">
-                    <img [src]="message.senderImageUrl" alt="">
+            <div class="msg-container" *ngFor="let message of messages; trackBy: trackByMessageId; let isLast = last"
+                [attr.data-message-id]="message.id" [class.own-message]="isOwnMessage(message.senderId)"
+                [class.menu-active]="isMessageMenuOpen(message.id)" (mouseenter)="onMessageHover(message.id)">
+                <div class="autor-img" role="button" tabindex="0" (click)="requestUserProfile(message.senderId)"
+                    (keydown.enter)="requestUserProfile(message.senderId)">
+                    <img [src]="message.senderImageUrl" [alt]="message.senderName">
                 </div>
                 <div class="msg-content">
 
                     <div class="msg-info">
                         <div class="autor">
-                            <span class="autor-name">{{ message.senderName }}</span>
+                            <span class="autor-name" role="button" tabindex="0"
+                                (click)="requestUserProfile(message.senderId)"
+                                (keydown.enter)="requestUserProfile(message.senderId)">
+                                {{ message.senderName }}
+                            </span>
                             <span class="msg-timestamp">{{ message.timestamp | date:'HH:mm'}}</span>
                         </div>
 
@@ -26,18 +38,16 @@
                                 title="Check">✅</div>
                             <div class="interaction-btn" (click)="toggleReaction(message, '👍')" type="button"
                                 title="Like">👍</div>
-                            <div class="interaction-btn" (click)="toggleReactionPicker(message.id + '-options')"
+                            <div class="interaction-btn emoji-picker-trigger" (click)="toggleReactionPicker(message.id)"
                                 type="button" title="Add Reaction">
                                 <img class="interactoin-btn" src="/assets/add_reaction.svg" alt="add reaction">
-                                <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-options')"
-                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'" [direction]="'up'"
-                                    (emojiSelected)="toggleReaction(message, $event)"></app-emoji-picker>
                             </div>
                             <div class="interaction-btn" (click)="openThread(message)" type="button" title="Answer">
                                 <img class="interactoin-btn" src="/assets/comment.svg" alt="add reaction">
                             </div>
 
-                            <div class="interaction-btn" *ngIf="isOwnMessage(message.senderId)"
+                            <div class="interaction-btn msg-options-trigger" *ngIf="isOwnMessage(message.senderId)"
+                                (mouseenter)="cancelMessageMenuClose()" (mouseleave)="scheduleMessageMenuClose()"
                                 (click)="toggleMessageMenu(message.id)" type="button" title="Mehr Optionen">
                                 <img class="interactoin-btn" src="/assets/options.svg" alt="Mehr Optionen">
 
@@ -84,12 +94,9 @@
                         <div class="msg-edit-footer">
                             <div class="input-features">
                                 <div class="emote-btn-wrapper">
-                                    <div class="emote-btn" role="img" tabindex="0"
-                                        (click)="showEditEmotePicker.set(!showEditEmotePicker())"></div>
-
-                                    @if (showEditEmotePicker()) {
-                                    <app-emoji-picker (emojiSelected)="addEmojiToEdit($event)"></app-emoji-picker>
-                                    }
+                                    <div class="emote-btn emoji-picker-trigger" role="img" tabindex="0"
+                                        (click)="toggleEditEmotePicker()">
+                                    </div>
                                 </div>
                             </div>
 
@@ -106,7 +113,10 @@
                         @if (message.hasThread && message.lastReplyTimestamp) {
                         <div class="msg-threads" role="button" tabindex="0" (click)="openThread(message)"
                             (keydown.enter)="openThread(message)">
-                            <span class="msg-thread-count">Thread</span>
+                            <span class="msg-thread-count">
+                                {{ message.replyCount ?? 0 }}
+                                {{ (message.replyCount ?? 0) === 1 ? 'Antwort' : 'Antworten' }}
+                            </span>
                             <span class="msg-last-reply">
                                 Letzte Antwort: {{ formatLastReplyTime(message.lastReplyTimestamp) }}
                             </span>
@@ -114,22 +124,30 @@
                         }
                         <div class="msg-reaction">
 
-                            <div class="instant-reaction-btn" (click)="toggleReactionPicker(message.id + '-instant')"
-                                title="Reagieren">
-                                <img src="/assets/add_reaction.png" alt="">
-                                <app-emoji-picker *ngIf="isReactionPickerOpen(message.id + '-instant')"
-                                    [align]="isOwnMessage(message.senderId) ? 'right' : 'left'"
-                                    (emojiSelected)="toggleReaction(message, $event)"
-                                    (click)="$event.stopPropagation()"></app-emoji-picker>
-                            </div>
+                            <button class="instant-reaction-btn emoji-picker-trigger" type="button"
+                                aria-label="Reaktion hinzufügen" title="Reagieren"
+                                (click)="toggleReactionPicker(message.id)">
+                            </button>
 
-                            <div class="msg-reaction-item" *ngFor="let reaction of message.reactions"
+                            <div class="msg-reaction-item" *ngFor="let reaction of visibleReactions(message)"
                                 [class.own-reaction]="hasReacted(reaction)" [title]="reactionTooltip(reaction)"
                                 (click)="toggleReaction(message, reaction.icon)">
                                 <span class="msg-reaction-icon">{{ reaction.icon }}</span>
-                                <span class="msg-reaction-count">{{ reaction.reactedBy?.length ?? 0
-                                    }}</span><!-- muss zruck auf {{ reaction.reactedBy.length }} gesetzt werden-->
+                                <span class="msg-reaction-count">{{ reaction.reactedBy.length }}</span>
+                                <!-- <span class="msg-reaction-count">{{ reaction.reactedBy?.length ?? 0 }}</span>
+                                muss zruck auf {{ reaction.reactedBy.length }} gesetzt werden -->
                             </div>
+                            @if (message.reactions.length > maxVisibleReactions()) {
+                            <button class="msg-reaction-more" type="button"
+                                [attr.aria-expanded]="expandedReactionIds().has(message.id)"
+                                (click)="toggleReactionOverflow(message.id)">
+                                @if (expandedReactionIds().has(message.id)) {
+                                Weniger anzeigen
+                                } @else {
+                                + {{ message.reactions.length - maxVisibleReactions() }} weitere
+                                }
+                            </button>
+                            }
                         </div>
                     </div>
 
@@ -153,9 +171,9 @@
 
         <div class="chat-input-container">
             <article #messageInput class="message-editor" contenteditable="true" role="textbox" aria-multiline="true"
-                data-placeholder="Nachricht an #Entwicklerteam" [class.is-empty]="isEmpty()" (input)="onInput()"
-                (click)="saveCursorPosition()" (keyup)="saveCursorPosition()" (keydown)="onEditorKeydown($event)"
-                (blur)="closeTypedMentionSearch()">
+                [attr.data-placeholder]="composeMode ? 'Nachricht schreiben' : messagePlaceholder"
+                [class.is-empty]="isEmpty()" (input)="onInput()" (click)="saveCursorPosition()"
+                (keyup)="saveCursorPosition()" (keydown)="onEditorKeydown($event)" (blur)="closeTypedMentionSearch()">
             </article>
 
             <div class="chat-input-actions">
@@ -190,11 +208,14 @@
                 </div>
                 }
                 <div class="input-features">
-                    <div class="emote-btn-wrapper">
-                        <div #emoteBtn class="emote-btn" role="img" tabindex="0" (click)="toggleEmotePicker()"></div>
+                    <div #emotePicker class="emote-btn-wrapper">
+                        <div #emoteBtn class="emote-btn emoji-picker-trigger" role="img" tabindex="0"
+                            (click)="toggleEmotePicker()">
+                        </div>
 
                         @if (showEmotePicker()) {
-                        <app-emoji-picker (emojiSelected)="insertEmote($event)"></app-emoji-picker>
+                        <app-emoji-picker class="chat-input-emoji-picker" (emojiSelected)="handleEmojiSelected($event)">
+                        </app-emoji-picker>
                         }
                     </div>
 

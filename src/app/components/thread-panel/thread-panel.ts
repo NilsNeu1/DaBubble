@@ -1,378 +1,348 @@
 import {
-    AfterViewInit,
-    Component,
-    computed,
-    ElementRef,
-    Input,
-    output,
-    signal,
-    Renderer2,
-    ViewChild,
-    HostListener,
+    AfterViewInit, Component, effect, ElementRef, HostListener, inject,
+    Input, OnChanges, OnDestroy, OnInit, output, Renderer2, signal,
+    SimpleChanges, ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThreadHeader } from '../thread-header/thread-header';
-import { ChatMessage, Reaction, ReactionUser } from '../../core/models/message.model';
+import { EmojiPicker } from '../emoji-picker/emoji-picker';
+import { ChatMessage } from '../../core/models/message.model';
 import { ThreadRepliesService } from '../../core/services/thread-replies';
-import { ThreadReply } from '../../core/models/reply.model';
+import { ChatMessagesService } from '../../core/services/chat-messages';
 import { Auth } from '../../core/services/auth';
-import { OnInit, OnDestroy } from '@angular/core';
-import { inject } from '@angular/core';
 import { ChatModel } from '../../core/chat.model';
-import {
-    createMentionChannels,
-    createMentionPeople,
-    filterMentionChannels,
-    filterMentionPeople,
-    MentionItem,
-    MentionSearch,
-    getMentionSearch,
-    getTextBeforeCursor,
-    getMentionReplacementRange,
-} from '../chat-panel/mention';
-
-
-// interface ThreadReactionUser {
-//     id: string;
-//     name: string;
-//     isCurrentUser?: boolean;
-// }
-
-interface ThreadReaction {
-    icon: string;
-    reactedBy: ThreadReactionUser[];
-}
-interface ThreadReactionUser extends ReactionUser {
-    isCurrentUser: boolean;
-}
-
-
-interface ThreadMessage {
-    id: string;
-    senderId: string;
-    senderName: string;
-    senderImageUrl: string;
-    timestamp: string;
-    text: string;
-    reactions: ThreadReaction[];
-    isOwnMessage: boolean;
-}
+import { createMentionChannels, createMentionPeople, MentionItem } from '../chat-panel/mention';
+import { ChatMessageMenu } from '../chat-panel/helpers/chat-message-menu';
+import { ThreadMessage, ThreadReaction, mapThreadReactions, mapThreadReply } from './helpers/thread-message-view';
+import { ThreadMessageScroll } from './helpers/thread-message-scroll';
+import { ThreadMessageEdit } from './helpers/thread-message-edit';
+import { ThreadMessageComposer } from './helpers/thread-message-composer';
+import { ThreadMessageEmojiPicker, ThreadEmojiTarget } from './helpers/thread-message-emoji-picker';
 
 @Component({
     selector: 'app-thread-panel',
-    imports: [CommonModule, ThreadHeader],
+    imports: [CommonModule, ThreadHeader, EmojiPicker],
     templateUrl: './thread-panel.html',
-    styleUrl: './thread-panel.scss',
+    styleUrl: './thread-panel.scss'
 })
-export class ThreadPanel implements AfterViewInit, OnInit, OnDestroy {
-
-    @ViewChild('threadMessages')
-    private threadMessages?: ElementRef<HTMLDivElement>;
-
-    @ViewChild('replyEditor')
-    private replyEditor?: ElementRef<HTMLDivElement>;
-
-    public readonly closeRequested = output<void>();
-
-    public readonly userProfileRequested = output<string>();
-
-    protected readonly openEditMenuId = signal<string | null>(null);
-    protected readonly showMentionPicker = signal(false);
-    @ViewChild('threadMentionWrapper')
-    private mentionWrapper?: ElementRef<HTMLDivElement>;
-
-    protected get mentionPeople() {
-        return createMentionPeople(this.authService.allUsers());
-    }
-
-    protected get mentionChannels() {
-        return createMentionChannels(this.chatModel.channels());
-    }
-
-    private mentionButtonRange: Range | null = null;
-
-    private editMenuCloseTimeout?: ReturnType<typeof setTimeout>;
-
-    @Input({ required: true }) parentMessage!: ChatMessage;
-    @Input({ required: true }) channelId!: string;
-
+export class ThreadPanel implements AfterViewInit, OnInit, OnChanges, OnDestroy {
     private readonly repliesService = inject(ThreadRepliesService);
     private readonly authService = inject(Auth);
     private readonly chatModel = inject(ChatModel);
     private readonly renderer = inject(Renderer2);
+    private readonly chatMessages = inject(ChatMessagesService);
 
-    protected readonly typedMentionSearch = signal<MentionSearch | null>(null);
-    protected readonly typedMentionIndex = signal(0);
+    @Input({ required: true }) parentMessage!: ChatMessage;
+    @Input({ required: true }) channelId!: string;
+    @Input({ required: true }) conversationType!: 'channel' | 'direct-message';
+    @Input({ required: true }) conversationLabel!: string;
+    @ViewChild('threadMessages') private threadMessages?: ElementRef<HTMLDivElement>;
+    @ViewChild('replyEditor') private replyEditor?: ElementRef<HTMLDivElement>;
+    @ViewChild('threadMentionWrapper') private mentionWrapper?: ElementRef<HTMLDivElement>;
 
-    protected readonly typedMentionItems = computed<MentionItem[]>(() => {
-        const search = this.typedMentionSearch();
-        if (!search) return [];
-        return search.trigger === '@'
-            ? filterMentionPeople(createMentionPeople(this.authService.allUsers()), search.query)
-            : filterMentionChannels(createMentionChannels(this.chatModel.channels()), search.query);
-    });
+    readonly closeRequested = output<void>();
+    readonly userProfileRequested = output<string>();
+    protected readonly showMentionPicker = signal(false);
+    private readonly messageMenu = new ChatMessageMenu();
+    private readonly messageEdit = new ThreadMessageEdit(this.chatMessages, this.repliesService);
+    private readonly emojiPicker = new ThreadMessageEmojiPicker();
+    private readonly composer = new ThreadMessageComposer(
+        this.renderer,
+        () => this.replyEditor?.nativeElement,
+        () => this.mentionPeople,
+        () => this.mentionChannels
+    );
+    private readonly messageScroll = new ThreadMessageScroll(() => this.threadMessages?.nativeElement);
 
+    protected readonly openEditMenuId = this.messageMenu.activeId;
+    protected readonly pendingDeleteReplyId = this.messageMenu.pendingDeleteId;
+    protected readonly editingReplyId = this.messageEdit.editingId;
+    protected readonly editReplyText = this.messageEdit.text;
+    protected readonly showEmojiPicker = this.emojiPicker.isOpen;
+    protected readonly typedMentionSearch = this.composer.typedMentionSearch;
+    protected readonly typedMentionIndex = this.composer.typedMentionIndex;
+    protected readonly typedMentionItems = this.composer.typedMentionItems;
+    private readonly emojiPickerTarget = this.emojiPicker.target;
+    private readonly emojiReactionReplyId = this.emojiPicker.reactionReplyId;
 
-    /** Enriches raw reactions with per-user "isCurrentUser" flags for the template. */
-    private mapReactions(reactions: Reaction[], currentUserId: string | undefined): ThreadReaction[] {
-        return reactions.map((reaction) => ({
-            icon: reaction.icon,
-            reactedBy: reaction.reactedBy.map((user) => ({
-                ...user,
-                isCurrentUser: user.uid === currentUserId,
-            })),
-        }));
-    }
-
-    /** Formats a Unix-Timestamp (ms) as a localized time string. */
-    private formatTimestamp(timestamp: number): string {
-        return new Date(timestamp).toLocaleTimeString('de-DE', {
-            hour: '2-digit',
-            minute: '2-digit',
-        }) + ' Uhr';
-    }
-
-    // Swapped for implementation of the replies getter below, which enriches the raw replies with additional data for the template.
-    protected get replies(): ThreadMessage[] {
-        const currentUserId = this.authService.currentUser()?.uid;
-
-        return this.repliesService.replies().map((reply) => ({
-            id: reply.id,
-            senderId: reply.senderId,
-            senderName: reply.senderName,
-            senderImageUrl: reply.senderImageUrl,
-            timestamp: this.formatTimestamp(reply.timestamp),
-            text: reply.text,
-            reactions: this.mapReactions(reply.reactions, currentUserId),
-            isOwnMessage: reply.senderId === currentUserId,
-        }));
-    }
-
-    /** Removes empty contenteditable markup so the placeholder becomes visible again. */
-    protected handleEditorInput(event: Event): void {
-        const editor = event.currentTarget as HTMLElement;
-        if (!editor.textContent?.trim()) {
-            editor.innerHTML = '';
-        }
-        this.updateTypedMentionSearch();
-    }
-
-    /** Updates mention suggestions from the current reply cursor position. */
-    protected updateTypedMentionSearch(): void {
-        const editor = this.replyEditor?.nativeElement;
-        if (!editor) return;
-        const textBeforeCursor = getTextBeforeCursor(editor);
-        const search = getMentionSearch(textBeforeCursor);
-        this.typedMentionSearch.set(search);
-        this.typedMentionIndex.set(0);
-    }
-
-    /** Closes the typed mention suggestions. */
-    protected closeTypedMentionSearch(): void {
-        this.typedMentionSearch.set(null);
-        this.typedMentionIndex.set(0);
-    }
-
-    /** Replaces the typed mention query with the selected mention. */
-    protected insertTypedMention(item: MentionItem): void {
-        const editor = this.replyEditor?.nativeElement;
-        const search = this.typedMentionSearch();
-        const selection = document.getSelection();
-        if (!editor || !search || !selection?.rangeCount) return;
-        const range = getMentionReplacementRange(editor, selection.getRangeAt(0), search);
-        if (!range) return;
-        this.insertMentionAtRange(range, item);
-    }
-
-    /** Handles keyboard navigation for typed thread mentions. */
-    protected onReplyEditorKeydown(event: KeyboardEvent): void {
-        if (event.key === 'Enter' && event.shiftKey) return;
-        if (event.key === 'Escape') {
-            this.typedMentionSearch.set(null);
-            return;
-        }
-        if (!this.typedMentionSearch() || !this.typedMentionItems().length) return;
-        if (event.key === 'ArrowDown') this.moveMentionSelection(event, 1);
-        if (event.key === 'ArrowUp') this.moveMentionSelection(event, -1);
-        if (event.key === 'Enter') this.confirmMentionSelection(event);
-    }
-
-    /** Moves the selected mention suggestion in the given direction. */
-    private moveMentionSelection(event: KeyboardEvent, direction: number): void {
-        event.preventDefault();
-        const count = this.typedMentionItems().length;
-        this.typedMentionIndex.update(
-            (index) => (index + direction + count) % count
-        );
-    }
-
-    /** Inserts the currently selected mention suggestion. */
-    private confirmMentionSelection(event: KeyboardEvent): void {
-        event.preventDefault();
-        const item = this.typedMentionItems()[this.typedMentionIndex()];
-        if (item) this.insertTypedMention(item);
-    }
-
-    /** Creates a mention pill matching the regular chat input. */
-    private createMentionPill(item: MentionItem): HTMLSpanElement {
-        const pill = this.renderer.createElement('span') as HTMLSpanElement;
-        const prefix = item.type === 'channel' ? '#' : '@';
-        this.renderer.addClass(pill, 'mention-pill');
-        this.renderer.setAttribute(pill, 'contenteditable', 'false');
-        this.renderer.setAttribute(pill, 'data-type', item.type);
-        this.renderer.setAttribute(pill, 'data-name', item.name);
-        this.renderer.appendChild(pill, this.renderer.createText(`${prefix}${item.name}`));
-        return pill;
-    }
-
-    /** Inserts the mention pill and a space at the replacement range. */
-    private insertMentionAtRange(range: Range, item: MentionItem): void {
-        range.deleteContents();
-        const pill = this.createMentionPill(item);
-        range.insertNode(pill);
-        const space = this.renderer.createText('\u00A0');
-        range.setStartAfter(pill);
-        range.collapse(true);
-        range.insertNode(space);
-        range.setStartAfter(space);
-        range.collapse(true);
-        this.restoreMentionSelection(range);
-    }
-
-    /** Restores the editor cursor and closes the mention suggestions. */
-    private restoreMentionSelection(range: Range): void {
-        const selection = document.getSelection();
-        if (!selection) return;
-        this.replyEditor?.nativeElement.focus();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        this.typedMentionSearch.set(null);
-        this.typedMentionIndex.set(0);
-    }
-
-    /** Saves the reply cursor before the mention button receives focus. */
-    protected saveMentionButtonCursor(): void {
-        const editor = this.replyEditor?.nativeElement;
-        const selection = document.getSelection();
-        if (!editor || !selection?.rangeCount) return;
-        const range = selection.getRangeAt(0);
-        if (editor.contains(range.endContainer)) {
-            this.mentionButtonRange = range.cloneRange();
-        }
-    }
-
-    /** Toggles the mention picker for the thread reply editor. */
-    protected toggleMentionPicker(): void {
-        this.showMentionPicker.update(open => !open);
-        this.typedMentionSearch.set(null);
-        this.typedMentionIndex.set(0);
-    }
-
-    /** Closes the mention picker when clicking outside its wrapper. */
-    @HostListener('document:click', ['$event'])
-    protected onMentionOutsideClick(event: MouseEvent): void {
-        if (!this.showMentionPicker()) return;
-        const wrapper = this.mentionWrapper?.nativeElement;
-        if (wrapper?.contains(event.target as Node)) return;
-        this.showMentionPicker.set(false);
-    }
-
-    /** Inserts a mention selected from the thread mention picker. */
-    protected insertPickerMention(item: MentionItem): void {
-        const editor = this.replyEditor?.nativeElement;
-        if (!editor) return;
-        const range = this.mentionButtonRange?.cloneRange() ?? document.createRange();
-        if (!this.mentionButtonRange) {
-            range.selectNodeContents(editor);
-            range.collapse(false);
-        }
-        this.insertMentionAtRange(range, item);
-        this.mentionButtonRange = null;
-        this.showMentionPicker.set(false);
-    }
-
-    /** Scrolls to the newest thread message after the thread view is rendered. */
-    public ngAfterViewInit(): void {
-        requestAnimationFrame(() => this.scrollToBottom());
-    }
-
-    /** Scrolls the thread message area to its bottom position. */
-    private scrollToBottom(): void {
-        const messageContainer = this.threadMessages?.nativeElement;
-
-        if (!messageContainer) {
-            return;
-        }
-
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-    }
-
-    /** Toggles the edit menu of an own thread message. */
-    protected toggleEditMenu(messageId: string): void {
-        this.openEditMenuId.update((currentId) =>
-            currentId === messageId ? null : messageId
-        );
-    }
-
-    /** Schedules closing the edit menu after the cursor leaves its area. */
-    protected scheduleEditMenuClose(): void {
-        this.editMenuCloseTimeout = setTimeout(() => {
-            this.openEditMenuId.set(null);
-        }, 150);
-    }
-
-    /** Keeps the edit menu open while the cursor is inside it. */
-    protected cancelEditMenuClose(): void {
-        if (this.editMenuCloseTimeout) {
-            clearTimeout(this.editMenuCloseTimeout);
-            this.editMenuCloseTimeout = undefined;
-        }
-    }
-
-    /** Closes the edit menu of an own thread message. */
-    protected closeEditMenu(): void {
-        this.cancelEditMenuClose();
-        this.openEditMenuId.set(null);
-    }
-
-    /** Requests the selected user's profile. */
-    protected requestUserProfile(userId: string): void {
-        this.userProfileRequested.emit(userId);
-    }
-
-    /** Sends the reply currently entered in the contenteditable editor. */
-    protected async sendReply(): Promise<void> {
-        const editor = this.replyEditor?.nativeElement;
-        const replyText = editor?.textContent?.trim();
-
-        if (!replyText) {
-            return;
-        }
-
-        const currentUser = this.authService.currentUser();
-        if (!currentUser) {
-            return;
-        }
-
-        await this.repliesService.sendReply(this.channelId, this.parentMessage.id, {
-            senderId: currentUser.uid,
-            senderName: currentUser.name,
-            senderImageUrl: currentUser.avatarUrl,
-            text: replyText,
+    /** Watches thread replies and updates the scroll position. */
+    constructor() {
+        effect(() => {
+            const replies = this.repliesService.replies();
+            this.messageScroll.handleReplies(this.channelId, this.parentMessage.id, replies.at(-1)?.id);
         });
-
-        if (editor) {
-            editor.innerHTML = '';
-        }
-
-        requestAnimationFrame(() => this.scrollToBottom());
     }
 
-    public ngOnInit(): void {
+    /** Loads replies when the thread opens. */
+    ngOnInit(): void {
         this.repliesService.loadReplies(this.channelId, this.parentMessage.id);
     }
 
-    public ngOnDestroy(): void {
+    /** Scrolls to the newest reply after rendering. */
+    ngAfterViewInit(): void {
+        this.messageScroll.scheduleBottomScroll();
+    }
+
+    /** Reloads replies when another parent message is selected. */
+    ngOnChanges(changes: SimpleChanges): void {
+        const parentChange = changes['parentMessage'];
+        if (!parentChange || parentChange.firstChange) return;
+        this.closeEditMenu();
+        this.cancelEditReply();
         this.repliesService.stopListening();
+        this.repliesService.loadReplies(this.channelId, this.parentMessage.id);
+        this.messageScroll.scheduleBottomScroll();
+    }
+
+    /** Stops listening and cancels pending UI timers. */
+    ngOnDestroy(): void {
+        this.messageMenu.cancelClose();
+        this.emojiPicker.destroy();
+        this.repliesService.stopListening();
+    }
+
+    /** Focuses the thread reply editor. */
+    public focusReplyInput(): void { this.replyEditor?.nativeElement.focus(); }
+
+    /** Returns people for the mention picker. */
+    protected get mentionPeople() { return createMentionPeople(this.authService.allUsers()); }
+
+    /** Returns channels for the mention picker. */
+    protected get mentionChannels() { return createMentionChannels(this.chatModel.channels()); }
+
+    /** Returns thread replies prepared for display. */
+    protected get replies(): ThreadMessage[] {
+        const currentUserId = this.authService.currentUser()?.uid;
+        return this.repliesService.replies().map((reply) => mapThreadReply(reply, currentUserId));
+    }
+
+    /** Returns parent message reactions prepared for display. */
+    protected get parentReactions(): ThreadReaction[] {
+        const currentUserId = this.authService.currentUser()?.uid;
+        return mapThreadReactions(this.liveParentMessage.reactions ?? [], currentUserId);
+    }
+
+    /** Returns the current live version of the thread parent message. */
+    protected get liveParentMessage(): ChatMessage {
+        return this.chatMessages.messages().find((message) => message.id === this.parentMessage.id) ?? this.parentMessage;
+    }
+
+    /** Checks whether the parent message belongs to the current user. */
+    protected isOwnParentMessage(): boolean {
+        return this.liveParentMessage.senderId === this.authService.currentUser()?.uid;
+    }
+
+    /** Requests the selected user's profile. */
+    protected requestUserProfile(userId: string): void { this.userProfileRequested.emit(userId); }
+
+    /** Toggles the thread message options menu. */
+    protected toggleEditMenu(messageId: string): void { this.messageMenu.toggle(messageId); }
+
+    /** Schedules the message menu to close. */
+    protected scheduleEditMenuClose(): void { this.messageMenu.scheduleClose(); }
+
+    /** Cancels the scheduled message menu close. */
+    protected cancelEditMenuClose(): void { this.messageMenu.cancelClose(); }
+
+    /** Closes the message menu and its delete confirmation. */
+    protected closeEditMenu(): void { this.messageMenu.close(); }
+
+    /** Checks whether the parent message is being edited. */
+    protected isEditingParentMessage(): boolean { return this.messageEdit.isParent(this.parentMessage.id); }
+
+    /** Starts editing the parent message. */
+    protected startEditParentMessage(): void {
+        if (!this.isOwnParentMessage()) return;
+        this.messageEdit.startParent(this.liveParentMessage);
+        this.closeEditMenu();
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Saves the edited parent message. */
+    protected async saveEditParentMessage(): Promise<void> {
+        if (!this.isOwnParentMessage()) return;
+        await this.messageEdit.saveParent(this.channelId, this.liveParentMessage);
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Checks whether the selected reply is being edited. */
+    protected isEditingReply(replyId: string): boolean { return this.messageEdit.isReply(replyId); }
+
+    /** Starts editing the selected reply. */
+    protected startEditReply(reply: ThreadMessage): void {
+        this.messageEdit.startReply(reply);
+        this.closeEditMenu();
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Cancels editing the current thread message. */
+    protected cancelEditReply(): void {
+        this.messageEdit.cancel();
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Appends an emoji to the edited message. */
+    protected addEmojiToEditReply(emoji: string): void {
+        this.messageEdit.addEmoji(emoji);
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Updates the current thread edit text. */
+    protected onEditReplyInput(event: Event): void {
+        this.messageEdit.setText((event.target as HTMLTextAreaElement).value);
+    }
+
+    /** Saves the edited reply. */
+    protected async saveEditReply(reply: ThreadMessage): Promise<void> {
+        await this.messageEdit.saveReply(this.channelId, this.parentMessage.id, reply);
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Opens the delete confirmation for a reply. */
+    protected requestDeleteReply(replyId: string): void { this.messageMenu.requestDelete(replyId); }
+
+    /** Cancels the current reply deletion. */
+    protected cancelDeleteReply(): void { this.messageMenu.cancelDelete(); }
+
+    /** Checks whether the reply delete confirmation is open. */
+    protected isDeleteReplyConfirmOpen(replyId: string): boolean { return this.messageMenu.isDeleteOpen(replyId); }
+
+    /** Deletes the selected thread reply. */
+    protected async deleteReply(replyId: string): Promise<void> {
+        await this.repliesService.deleteReply(this.channelId, this.parentMessage.id, replyId);
+        this.closeEditMenu();
+    }
+
+    /** Removes empty markup and updates mention suggestions. */
+    protected handleEditorInput(event: Event): void { this.composer.handleEditorInput(event); }
+
+    /** Updates mention suggestions from the current reply cursor. */
+    protected updateTypedMentionSearch(): void { this.composer.updateTypedMentionSearch(); }
+
+    /** Closes the typed mention suggestions. */
+    protected closeTypedMentionSearch(): void { this.composer.closeTypedMentionSearch(); }
+
+    /** Inserts a selected typed mention. */
+    protected insertTypedMention(item: MentionItem): void { this.composer.insertTypedMention(item); }
+
+    /** Handles keyboard input and sending replies. */
+    protected onReplyEditorKeydown(event: KeyboardEvent): void {
+        this.composer.handleKeydown(event, () => { void this.sendReply(); });
+    }
+
+    /** Saves the reply cursor before the mention button takes focus. */
+    protected saveMentionButtonCursor(): void { this.composer.saveMentionButtonCursor(); }
+
+    /** Saves the reply cursor before the emoji button takes focus. */
+    protected saveEmojiButtonCursor(): void { this.composer.saveEmojiButtonCursor(); }
+
+    /** Inserts an emoji at the saved reply cursor. */
+    protected insertReplyEmoji(emoji: string): void {
+        this.composer.insertReplyEmoji(emoji);
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Inserts a mention chosen from the picker. */
+    protected insertPickerMention(item: MentionItem): void {
+        this.composer.insertPickerMention(item);
+        this.showMentionPicker.set(false);
+    }
+
+    /** Toggles the mention picker for the thread editor. */
+    protected toggleMentionPicker(): void {
+        this.showMentionPicker.update((open) => !open);
+        this.showEmojiPicker.set(false);
+        this.closeTypedMentionSearch();
+    }
+
+    /** Switches the shared emoji picker to another target. */
+    private switchEmojiPickerTarget(target: ThreadEmojiTarget, replyId: string | null = null): void {
+        this.emojiPicker.switch(target, replyId);
+    }
+
+    /** Toggles the emoji picker for the thread input. */
+    protected toggleEmojiPicker(): void {
+        this.showMentionPicker.set(false);
+        this.closeTypedMentionSearch();
+        this.switchEmojiPickerTarget('input');
+    }
+
+    /** Toggles the emoji picker for the parent reaction. */
+    protected toggleParentReactionPicker(): void { this.switchEmojiPickerTarget('parent-reaction'); }
+
+    /** Toggles the emoji picker for a reply reaction. */
+    protected toggleReplyReactionPicker(replyId: string): void {
+        this.switchEmojiPickerTarget('reply-reaction', replyId);
+    }
+
+    /** Toggles the emoji picker for the edited message. */
+    protected toggleEditReplyEmojiPicker(): void { this.switchEmojiPickerTarget('edit'); }
+
+    /** Toggles the current user's reaction on the parent message. */
+    protected async toggleParentReaction(icon: string): Promise<void> {
+        const currentUser = this.authService.currentUser();
+        if (!currentUser) return;
+        await this.chatMessages.toggleReaction(this.channelId, this.liveParentMessage.id, icon, {
+            uid: currentUser.uid, name: currentUser.name
+        });
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Toggles the current user's reaction on a thread reply. */
+    protected async toggleReplyReaction(replyId: string, icon: string): Promise<void> {
+        const currentUser = this.authService.currentUser();
+        if (!currentUser) return;
+        await this.repliesService.toggleReaction(this.channelId, this.parentMessage.id, replyId, icon, {
+            uid: currentUser.uid, name: currentUser.name
+        });
+    }
+
+    /** Handles the emoji selected from the shared picker. */
+    protected async handleEmojiSelected(emoji: string): Promise<void> {
+        if (this.emojiPickerTarget() === 'parent-reaction') await this.toggleParentReaction(emoji);
+        else if (this.emojiPickerTarget() === 'reply-reaction') await this.applyReplyReactionEmoji(emoji);
+        else if (this.emojiPickerTarget() === 'edit') this.addEmojiToEditReply(emoji);
+        else this.insertReplyEmoji(emoji);
+        this.showEmojiPicker.set(false);
+    }
+
+    /** Adds the selected emoji to the targeted reply reaction. */
+    private async applyReplyReactionEmoji(emoji: string): Promise<void> {
+        const replyId = this.emojiReactionReplyId();
+        if (!replyId) return;
+        await this.toggleReplyReaction(replyId, emoji);
+        this.emojiReactionReplyId.set(null);
+    }
+
+    /** Sends the reply currently entered in the editor. */
+    protected async sendReply(): Promise<void> {
+        const replyText = this.composer.getReplyText();
+        if (!replyText) return;
+        const currentUser = this.authService.currentUser();
+        if (!currentUser) return;
+        await this.repliesService.sendReply(this.channelId, this.parentMessage.id, {
+            senderId: currentUser.uid, senderName: currentUser.name,
+            senderImageUrl: currentUser.avatarUrl, text: replyText
+        });
+        this.composer.clearReply();
+        this.messageScroll.scheduleBottomScroll();
+    }
+
+    /** Closes open thread controls when clicking outside them. */
+    @HostListener('document:click', ['$event'])
+    protected onDocumentClick(event: MouseEvent): void {
+        const target = event.target as Element;
+        const insideMention = this.mentionWrapper?.nativeElement.contains(target);
+        if (this.showMentionPicker() && !insideMention) this.showMentionPicker.set(false);
+        const insideEmoji = target.closest(
+            '.thread-input__emoji, .thread-input-emoji-picker, .thread-message__add-reaction, ' +
+            '.thread-message__hover-action--reaction, .thread-message__edit-emoji'
+        );
+        if (this.showEmojiPicker() && !insideEmoji) this.showEmojiPicker.set(false);
+        const insideEdit = target.closest('.thread-message__edit-box, .thread-message__edit-menu-wrapper');
+        const insideEditEmoji = this.emojiPickerTarget() === 'edit' && !!target.closest('.thread-input-emoji-picker');
+        if (this.editingReplyId() && !insideEdit && !insideEditEmoji) this.cancelEditReply();
+        const insideMenu = target.closest('.thread-message__edit-menu-wrapper');
+        if (this.openEditMenuId() && !insideMenu) this.closeEditMenu();
     }
 }

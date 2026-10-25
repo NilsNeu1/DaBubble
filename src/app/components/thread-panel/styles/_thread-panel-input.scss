@@ -1,0 +1,113 @@
+@use './thread-panel-icon' as *;
+
+.thread-input {
+    --thread-input-side-margin: 20px;
+    position: relative;
+    box-sizing: border-box;
+    width: calc(100% - 40px);
+    max-width: calc(100% - 40px);
+    min-width: 0;
+    flex-shrink: 0;
+    min-height: 104px;
+    margin: 0 20px 20px;
+    border: 2px solid #adb0d9;
+    border-radius: 20px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease;
+
+    &:hover {
+        border-color: #535bf1a1;
+    }
+
+    &:focus-within {
+        border-color: #444df2;
+    }
+
+    &__editor {
+        display: block;
+        box-sizing: border-box;
+        width: calc(100% - 28px);
+        max-width: calc(100% - 28px);
+        min-width: 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        min-height: 20px;
+        max-height: 200px;
+        margin: 14px;
+        overflow-y: auto;
+        color: #000000;
+        font-size: 16px;
+        line-height: 1.4;
+        outline: none;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        &:empty::before {
+            color: #686868;
+            content: attr(data-placeholder);
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        &:focus:empty::before {
+            color: rgba(104, 104, 104, 0.6);
+        }
+
+        .mention-pill {
+            color: #444DF2;
+            font-weight: 500;
+            user-select: none;
+            white-space: nowrap;
+            background-color: rgba(68, 77, 242, 0.1);
+            border-radius: 4px;
+            padding: 1px 4px;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px 12px;
+    }
+
+    &__features {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__emoji {
+        @include icon('/assets/emotes.svg', 40px, 8px);
+
+        &:hover {
+            color: #444df2;
+            border-radius: 20px;
+            background-color: #444df224;
+        }
+    }
+
+    &__mention {
+        @include icon('/assets/mention.svg', 40px, 8px);
+
+        &:hover {
+            color: #444df2;
+            border-radius: 20px;
+            background-color: #444df224;
+        }
+    }
+
+    &__send {
+        @include icon('/assets/send.svg', 40px, 6px);
+        color: #535af1;
+
+        &:hover {
+            color: #797ef3;
+        }
+    }
+}
