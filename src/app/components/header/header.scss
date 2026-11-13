@@ -7,3 +7,15 @@
 @use 'styles/responsive';
 @use 'styles/animations';
 @use 'styles/utilities';
+
+
+.app-header__user-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.app-header__user-menu-overlay .app-header__user-dialog {
+    display: block;
+}

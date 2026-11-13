@@ -1,7 +1,6 @@
 import {
   Component,
   computed,
-  effect,
   ElementRef,
   HostListener,
   inject,
@@ -10,10 +9,7 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
-import {
-  Router,
-  RouterLink
-} from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { ProfileDialog } from '../profile-dialog/profile-dialog';
 import {
@@ -33,86 +29,50 @@ export class Header {
   private readonly router = inject(Router);
   private readonly headerSearch = inject(HeaderSearch);
 
-  /** Provides the currently authenticated user. */
   protected readonly currentUser = this.authService.currentUser;
 
-  /** References the native user menu dialog. */
-  @ViewChild('userDialog')
-  private userDialog!: ElementRef<HTMLDialogElement>;
+  @ViewChild('userMenu')
+  private userMenu?: ElementRef<HTMLDivElement>;
 
-  /** References the profile dialog component. */
   @ViewChild('profileDialogComponent')
   private profileDialogComponent!: ProfileDialog;
 
-  /** References the desktop workspace search results. */
   @ViewChild('desktopSearchResults')
   private desktopSearchResults?: ElementRef<HTMLDivElement>;
 
-  /** Defines where the header is displayed. */
   public readonly mode = input<'workspace' | 'legal'>('workspace');
-
-  /** Indicates whether a mobile chat view is active. */
   public readonly isMobileChatView = input(false);
-
-  /** Emits when the mobile back button is selected. */
   public readonly mobileBackRequested = output<void>();
-
-  /** Emits the selected user ID from the workspace search. */
   public readonly userProfileRequested = output<string>();
 
-  /** Emits the selected channel from the workspace search. */
   public readonly channelRequested = output<{
     channelId: string;
     channelName: string;
   }>();
 
-  /** Emits the selected message location from the workspace search. */
   public readonly messageRequested = output<{
     channelId: string;
     messageId: string;
     directMessageUserId?: string;
   }>();
 
-  /** Defines the breakpoint for the mobile user menu. */
-  private readonly mobileBreakpoint = '(max-width: 1024px)';
-
-  /** Tracks whether the user menu is open. */
   protected readonly isUserMenuOpen = signal(false);
-
-  /** Tracks whether the mobile menu is closing. */
-  protected readonly isUserMenuClosing = signal(false);
-
-  /** Tracks whether the profile should open after closing the user menu. */
-  private readonly shouldOpenProfile = signal(false);
-
-  /** Tracks whether the workspace search suggestions may be shown. */
   private readonly isWorkspaceSearchOpen = signal(false);
-
-  /** Tracks the selected workspace search result for keyboard navigation. */
   protected readonly selectedWorkspaceSearchIndex = signal(0);
-
-  /** Provides the current workspace search value. */
   protected readonly workspaceSearchTerm = this.headerSearch.searchTerm;
+  protected readonly workspaceSearchSuggestions = this.headerSearch.suggestions;
 
-  /** Provides matching workspace search suggestions. */
-  protected readonly workspaceSearchSuggestions =
-    this.headerSearch.suggestions;
-
-  /** Indicates whether search suggestions are available. */
   protected readonly isSearchSuggestionListOpen = computed(
-    () =>
-      this.isWorkspaceSearchOpen() &&
+    () => this.isWorkspaceSearchOpen() &&
       this.workspaceSearchSuggestions().length > 0
   );
 
-  /** Indicates whether the mobile search view is active. */
-  protected readonly isMobileSearchActive =
-    this.headerSearch.isMobileActive;
+  protected readonly isMobileSearchActive = this.headerSearch.isMobileActive;
 
-  /** Closes the user menu before opening the profile dialog. */
+  /** Closes the user menu and opens the current user's profile. */
   protected openProfileFromUserMenu(): void {
-    this.shouldOpenProfile.set(true);
     this.closeUserMenu();
+    this.openProfileDialog();
   }
 
   /** Requests returning to the mobile workspace menu. */
@@ -121,18 +81,14 @@ export class Header {
   }
 
   /** Handles selecting a workspace search result. */
-  protected selectWorkspaceSearchResult(
-    result: WorkspaceSearchResult
-  ): void {
+  protected selectWorkspaceSearchResult(result: WorkspaceSearchResult): void {
     this.emitWorkspaceSearchResult(result);
     this.clearWorkspaceSearch();
     this.isWorkspaceSearchOpen.set(false);
   }
 
   /** Emits the matching event for one workspace search result. */
-  private emitWorkspaceSearchResult(
-    result: WorkspaceSearchResult
-  ): void {
+  private emitWorkspaceSearchResult(result: WorkspaceSearchResult): void {
     if (result.type === 'user') {
       this.emitUserSearchResult(result);
       return;
@@ -145,16 +101,12 @@ export class Header {
   }
 
   /** Emits the selected user search result. */
-  private emitUserSearchResult(
-    result: WorkspaceSearchResult
-  ): void {
+  private emitUserSearchResult(result: WorkspaceSearchResult): void {
     this.userProfileRequested.emit(result.id);
   }
 
   /** Emits the selected channel search result. */
-  private emitChannelSearchResult(
-    result: WorkspaceSearchResult
-  ): void {
+  private emitChannelSearchResult(result: WorkspaceSearchResult): void {
     this.channelRequested.emit({
       channelId: result.id,
       channelName: result.label,
@@ -162,9 +114,7 @@ export class Header {
   }
 
   /** Emits the selected message result when its location is valid. */
-  private emitMessageSearchResult(
-    result: WorkspaceSearchResult
-  ): void {
+  private emitMessageSearchResult(result: WorkspaceSearchResult): void {
     if (!result.channelId || !result.messageId) return;
     this.messageRequested.emit({
       channelId: result.channelId,
@@ -175,9 +125,28 @@ export class Header {
 
   /** Opens or closes the user menu. */
   protected toggleUserMenu(): void {
-    this.isUserMenuOpen()
-      ? this.closeUserMenu()
-      : this.openUserMenu();
+    if (this.isUserMenuOpen()) {
+      this.closeUserMenu();
+      return;
+    }
+    this.openUserMenu();
+  }
+
+  /** Opens the user menu and focuses its content. */
+  protected openUserMenu(): void {
+    this.isUserMenuOpen.set(true);
+    requestAnimationFrame(() => this.userMenu?.nativeElement.focus());
+  }
+
+  /** Closes the user menu immediately. */
+  protected closeUserMenu(): void {
+    this.isUserMenuOpen.set(false);
+  }
+
+  /** Closes the user menu when Escape is pressed. */
+  @HostListener('document:keydown.escape')
+  protected closeUserMenuOnEscape(): void {
+    if (this.isUserMenuOpen()) this.closeUserMenu();
   }
 
   /** Updates the shared workspace search value. */
@@ -187,19 +156,17 @@ export class Header {
     this.isWorkspaceSearchOpen.set(true);
   }
 
-  /** Reopens the workspace search suggestions when the search receives focus. */
+  /** Reopens workspace suggestions when search receives focus. */
   protected openWorkspaceSearchSuggestions(): void {
     this.isWorkspaceSearchOpen.set(true);
   }
 
-  /** Closes workspace search suggestions after clicking outside the search. */
+  /** Closes workspace suggestions after clicking outside search. */
   @HostListener('document:click', ['$event'])
   protected closeWorkspaceSearchSuggestions(event: MouseEvent): void {
     const target = event.target;
-
     if (!(target instanceof Element)) return;
     if (target.closest('.app-header__search')) return;
-
     this.isWorkspaceSearchOpen.set(false);
   }
 
@@ -209,7 +176,7 @@ export class Header {
     this.selectedWorkspaceSearchIndex.set(0);
   }
 
-  /** Handles keyboard navigation in the workspace search. */
+  /** Handles keyboard navigation in workspace search. */
   protected onWorkspaceSearchKeydown(event: KeyboardEvent): void {
     const suggestions = this.workspaceSearchSuggestions();
     if (!this.isSearchSuggestionListOpen() || !suggestions.length || event.isComposing) return;
@@ -240,67 +207,7 @@ export class Header {
     [index]?.scrollIntoView({ block: 'nearest' });
   }
 
-  /** Opens the user menu as a modal dialog. */
-  protected openUserMenu(): void {
-    this.isUserMenuClosing.set(false);
-    this.userDialog.nativeElement.showModal();
-    this.isUserMenuOpen.set(true);
-  }
-
-  /** Starts the mobile exit animation or closes directly. */
-  protected closeUserMenu(): void {
-    if (this.isMobileViewport()) {
-      this.isUserMenuClosing.set(true);
-      return;
-    }
-    this.finishUserMenuClose();
-  }
-
-  /** Closes the dialog after the exit animation. */
-  protected handleUserMenuAnimationEnd(
-    event: AnimationEvent
-  ): void {
-    if (!this.isUserMenuClosing()) return;
-    if (event.target !== this.userDialog.nativeElement) return;
-    this.finishUserMenuClose();
-  }
-
-  /** Handles closing the dialog with Escape. */
-  protected handleUserMenuCancel(event: Event): void {
-    event.preventDefault();
-    this.closeUserMenu();
-  }
-
-  /** Resets the menu state and opens a pending profile dialog. */
-  protected handleUserMenuClosed(): void {
-    this.isUserMenuOpen.set(false);
-    this.isUserMenuClosing.set(false);
-    this.openPendingProfile();
-  }
-
-  /** Closes the menu when the backdrop is clicked. */
-  protected closeUserMenuFromBackdrop(
-    event: MouseEvent
-  ): void {
-    if (event.target === this.userDialog.nativeElement) {
-      this.closeUserMenu();
-    }
-  }
-
-  /** Finishes closing the native dialog. */
-  private finishUserMenuClose(): void {
-    const dialog = this.userDialog.nativeElement;
-    if (dialog.open) dialog.close();
-    this.isUserMenuOpen.set(false);
-    this.isUserMenuClosing.set(false);
-  }
-
-  /** Checks whether the mobile layout is active. */
-  private isMobileViewport(): boolean {
-    return window.matchMedia(this.mobileBreakpoint).matches;
-  }
-
-  /** Logs the current user out and redirects to the login page. */
+  /** Logs the current user out and redirects to login. */
   protected async logout(): Promise<void> {
     this.closeUserMenu();
     await this.authService.logout();
@@ -309,13 +216,6 @@ export class Header {
 
   /** Opens the current user's profile dialog. */
   public openProfileDialog(): void {
-    this.profileDialogComponent.openProfileDialog();
-  }
-
-  /** Opens the profile after the user menu has fully closed. */
-  private openPendingProfile(): void {
-    if (!this.shouldOpenProfile()) return;
-    this.shouldOpenProfile.set(false);
     this.profileDialogComponent.openProfileDialog();
   }
 }
