@@ -155,6 +155,27 @@ export class ProfileDialog {
     return fullName.length > 0 && fullName !== this.profileName();
   }
 
+    /** Checks whether another user already uses the entered profile name. */
+  protected isProfileNameTaken(): boolean {
+    const enteredName = this.normalizeProfileName(
+      this.profileForm.controls.fullName.value
+    );
+    if (!enteredName) return false;
+    const currentUserId = this.currentUser()?.uid;
+    return this.authService
+      .allUsers()
+      .some(
+        (user) =>
+          user.uid !== currentUserId &&
+          this.normalizeProfileName(user.name) === enteredName
+      );
+  }
+
+  /** Normalizes a profile name for case-insensitive comparison. */
+  private normalizeProfileName(profileName: string): string {
+    return profileName.trim().toLocaleLowerCase('de');
+  }
+
   /** Checks whether the profile edit contains any changes. */
   protected hasProfileChanges(): boolean {
     return (
@@ -163,9 +184,13 @@ export class ProfileDialog {
     );
   }
 
-  /** Checks whether the current profile changes can be saved. */
+   /** Checks whether the current profile changes can be saved. */
   protected canSaveProfile(): boolean {
-    return this.profileForm.valid && this.hasProfileChanges();
+    return (
+      this.profileForm.valid &&
+      this.hasProfileChanges() &&
+      !this.isProfileNameTaken()
+    );
   }
 
   /** Saves only the changed profile fields to Firebase. */

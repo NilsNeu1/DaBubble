@@ -88,6 +88,9 @@
                     Bitte gib einen Namen ein.
                 </p>
                 }
+                @if (isProfileNameTaken()) {
+                <p class="profile-error" role="alert">Dieser Name ist bereits vergeben.</p>
+                }
             </div>
 
             <div class="profile-dialog__actions">

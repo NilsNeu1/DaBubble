@@ -1,5 +1,5 @@
 
-import { effect, inject, Injectable, signal, untracked } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import {
   User as FirebaseUser,
   UserCredential,
@@ -44,6 +44,14 @@ export class Auth {
   readonly allUsers = signal<AppUser[]>([]);
   readonly authReady = signal(false);
   readonly ready: Promise<void>;
+
+  /** Provides all known users indexed by their uid. */
+  readonly usersById = computed(
+    () =>
+      new Map<string, AppUser>(
+        this.allUsers().map((user): [string, AppUser] => [user.uid, user])
+      )
+  );
 
   private unsubscribeCurrentUser?: Unsubscribe;
   private unsubscribeAllUsers?: Unsubscribe;

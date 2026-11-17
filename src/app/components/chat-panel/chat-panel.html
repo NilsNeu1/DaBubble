@@ -19,7 +19,7 @@
                 [class.menu-active]="isMessageMenuOpen(message.id)" (mouseenter)="onMessageHover(message.id)">
                 <div class="autor-img" role="button" tabindex="0" (click)="requestUserProfile(message.senderId)"
                     (keydown.enter)="requestUserProfile(message.senderId)">
-                    <img [src]="message.senderImageUrl" [alt]="message.senderName">
+                    <img [src]="getSenderAvatarUrl(message)" [alt]="getSenderName(message)">
                 </div>
                 <div class="msg-content">
 
@@ -28,7 +28,7 @@
                             <span class="autor-name" role="button" tabindex="0"
                                 (click)="requestUserProfile(message.senderId)"
                                 (keydown.enter)="requestUserProfile(message.senderId)">
-                                {{ message.senderName }}
+                                {{ getSenderName(message) }}
                             </span>
                             <span class="msg-timestamp">{{ message.timestamp | date:'HH:mm'}}</span>
                         </div>

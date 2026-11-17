@@ -86,6 +86,7 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
   private readonly emojiPickerTarget = this.messageEmojiPicker.target;
   private readonly emojiReactionMessageId = this.messageEmojiPicker.reactionMessageId;
 
+
   /** Watches message changes and updates the scroll position. */
   constructor() {
     effect(() => this.messageScroll.handle(this.chatMessages.messages(), this.requestedMessageId(), this.channelId));
@@ -142,6 +143,19 @@ export class ChatPanel implements OnInit, OnDestroy, OnChanges {
 
   /** Requests the selected user's profile. */
   protected requestUserProfile(userId: string): void { this.userProfileRequested.emit(userId); }
+
+  /** Resolves the current display name of a message sender. */
+  protected getSenderName(message: ChatMessage): string {
+    return this.auth.usersById().get(message.senderId)?.name ?? message.senderName;
+  }
+
+  /** Resolves the current avatar of a message sender. */
+  protected getSenderAvatarUrl(message: ChatMessage): string {
+    return (
+      this.auth.usersById().get(message.senderId)?.avatarUrl ??
+      message.senderImageUrl
+    );
+  }
 
   /** Opens the requested message thread. */
   openThread(message: ChatMessage): void { this.threadRequested.emit(message); }
