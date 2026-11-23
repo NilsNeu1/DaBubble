@@ -2,7 +2,7 @@ import { Component, Input, EventEmitter, Output, inject } from '@angular/core';
 import { Auth } from '../../core/services/auth';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { doc, updateDoc, addDoc, collection, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, getDoc, getDocs } from 'firebase/firestore';
 import { firestore } from '../../core/firebase.config';
 import { HostListener } from '@angular/core';
 import { ChatModel } from '../../core/chat.model';
@@ -19,6 +19,7 @@ export class CreateChannel {
   isAddingMembers: boolean = false;
   channelName: string = '';
   channelDescription: string = '';
+  channelNameError: string = '';
 
   @Input() isOverlayOpen: boolean = false;
   @Output() close = new EventEmitter<void>();
@@ -84,6 +85,7 @@ export class CreateChannel {
     this.close.emit();
     this.channelName = '';
     this.channelDescription = '';
+    this.channelNameError = '';
     this.isChecked = 'existing';
     this.members = [];
     this.existingMembers = [];
@@ -134,8 +136,31 @@ export class CreateChannel {
     return documentReference.id;
   }
 
-  /** Opens member selection and loads the first available channel's members. */
+    /** Normalizes a channel name for case-insensitive comparison. */
+  private normalizeChannelName(channelName: string): string {
+    return channelName.trim().toLocaleLowerCase('de');
+  }
+
+  /** Checks whether any channel in Firestore already uses the given name. */
+  private async isChannelNameTaken(channelName: string): Promise<boolean> {
+    const normalizedName = this.normalizeChannelName(channelName);
+    const channelSnapshot = await getDocs(collection(firestore, 'chats'));
+    return channelSnapshot.docs.some((channelDoc) => {
+      const storedName: unknown = channelDoc.get('channelName');
+      return (
+        typeof storedName === 'string' &&
+        this.normalizeChannelName(storedName) === normalizedName
+      );
+    });
+  }
+
+  /** Validates the channel name, then opens member selection with the first channel's members. */
   async toAddMembers() {
+    if (await this.isChannelNameTaken(this.channelName)) {
+      this.channelNameError = 'Dieser Channel-Name ist bereits vergeben.';
+      return;
+    }
+    this.channelNameError = '';
     this.getFirstChannel();
     await this.getMembersFromChannel(this.topChannelID);
     this.isAddMembersOpen = true;

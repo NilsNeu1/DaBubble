@@ -21,6 +21,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   setDoc,
   Unsubscribe,
@@ -370,4 +371,21 @@ export class Auth {
       this.currentUser.set(user);
     });
   }
+
+  /** Normalizes a channel name for case-insensitive comparison. */
+  private normalizeChannelName(channelName: string): string {
+    return channelName.trim().toLocaleLowerCase('de');
+  }
+
+  /** Checks whether any channel already uses the given name. */
+  async isChannelNameTaken(channelName: string): Promise<boolean> {
+    const normalizedName = this.normalizeChannelName(channelName);
+    const channelSnapshot = await getDocs(collection(firestore, 'chats'));
+    return channelSnapshot.docs.some(
+      (channelDoc) =>
+        this.normalizeChannelName(String(channelDoc.get('channelName') ?? '')) ===
+        normalizedName
+    );
+  }
+
 }

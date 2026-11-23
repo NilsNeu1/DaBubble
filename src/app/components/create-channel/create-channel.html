@@ -11,8 +11,13 @@
         <article class="overlay-body">
             <div class="overlay-input">
                 <label class="label-style" for="channel-name">Channel-Name</label>
-                <input [(ngModel)]="channelName" type="text" id="channel-name" name="channel-name" autocomplete="off"
-                    placeholder="# z.B. Kooperationsprojekte">
+                <input [(ngModel)]="channelName" (ngModelChange)="channelName = $event; channelNameError = ''"
+                    type="text" id="channel-name" name="channel-name" autocomplete="off"
+                    placeholder="# z.B. Kooperationsprojekte"
+                    [attr.aria-describedby]="channelNameError ? 'channel-name-error' : null">
+                @if (channelNameError) {
+                <p id="channel-name-error" class="channel-name-error" role="alert">{{ channelNameError }}</p>
+                }
             </div>
             <div class="overlay-input">
                 <label class="label-style" for="channel-description">Beschreibung <p>(optional)</p></label>
@@ -53,7 +58,8 @@
                     <input id="SelctUser" type="text" placeholder="Name eingeben" autocomplete="off"
                         [(ngModel)]="selectedUser" (ngModelChange)="selectedUser = $event; filterUsers()">
                 </div>
-                <div class="drop-down-container" [class.dnone]="selectedUser.trim() === '' || dropDownUsers.length === 0">
+                <div class="drop-down-container"
+                    [class.dnone]="selectedUser.trim() === '' || dropDownUsers.length === 0">
                     <div *ngFor="let user of dropDownUsers" (click)="selectUser(user)" class="drop-down-item"><img
                             [src]="user.avatarUrl" alt="User"><span>{{ user.name }}</span></div>
                 </div>
